@@ -3,35 +3,38 @@
     {
       "url": "/",
       "name": "Home",
-      "icon": "menu-icon tf-icons bx bx-home-smile",
-      "slug": "pages-home"
+      "icon": "menu-icon tf-icons bx bx-home-circle",
+      "slug": "home"
     },
     {
-      "url": "/page-2",
-      "icon": "menu-icon tf-icons bx bx-file",
-      "name": "Page 2",
-      "slug": "pages-page-2"
+      "url": "/dashboard/clientes",
+      "name": "Clientes",
+      "icon": "menu-icon tf-icons bx bx-group",
+      "slug": "clientes"
     },
     {
-      "url": "/pages/misc-error",
-      "name": "Error",
-      "icon": "menu-icon tf-icons bx bx-error",
-      "slug": "pages-misc-error",
-      "target": "_blank"
+      "url": "/dashboard/produtos",
+      "name": "Produtos",
+      "icon": "menu-icon tf-icons bx bx-box",
+      "slug": "produtos"
     },
     {
-      "url": "/auth/login-basic",
-      "name": "Login",
-      "icon": "menu-icon tf-icons bx bx-log-in",
-      "slug": "auth-login-basic",
-      "target": "_blank"
-    },
-    {
-      "url": "/auth/register-basic",
-      "name": "Register",
-      "icon": "menu-icon tf-icons bx bx-user",
-      "slug": "auth-register-basic",
-      "target": "_blank"
+      "url": "/dashboard/oss",
+      "name": "Ordens de Serviço",
+      "icon": "menu-icon tf-icons bx bx-wrench",
+      "slug": "ordens-servico",
+      "submenu": [
+        {
+          "url": "/dashboard/oss/ordens-servico",
+          "name": "Ordens de Serviço",
+          "slug": "ordens-servico-list"
+        },
+        {
+          "url": "/dashboard/oss/ordens-equipamentos",
+          "name": "Ordens de Equipamentos",
+          "slug": "ordens-equipamentos-list"
+        }
+      ]
     }
   ]
 }

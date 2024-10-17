@@ -10,7 +10,7 @@ class CreateReviewsTable extends Migration
   {
       Schema::create('reviews', function (Blueprint $table) {
           $table->id();
-          $table->string('google_review_id')->unique(); // Usando o tempo como identificador único
+          // $table->string('google_review_id')->unique(); // Usando o tempo como identificador único
           $table->string('google_review_id')->nullable(); // Permite que o campo seja nulo
           $table->string('author_name');
           $table->string('profile_photo')->nullable();

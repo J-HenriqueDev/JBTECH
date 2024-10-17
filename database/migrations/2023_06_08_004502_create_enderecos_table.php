@@ -11,11 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('teams', function (Blueprint $table) {
+        Schema::create('enderecos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->index();
-            $table->string('name');
-            $table->boolean('personal_team');
+            $table->string('cep');
+            $table->string('endereco');
+            $table->string('numero');
+            $table->string('bairro');
+            $table->string('cidade');
+            $table->string('estado');
             $table->timestamps();
         });
     }
@@ -25,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('teams');
+        Schema::dropIfExists('enderecos');
     }
 };

@@ -9,6 +9,6 @@ class Page2 extends Controller
 {
   public function index()
   {
-    return view('content.pages.landing-page');
+    return view('content.clientes.listar');
   }
 }

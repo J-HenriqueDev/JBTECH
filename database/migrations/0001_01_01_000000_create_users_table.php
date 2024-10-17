@@ -2,7 +2,9 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str; // Para gerar o hash da senha
 
 return new class extends Migration
 {
@@ -37,6 +39,15 @@ return new class extends Migration
             $table->longText('payload');
             $table->integer('last_activity')->index();
         });
+
+        // Inserindo um usuário padrão
+        DB::table('users')->insert([
+            'name' => 'Henrique',
+            'email' => 'contato.henrique_@hotmail.com',
+            'password' => bcrypt('99182548'), // Usando bcrypt para criptografar a senha
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 
     /**

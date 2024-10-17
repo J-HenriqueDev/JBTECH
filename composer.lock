@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9667a084bb4bbf8edcce0a6968681dec",
+    "content-hash": "25398fb96d0c9e7983bb9e024c18639b",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -2123,16 +2123,16 @@
         },
         {
             "name": "livewire/livewire",
-            "version": "v3.5.9",
+            "version": "v3.5.12",
             "source": {
                 "type": "git",
                 "url": "https://github.com/livewire/livewire.git",
-                "reference": "d04a229058afa76116d0e39209943a8ea3a7f888"
+                "reference": "3c8d1f9d7d9098aaea663093ae168f2d5d2ae73d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/livewire/livewire/zipball/d04a229058afa76116d0e39209943a8ea3a7f888",
-                "reference": "d04a229058afa76116d0e39209943a8ea3a7f888",
+                "url": "https://api.github.com/repos/livewire/livewire/zipball/3c8d1f9d7d9098aaea663093ae168f2d5d2ae73d",
+                "reference": "3c8d1f9d7d9098aaea663093ae168f2d5d2ae73d",
                 "shasum": ""
             },
             "require": {
@@ -2187,7 +2187,7 @@
             "description": "A front-end framework for Laravel.",
             "support": {
                 "issues": "https://github.com/livewire/livewire/issues",
-                "source": "https://github.com/livewire/livewire/tree/v3.5.9"
+                "source": "https://github.com/livewire/livewire/tree/v3.5.12"
             },
             "funding": [
                 {
@@ -2195,7 +2195,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-10-01T12:40:06+00:00"
+            "time": "2024-10-15T19:35:06+00:00"
         },
         {
             "name": "mobiledetect/mobiledetectlib",
@@ -2828,6 +2828,113 @@
                 "source": "https://github.com/paragonie/constant_time_encoding"
             },
             "time": "2024-05-08T12:36:18+00:00"
+        },
+        {
+            "name": "php-extended/php-file-interface",
+            "version": "7.0.5",
+            "source": {
+                "type": "git",
+                "url": "https://gitlab.com/php-extended/php-file-interface.git",
+                "reference": "a4a2d23743e968724d89165d823d7f6a0c9ba4a2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://gitlab.com/api/v4/projects/php-extended%2Fphp-file-interface/repository/archive.zip?sha=a4a2d23743e968724d89165d823d7f6a0c9ba4a2",
+                "reference": "a4a2d23743e968724d89165d823d7f6a0c9ba4a2",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.0",
+                "psr/http-message": "^2"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "PhpExtended\\File\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Anastaszor",
+                    "homepage": "https://gitlab.com/Anastazor",
+                    "role": "developer"
+                }
+            ],
+            "description": "Interfaces to secure the manipulation of files in file systems.",
+            "homepage": "https://gitlab.com/php-extended/php-file-interface",
+            "keywords": [
+                "file",
+                "filesystem",
+                "folder",
+                "interface",
+                "php"
+            ],
+            "support": {
+                "issues": "https://gitlab.com/php-extended/php-file-interface/issues",
+                "source": "https://gitlab.com/php-extended/php-file-interface"
+            },
+            "time": "2024-07-30T21:23:40+00:00"
+        },
+        {
+            "name": "php-extended/php-simple-cache-filesystem",
+            "version": "7.0.6",
+            "source": {
+                "type": "git",
+                "url": "https://gitlab.com/php-extended/php-simple-cache-filesystem.git",
+                "reference": "c29f755ab8084af9d23d05a069bfab5e6b9f433b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://gitlab.com/api/v4/projects/php-extended%2Fphp-simple-cache-filesystem/repository/archive.zip?sha=c29f755ab8084af9d23d05a069bfab5e6b9f433b",
+                "reference": "c29f755ab8084af9d23d05a069bfab5e6b9f433b",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.0",
+                "php-extended/php-file-interface": "^7",
+                "psr/simple-cache": "^3"
+            },
+            "provide": {
+                "psr/simple-cache-implementation": "^1"
+            },
+            "require-dev": {
+                "php-extended/placeholder-phpunit": "^9"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "PhpExtended\\SimpleCache\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Anastaszor",
+                    "homepage": "https://gitlab.com/Anastaszor",
+                    "role": "developer"
+                }
+            ],
+            "description": "A psr-16 compliant cache that uses filesystems to store cache data.",
+            "homepage": "https://gitlab.com/php-extended/php-simple-cache-filesystem",
+            "keywords": [
+                "Simple",
+                "cache",
+                "filesystem",
+                "php",
+                "psr-16"
+            ],
+            "support": {
+                "issues": "https://gitlab.com/php-extended/php-simple-cache-filesystem/issues",
+                "source": "https://gitlab.com/php-extended/php-simple-cache-filesystem"
+            },
+            "time": "2024-07-31T13:33:30+00:00"
         },
         {
             "name": "phpoption/phpoption",
