@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('clientes', function (Blueprint $table) {
             $table->id();
             $table->string('nome');
-            $table->string('cpf')->unique();
+            $table->string('cpf_cnpj')->unique();
             $table->string('telefone');
             $table->string('email')->unique();
             $table->unsignedBigInteger('endereco_id')->unsigned();

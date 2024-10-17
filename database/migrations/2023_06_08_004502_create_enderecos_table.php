@@ -6,16 +6,13 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('enderecos', function (Blueprint $table) {
+       Schema::create('enderecos', function (Blueprint $table) {
             $table->id();
             $table->string('cep');
             $table->string('endereco');
-            $table->string('numero');
+            $table->string('numero'); // Certifique-se de que esta linha exista
             $table->string('bairro');
             $table->string('cidade');
             $table->string('estado');
@@ -23,9 +20,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('enderecos');

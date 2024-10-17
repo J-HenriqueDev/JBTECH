@@ -3,11 +3,41 @@
 @section('title', 'Novo Cliente')
 
 @section('content')
-<h1>Cadastro de Cliente</h1>
+<h1 class="mb-3">Cadastro de Cliente</h1>
+{{-- Notificação --}}
+@if(session('noti'))
+    <!-- Toast Notification -->
+    <div class="position-relative">
+        <div class="bs-toast toast fade show bg-primary animate__animated animate__tada position-absolute end-0" role="alert" aria-live="assertive" aria-atomic="true" style="z-index: 1050; white-space: nowrap;">
+            <div class="toast-header">
+                <i class='bx bx-bell me-2'></i>
+                <div class="me-auto fw-medium">Notificação</div>
+                <small>Agora</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                <strong>{{ session('cliente_nome') }}</strong> {{ session('noti') }}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Remove the toast after 3 seconds
+        setTimeout(() => {
+            const toastEl = document.querySelector('.bs-toast');
+            if (toastEl) {
+                const bsToast = new bootstrap.Toast(toastEl);
+                bsToast.hide();
+            }
+        }, 3000);
+    </script>
+@endif
+
+
 <div class="row">
     <div class="col-md-12">
         <div class="card mb-4">
-            <form action="{{ route('clientes') }}" method="post">
+              <form action="{{ route('clientes.store') }}" method="POST">
                 @csrf
                 <div class="card-body">
                     <!-- Primeira linha: CPF/CNPJ, Nome/Razão Social, Inscrição Estadual/Data de Nascimento -->
@@ -94,7 +124,7 @@
                                     <i class="fas fa-map-marker-alt"></i> CEP
                                 </label>
                                 <div class="input-group">
-                                    <input type="text" name="cep" id="cep" class="form-control" data-mask="0000-000" placeholder="27520-000" required>
+                                    <input type="text" name="cep" id="cep" class="form-control" data-mask="00000-000" placeholder="27520-000" required>
                                     @error('cep')
                                     <span class="text-danger">{{ $message }}</span>
                                     @enderror
@@ -171,10 +201,13 @@
                         </div>
                     </div>
 
+                    <div class="divider my-6">
+                      <div class="divider-text"><i class="fas fa-briefcase"></i> Tipo de Cliente</div>
+                    </div>
+
                     <!-- Tipo de Cliente -->
                     <div class="form-group col-sm-5">
                         <label for="tipo_cliente" class="form-label d-block">
-                            <i class="fas fa-briefcase"></i> Tipo de Cliente
                         </label>
                         <div class="form-check form-check-inline">
                             <input class="form-check-input" type="radio" name="tipo_cliente" id="particular" value="0" checked>

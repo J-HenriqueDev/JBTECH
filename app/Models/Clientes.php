@@ -3,19 +3,18 @@
 namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Enderecos;
 
 class Clientes extends Model
 {
     use HasFactory;
-    protected $fillable = ['nome', 'cpf', 'telefone', 'email', 'tipo_cliente'];
+
+    protected $fillable = ['nome', 'cpf_cnpj', 'telefone', 'email', 'endereco_id', 'tipo_cliente'];
+
 
     public function endereco()
     {
-        return $this->belongsTo(Endereco::class);
+        return $this->belongsTo(Enderecos::class);
     }
 
-    public function tipoCliente()
-    {
-        return $this->belongsTo(TipoCliente::class);
-    }
 }

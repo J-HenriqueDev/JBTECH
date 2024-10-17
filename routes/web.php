@@ -12,17 +12,18 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ClientesController;
 
 Route::get('/get-reviews', [ReviewController::class, 'getReviews']);
-Route::get('buscar-cep', [ClientesController::class, 'buscarCep'])->name('buscar_cep');
-Route::get('/consulta-cnpj/{cnpj}', [ClientesController::class, 'consultaCnpj']);
 
 
 
 // Main Page Route
 Route::get('/', [Landing::class, 'index'])->name('front-pages-landing');
 Route::get('/page-2', [Page2::class, 'index'])->name('pages-page-2');
-Route::prefix('dashboard')->group(function () {
-  Route::get('/clientes', [ClientesController::class, 'index'])->name('clientes');
-});
+
+Route::resource('dashboard/clientes', ClientesController::class);
+
+
+// Route::post('dashboard/clientes', [ClientesController::class, 'store'])->name('clientes');
+
 
 // locale
 Route::get('/lang/{locale}', [LanguageController::class, 'swap']);
