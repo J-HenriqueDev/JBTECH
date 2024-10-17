@@ -229,7 +229,9 @@
 
         $('#cpf').blur(function() {
             var cpfCnpj = $(this).val().replace(/\D/g, '');
-            if (cpfCnpj.length === 11) { // CPF
+            if (cpfCnpj.length === 11) {
+              $('#data_nascimento_container').show();
+              // CPF
                 $.ajax({
                     url: 'https://www.receitaws.com.br/v1/cpf/' + cpfCnpj,
                     type: 'GET',
@@ -238,14 +240,13 @@
                         if (data.status === 'OK') {
                             $('#nome').val(data.nome);
                             $('#data_nascimento').val(data.data_nascimento);
-                            $('#data_nascimento_container').show();
                             $('#inscricao_estadual_container').hide();
                         } else {
                             alert('CPF não encontrado.');
                         }
                     },
                     error: function() {
-                        alert('Erro ao consultar CPF.');
+                        console.log('Erro ao consultar CPF.');
                     }
                 });
             } else if (cpfCnpj.length === 14) { // CNPJ
