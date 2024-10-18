@@ -10,8 +10,12 @@ use App\Http\Controllers\authentications\RegisterBasic;
 use App\Http\Controllers\pages\Landing;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ClientesController;
+use App\Http\Controllers\OSController;
 
 Route::get('/get-reviews', [ReviewController::class, 'getReviews']);
+// Em routes/web.php
+Route::get('dashboard/clientes/search', [ClientesController::class, 'search'])->name('dashboard.clientes.search');
+
 
 
 
@@ -20,6 +24,8 @@ Route::get('/', [Landing::class, 'index'])->name('front-pages-landing');
 Route::get('/page-2', [Page2::class, 'index'])->name('pages-page-2');
 
 Route::resource('dashboard/clientes', ClientesController::class);
+Route::resource('dashboard/oss/ordens-equipamentos', OSController::class);
+
 
 
 // Route::post('dashboard/clientes', [ClientesController::class, 'store'])->name('clientes');

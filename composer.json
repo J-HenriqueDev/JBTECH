@@ -39,6 +39,7 @@
       "Tests\\": "tests/"
     },
     "files": [
+      "app/Helpers/formatacao.php",
       "app/Helpers/Helpers.php"
     ]
   },

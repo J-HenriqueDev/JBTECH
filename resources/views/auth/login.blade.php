@@ -1,4 +1,5 @@
 @php
+use Illuminate\Support\Facades\Route;
 $customizerHidden = 'customizer-hide';
 @endphp
 
@@ -47,41 +48,72 @@ $customizerHidden = 'customizer-hide';
             </a>
           </div>
 
-          <form id="formAuthentication" class="mb-6" action="{{url('/')}}" method="GET">
+          <form id="formAuthentication" class="mb-6" action="{{ route('login') }}" method="POST">
+            @csrf
+
+            <!-- E-mail ou Nome de Usuário -->
             <div class="mb-6">
               <label for="email" class="form-label">E-mail ou Nome de Usuário</label>
-              <input type="text" class="form-control" id="email" name="email-username" placeholder="Digite seu e-mail ou nome de usuário" autofocus>
+              {{--  <input type="text" class="form-control @error('email-username') is-invalid @enderror" id="email" name="email-username" placeholder="Digite seu e-mail ou nome de usuário" autofocus>  --}}
+              <input type="text" class="form-control @error('email') is-invalid @enderror" id="login-email" name="email" placeholder="john@example.com" autofocus value="{{ old('email') }}">
+              @error('email-username')
+                <div class="invalid-feedback">{{ $message }}</div>
+              @enderror
             </div>
+
+            <!-- Senha -->
             <div class="mb-6 form-password-toggle">
               <label class="form-label" for="password">Senha</label>
               <div class="input-group input-group-merge">
-                <input type="password" id="password" class="form-control" name="password" placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;" aria-describedby="password" />
+                <input type="password" id="password" class="form-control @error('password') is-invalid @enderror" name="password" placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;" aria-describedby="password" />
                 <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
+                @error('password')
+                  <div class="invalid-feedback d-block">{{ $message }}</div>
+                @enderror
               </div>
             </div>
+
+            <!-- Lembrar-me e Esqueceu a Senha -->
             <div class="mb-8">
               <div class="d-flex justify-content-between mt-8">
                 <div class="form-check mb-0 ms-2">
-                  <input class="form-check-input" type="checkbox" id="remember-me">
+                  <input class="form-check-input" type="checkbox" id="remember-me" name="remember">
                   <label class="form-check-label" for="remember-me">
                     Lembrar-me
                   </label>
                 </div>
-                <a href="{{url('auth/forgot-password-basic')}}">
+                <a href="{{route('password.request')}}">
                   <span>Esqueceu sua senha?</span>
                 </a>
               </div>
             </div>
+
+            <!-- Botão de Login -->
             <div class="mb-6">
               <button class="btn btn-primary d-grid w-100" type="submit">Entrar</button>
             </div>
+
+            <!-- Mensagens de erro gerais -->
+            @if ($errors->any())
+              <div class="alert alert-danger">
+                <ul class="mb-0">
+                  @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                  @endforeach
+                </ul>
+              </div>
+            @endif
+
           </form>
 
+          <!-- Link para registro -->
           <p class="text-center">
             <span>Novo na nossa plataforma?</span>
-            <a href="{{url('auth/register-basic')}}">
-              <span>Crie uma conta</span>
+            @if (Route::has('register'))
+            <a href="{{ route('register') }}">
+              <span>Criar uma conta</span>
             </a>
+            @endif
           </p>
 
         </div>

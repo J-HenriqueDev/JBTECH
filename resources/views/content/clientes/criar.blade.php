@@ -4,36 +4,6 @@
 
 @section('content')
 <h1 class="mb-3">Cadastro de Cliente</h1>
-{{-- Notificação --}}
-@if(session('noti'))
-    <!-- Toast Notification -->
-    <div class="position-relative">
-        <div class="bs-toast toast fade show bg-primary animate__animated animate__tada position-absolute end-0" role="alert" aria-live="assertive" aria-atomic="true" style="z-index: 1050; white-space: nowrap;">
-            <div class="toast-header">
-                <i class='bx bx-bell me-2'></i>
-                <div class="me-auto fw-medium">Notificação</div>
-                <small>Agora</small>
-                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-            <div class="toast-body" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                <strong>{{ session('cliente_nome') }}</strong> {{ session('noti') }}
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Remove the toast after 3 seconds
-        setTimeout(() => {
-            const toastEl = document.querySelector('.bs-toast');
-            if (toastEl) {
-                const bsToast = new bootstrap.Toast(toastEl);
-                bsToast.hide();
-            }
-        }, 3000);
-    </script>
-@endif
-
-
 <div class="row">
     <div class="col-md-12">
         <div class="card mb-4">
@@ -108,7 +78,7 @@
                                 <label for="email">
                                     <i class="fas fa-envelope"></i> E-mail
                                 </label>
-                                <input type="email" class="form-control" id="email" name="email" placeholder="contato.henrique_@hotmail.com" required>
+                                <input type="email" class="form-control" id="email" name="email" placeholder="informatica.jbtech@gmail.com" required>
                                 @error('email')
                                 <span class="text-danger">{{ $message }}</span>
                                 @enderror
@@ -169,7 +139,7 @@
                                 <label for="bairro">
                                     <i class="fas fa-map-pin"></i> Bairro
                                 </label>
-                                <input type="text" class="form-control" id="bairro" name="bairro" placeholder="Manejo" required>
+                                <input type="text" class="form-control" id="bairro" name="bairro" placeholder="Morada do Contorno" required>
                                 @error('bairro')
                                 <span class="text-danger">{{ $message }}</span>
                                 @enderror

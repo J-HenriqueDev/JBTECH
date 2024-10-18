@@ -2,61 +2,66 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\OrdemServico;
 use Illuminate\Http\Request;
 use App\Models\Clientes;
 
 class OSController extends Controller
 {
+    /**
+     * Display a listing of the resource.
+     */
     public function index()
     {
-        $clientes = ClienteS::orderBy('nome', 'ASC')->get();
-        return view('os.criar', compact("clientes"));
+      $clientes=Clientes::all();
+      return view('content.os.criar', compact('clientes'));
     }
 
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        //
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
     public function store(Request $request)
-        {
-        //     $request->validate([
-        //         'nome' => 'required',
-        //         'cpf' => 'required',
-        //         'telefone' => 'required',
-        //         'email' => 'required',
-        //         'cep' => 'required',
-        //         'endereco' => 'required',
-        //         'bairro' => 'required',
-        //         'cidade' => 'required',
-        //         'estado' => 'required',
-        //         'tipo_cliente' => 'required',
-        //     ]);
+    {
+        //
+    }
 
-        //     $endereco =Endereco::create([
-        //         'cep' => $request->cep,
-        //         'endereco' => $request->endereco,
-        //         'bairro' => $request->bairro,
-        //         'cidade' => $request->cidade,
-        //         'estado' => $request->estado,
-        //         'created_at' => Carbon::now()
-        //     ]);
+    /**
+     * Display the specified resource.
+     */
+    public function show(OrdemServico $ordemServico)
+    {
+        //
+    }
 
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(OrdemServico $ordemServico)
+    {
+        //
+    }
 
-        //     Cliente::insert([
-        //         // 'user_id' => Auth::user()->id,
-        //         'nome' => $request->nome,
-        //         'cpf' => $request->cpf,
-        //         'telefone' => $request->telefone,
-        //         'email' => $request->email,
-        //         'endereco_id' => $endereco->id,
-        //         'tipo_cliente' => $request->tipo_cliente,
-        //         'created_at' => Carbon::now()
-        //     ]);
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, OrdemServico $ordemServico)
+    {
+        //
+    }
 
-        //     // User::where('id', Auth::user()->id)->decrement('saldo', $valor);
-
-        //     $noti = [
-        //         'message' => 'Cliente inserido com sucesso!',
-        //         'alert-type' => 'success'
-        //     ];
-
-        //     return redirect()->back()->with('noti', $noti);
-        // }
-           }   //
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(OrdemServico $ordemServico)
+    {
+        //
+    }
 }
