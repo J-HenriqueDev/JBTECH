@@ -1,13 +1,26 @@
 @extends('layouts.layoutMaster')
 
+<!-- Vendor Styles -->
 @section('vendor-style')
-<link rel="stylesheet" href="{{asset('assets/vendor/libs/select2/select2.css')}}" />
-
+@vite([
+  'resources/assets/vendor/libs/select2/select2.scss',
+  'resources/assets/vendor/libs/typeahead-js/typeahead.scss'
+])
 @endsection
 
+<!-- Vendor Scripts -->
 @section('vendor-script')
-<script src="{{asset('assets/vendor/libs/select2/select2.js')}}"></script>
+@vite([
+  'resources/assets/vendor/libs/select2/select2.js'
 
+])
+@endsection
+
+<!-- Page Scripts -->
+@section('page-script')
+@vite([
+  'resources/assets/js/forms-selects.js'
+])
 @endsection
 
 
@@ -20,27 +33,20 @@
                 @csrf
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-4">
-                            <div class="mb-3">
-                                <label for="cliente_id">Cliente</label>
-                                <div class="input-group">
-                                    <select class="select2 form-select" data-allow-clear="true" id="cliente_id">
-                                        <option value="" disabled selected>Selecione um cliente</option>
-                                        <!-- Opções de clientes -->
-                                        @foreach ($clientes as $cliente)
-                                        <option value="{{$cliente->id}}" id="cliente_{{$cliente->id}}">
-                                            {{$cliente->nome}}
-                                        </option>
-                                        @endforeach
-                                    </select>
-                                    {{--  <div class="input-group-append">
-                                        <button class="btn btn-primary btn-sm" type="button" onclick="window.location.href='{{ route('novo_cliente.index') }}'">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
-                                    </div>  --}}
-                                </div>
-                            </div>
+                      <div class="col-4">
+                        <div class="mb-3">
+                            <label for="cliente_id">Cliente</label>
+                            <select id="select2Basic" class="select2 form-select" data-allow-clear="true">
+                                <option value="" disabled selected>Selecione um cliente</option>
+                                @foreach ($clientes as $cliente)
+                                <option value="{{$cliente->id}}">
+                                    {{$cliente->nome}}
+                                </option>
+                                @endforeach
+                            </select>
                         </div>
+                    </div>
+
 
                         {{--  <div class="col-0">
                             <div class="mb-0">
@@ -101,29 +107,31 @@
 
                         <div class="col-sm-5">
                             <label for="acessorio" class="form-label d-block">Acessórios</label>
-                            <div class="form-check form-check-inline">
-                              <label class="form-check-label">
-                                <input class="form-check-input" type="checkbox" id="inlineCheckbox1" value="option1" checked> Sem Acessório
-                                <span class="form-check-sign"></span>
-                              </label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                              <label class="form-check-label">
-                                <input class="form-check-input" type="checkbox" id="inlineCheckbox2" value="option2"> Carregador
-                                <span class="form-check-sign"></span>
-                              </label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                              <label class="form-check-label">
-                                <input class="form-check-input" type="checkbox" id="inlineCheckbox3" value="option3"> SSD
-                                <span class="form-check-sign"></span>
-                              </label>
+                            <div class="acessorios-container">
+                                <div class="form-check form-check-inline">
+                                    <label class="form-check-label">
+                                        <input class="form-check-input" type="checkbox" id="inlineCheckbox1" value="option1" checked> Sem Acessório
+                                        <span class="form-check-sign"></span>
+                                    </label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <label class="form-check-label">
+                                        <input class="form-check-input" type="checkbox" id="inlineCheckbox2" value="option2"> Carregador
+                                        <span class="form-check-sign"></span>
+                                    </label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <label class="form-check-label">
+                                        <input class="form-check-input" type="checkbox" id="inlineCheckbox3" value="option3"> SSD
+                                        <span class="form-check-sign"></span>
+                                    </label>
+                                </div>
                             </div>
                             <div class="mt-3">
-                              <label for="senha_pc">Senha do dispositivo:</label>
-                              <input type="text" class="form-control" id="senha_pc" placeholder="Ex: Henrique123" aria-label="Username" aria-describedby="basic-addon1">
+                                <label for="senha_pc">Senha do dispositivo:</label>
+                                <input type="text" class="form-control" id="senha_pc" placeholder="Ex: Henrique123" aria-label="Username" aria-describedby="basic-addon1">
                             </div>
-                          </div>
+                        </div>
 
 
 
@@ -175,11 +183,64 @@
         </div>
     </div>
 </div>
-@endsection
-@push('scripts')
-    <script>
-        $(document).ready(function() {
-            $(".select2 form-select").select2();
+
+
+  <style>
+    .card-body > .row {
+        display: flex;
+        flex-wrap: wrap; /* Permite que os itens quebrem a linha, se necessário */
+        align-items: flex-start; /* Alinha os itens no topo */
+    }
+
+    .col-4, .col-2, .col-3, .col-sm-6, .col-sm-5 {
+        display: flex; /* Flex para garantir que os itens dentro da coluna também se comportem bem */
+        flex-direction: column; /* Permite o alinhamento vertical */
+        margin-bottom: 1rem; /* Espaçamento inferior entre as colunas */
+    }
+
+    /* Ajusta o espaço entre a primeira e a segunda linha */
+    .card-body .row > div {
+        margin-bottom: 0.5rem; /* Diminui a distância entre as linhas */
+    }
+
+    .col-sm-6 {
+        display: flex;
+        flex-direction: column; /* Para o textarea */
+        justify-content: flex-end; /* Alinha ao final */
+    }
+
+    .col-sm-5 {
+        display: flex;
+        flex-direction: column; /* Para os acessórios */
+    }
+
+    /* Alinhamento do campo "descreva o problema" */
+    #descricao {
+        margin-top: auto; /* Garante que o textarea se alinhe na parte inferior */
+    }
+
+    /* Ajustes gerais para todos os campos de entrada */
+    .form-control {
+        min-height: 38px; /* Define uma altura mínima */
+        padding: 0.375rem 0.75rem; /* Alinhamento do padding */
+        border-radius: 0.375rem; /* Ajuste do border-radius, se necessário */
+        border: 1px solid #ced4da; /* Bordas para manter consistência */
+        box-sizing: border-box; /* Garante que padding e border não aumentem a largura total */
+    }
+  </style>
+
+<script>
+    $(document).ready(function() {
+        $('#select2Basic').select2({
+            placeholder: "Selecione um cliente", // Define o placeholder
+            allowClear: true // Permite limpar a seleção
         });
-    </>
-@endpush
+
+        // Alinhamento da altura
+        var inputHeight = $('.form-control').outerHeight();
+        $('.select2-selection').css('height', inputHeight + 'px');
+    });
+</script>
+
+
+@endsection
