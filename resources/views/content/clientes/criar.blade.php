@@ -253,39 +253,39 @@
                     }
                 });
             } else if (cpfCnpj.length === 14) { // CNPJ
-                $.ajax({
-                    url: 'https://www.receitaws.com.br/v1/cnpj/' + cpfCnpj,
-                    type: 'GET',
-                    dataType: 'jsonp',
-                    success: function(data) {
-                        if (data.status === 'OK') {
-                            // Verificar se há nome fantasia
-                                var nomeExibido = data.fantasia
-                                ? '(' + data.fantasia + ') - ' + cpfCnpj + ' ' + data.nome
-                                : cpfCnpj + ' ' + data.nome;
+              $.ajax({
+                url: 'https://www.receitaws.com.br/v1/cnpj/' + cpfCnpj,
+                type: 'GET',
+                dataType: 'jsonp',
+                success: function(data) {
+                    if (data.status === 'OK') {
+                        // Verificar se há nome fantasia
+                        var nomeExibido = data.fantasia
+                            ? '(' + data.fantasia + ') ' + data.nome
+                            : data.nome;
 
-                            // Atribuir o valor ao campo de nome
-                            $('#nome').val(nomeExibido);
-                            $('#inscricao_estadual').val(data.inscricao_estadual);
-                            $('#inscricao_estadual_container').show();
-                            $('#data_nascimento_container').hide();
-                            $('#cep').val(data.cep);
-                            $('#endereco').val(data.logradouro);
-                            $('#numero').val(data.numero);
-                            $('#bairro').val(data.bairro);
-
-                            $('#cidade').val(data.municipio);
-                            $('#estado').val(data.uf);
-                            $('#telefone').val(data.telefone);
-                            $('#email').val(data.email);
-                        } else {
-                            alert('CNPJ não encontrado.');
-                        }
-                    },
-                    error: function() {
-                        alert('Erro ao consultar CNPJ.');
+                        // Atribuir o valor ao campo de nome
+                        $('#nome').val(nomeExibido);
+                        $('#inscricao_estadual').val(data.inscricao_estadual);
+                        $('#inscricao_estadual_container').show();
+                        $('#data_nascimento_container').hide();
+                        $('#cep').val(data.cep);
+                        $('#endereco').val(data.logradouro);
+                        $('#numero').val(data.numero);
+                        $('#bairro').val(data.bairro);
+                        $('#cidade').val(data.municipio);
+                        $('#estado').val(data.uf);
+                        $('#telefone').val(data.telefone);
+                        $('#email').val(data.email);
+                    } else {
+                        alert('CNPJ não encontrado.');
                     }
-                });
+                },
+                error: function() {
+                    alert('Erro ao consultar CNPJ.');
+                }
+            });
+
             }
         });
 

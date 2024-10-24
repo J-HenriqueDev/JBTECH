@@ -5,29 +5,32 @@
 'use strict';
 
 $(function () {
-  const selectPicker = $('.selectpicker'),
-    select2 = $('.select2'),
-    select2Icons = $('.select2-icons');
+  // const selectPicker = $('.selectpicker'),
+  //   select2 = $('.select2'),
+  //   select2Icons = $('.select2-icons');
 
-  // Bootstrap Select
-  // --------------------------------------------------------------------
-  if (selectPicker.length) {
-    selectPicker.selectpicker();
-  }
+  // // Bootstrap Select
+  // // --------------------------------------------------------------------
+  // if (selectPicker.length) {
+  //   selectPicker.selectpicker();
+  // }
 
   // Select2
   // --------------------------------------------------------------------
 
   // Default
-  if (select2.length) {
-    select2.each(function () {
+// Default
+if (select2.length) {
+  select2.each(function () {
       var $this = $(this);
       $this.wrap('<div class="position-relative"></div>').select2({
-        placeholder: 'Select value',
-        dropdownParent: $this.parent()
+          placeholder: 'Selecione um cliente',
+          dropdownParent: $this.parent(),
+          minimumResultsForSearch: Infinity // Opcional, se você não precisar de uma barra de pesquisa
       });
-    });
-  }
+  });
+}
+
 
   // Select2 Icons
   if (select2Icons.length) {
