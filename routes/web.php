@@ -15,6 +15,9 @@ use App\Http\Controllers\OSController;
 Route::get('/get-reviews', [ReviewController::class, 'getReviews']);
 // Em routes/web.php
 Route::get('dashboard/clientes/search', [ClientesController::class, 'search'])->name('dashboard.clientes.search');
+Route::get('dashboard/os/search', [OSController::class, 'search'])->name('dashboard.os.search');
+
+
 
 
 
@@ -24,7 +27,8 @@ Route::get('/', [Landing::class, 'index'])->name('front-pages-landing');
 Route::get('/page-2', [Page2::class, 'index'])->name('pages-page-2');
 
 Route::resource('dashboard/clientes', ClientesController::class);
-Route::resource('dashboard/oss/ordens-equipamentos', OSController::class);
+Route::resource('dashboard/os', OSController::class);
+// Route::resource('dashboard/os/ordens-equipamentos', OSController::class);
 
 
 

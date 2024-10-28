@@ -22,11 +22,14 @@
 @endsection
 
 @section('content')
-<h1 class="mb-3">Cadastro de OS</h1>
+<h1 class="mb-4  text-primary" style="font-size: 2.5rem; font-weight: bold; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);">
+  <i class="fas fa-file-alt"></i> Cadastro de OS
+</h1>
+
 <div class="row">
     <div class="col-md-12">
         <div class="card mb-4">
-            <form action="{{ route('clientes.store') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('os.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="card-body">
                     <div class="row">
@@ -58,7 +61,9 @@
                                 </label>
                                 <select class="form-select" id="tipo_id" name="tipo_id">
                                     <option value="" disabled selected>Selecione um tipo</option>
-                                    <!-- Adicione opções aqui -->
+                                    @foreach ($tipos as $key => $tipo)
+                                        <option value="{{ $key }}">{{ $tipo }}</option>
+                                    @endforeach
                                 </select>
                                 @error('tipo_id')
                                 <small class="text-danger fw-bold">{{ $message }}</small>
@@ -66,14 +71,16 @@
                             </div>
                         </div>
 
+
+
                         <!-- Campo Data de Entrada -->
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label for="data" class="form-label">
                                     <i class="fas fa-calendar-alt"></i> Data de entrada
                                 </label>
-                                <input type="date" class="form-control" name="data_do_gasto" id="data" value="{{ date('Y-m-d') }}">
-                                @error('data_do_gasto')
+                                <input type="date" class="form-control" name="data_de_entrada" id="data" value="{{ date('Y-m-d') }}">
+                                @error('data_de_entrega')
                                 <small class="text-danger fw-bold">{{ $message }}</small>
                                 @enderror
                             </div>
@@ -81,16 +88,18 @@
 
                         <!-- Campo Prazo de Entrega -->
                         <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="prazo_entrega" class="form-label">
-                                    <i class="fas fa-calendar-check"></i> Prazo de entrega
-                                </label>
-                                <input type="date" class="form-control" name="prazo_entrega" id="prazo_entrega" value="{{ date('Y-m-d') }}">
-                                @error('prazo_entrega')
-                                <small class="text-danger fw-bold">{{ $message }}</small>
-                                @enderror
-                            </div>
-                        </div>
+                          <div class="form-group">
+                              <label for="prazo_entrega" class="form-label">
+                                  <i class="fas fa-calendar-check"></i> Prazo de entrega
+                              </label>
+                              <input type="date" class="form-control" name="prazo_entrega" id="prazo_entrega"
+                                     value="{{ date('Y-m-d', strtotime('+7 days')) }}">
+                              @error('prazo_entrega')
+                              <small class="text-danger fw-bold">{{ $message }}</small>
+                              @enderror
+                          </div>
+                      </div>
+
                     </div>
 
                     <div class="row">
@@ -106,236 +115,209 @@
                             <small>* É importante preencher a descrição de forma correta para que os técnicos possam ser mais rápidos no diagnóstico.</small>
                         </div>
 
-                        <!-- Campo Acessórios -->
+                        <!-- Acessórios (checkboxes ajustados) -->
                         <div class="col-sm-5">
-                            <label for="acessorio" class="form-label d-block">
-                                <i class="fas fa-plug"></i> Acessórios
-                            </label>
-                            <div class="acessorios-container">
-                                <div class="form-check form-check-inline">
-                                    <label class="form-check-label">
-                                        <input class="form-check-input" type="checkbox" id="inlineCheckbox1" value="option1" checked> Sem Acessório
-                                    </label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <label class="form-check-label">
-                                        <input class="form-check-input" type="checkbox" id="inlineCheckbox2" value="option2"> Carregador
-                                    </label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <label class="form-check-label">
-                                        <input class="form-check-input" type="checkbox" id="inlineCheckbox3" value="option3"> SSD
-                                    </label>
-                                </div>
+                          <label for="acessorio" class="form-label d-block">
+                              <i class="fas fa-plug"></i> Acessórios
+                          </label>
+                        <div class="acessorios-container ">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" name="acessorios[]" value="nenhum" checked> Nenhum
                             </div>
-                            <div class="mt-3">
-                                <label for="senha_pc" class="form-label">
-                                    <i class="fas fa-key"></i> Senha do dispositivo:
-                                </label>
-                                <input type="text" class="form-control" id="senha_pc" placeholder="Ex: Henrique123" aria-label="Username" aria-describedby="basic-addon1">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" name="acessorios[]" value="carregador"> Carregador
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" name="acessorios[]" value="ssd"> SSD
+                            </div>
+                            <div class="form-check form-check-inline d-flex align-items-center">
+                                <input class="form-check-input" type="checkbox" name="acessorios[]" value="outros"> Outros:
+                                <input type="text" class="form-control ms-2" name="outros_acessorios" placeholder="Especificar" style="width: 120px;">
                             </div>
                         </div>
-                    </div>
 
+                <!-- Senha do Dispositivo (adicionado name) -->
+                <label for="senha_pc" class="form-label">
+                  <i class="fas fa-key"></i> Senha do dispositivo:
+              </label>
+                  <input type="text" class="form-control" name="senha_do_dispositivo" id="senha_pc" placeholder="Ex: Henrique123" aria-label="Senha do dispositivo">
+
+                    <!-- Campo oculto para o ID do Usuário Autenticado -->
+                    <input type="hidden" name="usuario_id" value="{{ auth()->user()->id }}">
+
+                    </div>
                     <div class="divider my-6">
-                      <div class="divider-text"><i class="fas fa-briefcase"></i> Itens</div>
-                    </div>
+                      <div class="divider-text">
+                          <i class="bx bx-package"></i> Itens
+                      </div>
+                  </div>
 
-                    <div class="row">
+                  <div class="row">
                       <!-- Campo Avarias -->
-                      <div class="col-md-6">
-                          <div class="form-group">
-                              <label for="avarias" class="form-label">
-                                  <i class="fas fa-exclamation-triangle"></i> Avarias do Equipamento
-                              </label>
-                              <textarea class="form-control" name="avarias" id="avarias" rows="3" placeholder="Descreva as avarias do equipamento, se houver."></textarea>
-                              @error('avarias')
-                              <small class="text-danger fw-bold">{{ $message }}</small>
-                              @enderror
-                          </div>
+                      <div class="col-md-6 mb-3">
+                          <label for="avarias" class="form-label">
+                              <i class="bx bx-wrench"></i> Avarias do Equipamento
+                          </label>
+                          <textarea class="form-control" name="avarias" id="avarias" rows="4"></textarea>
+                          @error('avarias')
+                          <small class="text-danger fw-bold">{{ $message }}</small>
+                          @enderror
                       </div>
 
-                      <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="previewFotos" class="form-label">
-                                <i class="fas fa-eye"></i> Visualização das Fotos
-                            </label>
-                            <div class="swiper-container" style="height: 171px; background-color: #f0f0f0; border: 2px solid #007bff; border-radius: 5px; position: relative; overflow: hidden;">
-                                <div class="swiper-wrapper" id="previewFotos" style="height: 100%;">
-                                    <!-- Exemplo de slide quando não há imagem -->
-                                    <div class="swiper-slide" style="display: flex; justify-content: center; align-items: center; height: 100%; color: #888;">
-                                        Nenhuma imagem selecionada.
-                                    </div>
-                                </div>
-                                <!-- Botões de navegação -->
-                                <div class="swiper-pagination"></div>
-                                <div class="swiper-button-next"></div>
-                                <div class="swiper-button-prev"></div>
-                                {{--  <div class="swiper-button-add" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); cursor: pointer; font-size: 2rem; color: #007bff;">+</div>  --}}
-                            </div>
-                        </div>
-                    </div>
-
-
-                    <div class="row">
                       <!-- Campo para Upload de Fotos -->
-                      <div class="col-md-6">
-                          <div class="form-group">
-                              <label for="fotos" class="form-label">
-                                  <i class="fas fa-image"></i> Fotos do Equipamento
+                      <div class="col-md-6 mb-3">
+                          <label for="fotos" class="form-label">
+                              <i class="bx bx-camera"></i> Fotos do Equipamento
+                          </label>
+                          <input type="file" class="form-control" id="fotos" name="fotos[]" multiple accept="image/*">
+                          <small class="text-muted">Selecione uma ou mais fotos do equipamento.</small>
+                          @error('fotos')
+                          <small class="text-danger fw-bold">{{ $message }}</small>
+                          @enderror
+                      </div>
+
+                      <!-- Visualizador de Fotos com Swiper -->
+                      <div class="col-md-12 mb-3">
+                          <div class="swiper-area form-control">
+                              <label for="previewFotos" class="form-label">
+                                  <i class="bx bx-show"></i> Visualização das Fotos
                               </label>
-                              <input type="file" class="form-control" id="fotos" name="fotos[]" multiple accept="image/*">
-                              <small class="text-muted">Selecione uma ou mais fotos do equipamento.</small>
-                              @error('fotos')
-                              <small class="text-danger fw-bold">{{ $message }}</small>
-                              @enderror
+                              <div class="swiper-container">
+                                  <div class="swiper-wrapper" id="swiper-wrapper">
+                                  </div>
+                                  <div class="swiper-button-next"></div>
+                                  <div class="swiper-button-prev"></div>
+                              </div>
                           </div>
                       </div>
-                    </div>
+                  </div>
 
-                    <div class="card-footer d-flex justify-content-end">
-                        <button class="btn btn-md btn-primary fw-bold align-right me-2">Adicionar</button>
-                        <button type="button" class="btn btn-outline-secondary" onclick="history.back();">Cancelar</button>
-                    </div>
-                </div>
+                  <div class="card-footer d-flex justify-content-end">
+                      <button type="submit" class="btn btn-md btn-primary fw-bold me-2">
+                          <i class="bx bx-plus"></i> Adicionar
+                      </button>
+                      <button type="button" class="btn btn-outline-secondary" onclick="history.back();">
+                          <i class="bx bx-x"></i> Cancelar
+                      </button>
+                  </div>
+
             </form>
 
             <style>
-              .swiper-container {
-                height: 100%; /* Garante que a altura seja sempre 100% do contêiner pai */
-                max-width: 100%; /* O swiper ocupará no máximo 100% da largura */
-            }
-
-            .swiper-wrapper {
-                height: 100%; /* Garante que o wrapper ocupe 100% da altura */
-            }
-
-            .swiper-slide {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                height: 100%; /* Garante que os slides ocupem toda a altura */
-                position: relative; /* Para os botões de excluir */
-            }
-            .swiper-slide img {
-              max-width: 100%; /* Mantém o ajuste da imagem ao contêiner */
-              max-height: 100%; /* Impede que a imagem ultrapasse a altura do contêiner */
-              object-fit: contain; /* Mantém a proporção da imagem */
-              margin-top: -20px; /* Sobe a imagem 1px */
-          }
-
-
-            .swiper-button-next, .swiper-button-prev {
-                color: #007bff; /* Ajusta a cor dos botões de navegação */
-            }
-
-            .swiper-button-add {
-                font-size: 2rem;
-                color: #007bff;
-                cursor: pointer;
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-            }
-
-            /* Garantir que o container de visualização de fotos tenha uma altura definida */
-            #previewFotos {
-                height: 100%; /* Ajusta o fundo para ser 100% da altura */
-                max-height: 300px; /* Altura máxima do visualizador, pode ajustar conforme necessário */
-                overflow: hidden; /* Impede que o conteúdo ultrapasse o fundo */
-                background-color: #f1f1f1; /* Exemplo de cor de fundo */
-                padding: 10px; /* Espaçamento dentro do visualizador */
-            }
-
-
-            </style>
-            <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
-            <script>
-
-              // Inicializar o Swiper
-              const swiper = new Swiper('.swiper-container', {
-                slidesPerView: 3, // Mostra 3 imagens por vez
-                spaceBetween: 10, // Espaço entre as imagens
-                pagination: {
-                    el: '.swiper-pagination',
-                    clickable: true,
-                },
-                navigation: {
-                    nextEl: '.swiper-button-next',
-                    prevEl: '.swiper-button-prev',
-                },
-            });
-            let images = []; // Array para armazenar as imagens
-
-            // Função para adicionar uma imagem
-            function addImage(file) {
-                if (images.length < 13) { // Limite máximo de 13 imagens
-                    images.push(file);
-                    renderImages();
-                } else {
-                    alert("Você só pode adicionar até 13 imagens.");
-                }
-            }
-
-            // Função para renderizar as imagens no Swiper
-            function renderImages() {
-                const swiperWrapper = document.querySelector('.swiper-wrapper');
-                swiperWrapper.innerHTML = ''; // Limpa as imagens atuais
-
-                images.forEach((image) => {
-                    const slide = document.createElement('div');
-                    slide.classList.add('swiper-slide');
-                    slide.innerHTML = `<img src="${URL.createObjectURL(image)}" alt="Imagem">`;
-                    swiperWrapper.appendChild(slide);
-                });
-
-                swiper.update(); // Atualiza o Swiper para reconhecer as novas imagens
-            }
-
-
-
-              // Função para adicionar imagens ao Swiper
-              const fotosInput = document.getElementById('fotos');
-              const previewFotos = document.getElementById('previewFotos');
-
-              fotosInput.addEventListener('change', function(event) {
-                const files = event.target.files;
-                previewFotos.innerHTML = ''; // Limpar imagens existentes
-                Array.from(files).forEach(file => {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const slide = document.createElement('div');
-                        slide.classList.add('swiper-slide');
-                        slide.innerHTML = `
-                            <img src="${e.target.result}" style="width: 100%; height: auto; object-fit: contain;">
-                            <button class="btn-close" onclick="removeImage(this)" style="position: absolute; top: 0; right: 0; background: red; color: white;">X</button>
-                        `;
-                        previewFotos.appendChild(slide);
-                    };
-                    reader.readAsDataURL(file);
-                });
-
-                // Força a atualização do Swiper após todas as imagens serem carregadas
-                setTimeout(() => {
-                    swiper.update();
-                }, 100); // Atraso para garantir que as imagens foram renderizadas
-              });
-
-              // Função para remover imagem
-              function removeImage(button) {
-                const slide = button.parentElement; // Pega o slide pai do botão
-                slide.remove(); // Remove o slide
-                swiper.update(); // Atualiza o Swiper após remover a imagem
+              .swiper-area {
+                  max-width: 100%;
+                  height: 215px;
+                  overflow: hidden;
+                  border: 2px solid #ccc;
+                  border-radius: 8px;
+                  background-color: #f1f1f1;
+                  display: flex;
+                  flex-direction: column;
+                  position: relative;
+                  z-index: 100px;
               }
 
-              // Função para adicionar imagens através do botão "+"
-              document.querySelector('.swiper-button-add').addEventListener('click', function() {
-                fotosInput.click(); // Simula um clique no input de arquivos
+              .swiper-container {
+                  width: 100%;
+                  height: 100%;
+              }
+
+              .swiper-wrapper {
+                  height: 100%;
+              }
+
+              .swiper-slide {
+                  display: flex;
+                  justify-content: center;
+                  align-items: center;
+                  height: 100%;
+              }
+
+              .swiper-slide img {
+                  max-width: 100%;
+                  max-height: 100%;
+                  object-fit: contain;
+              }
+
+              .swiper-button-next, .swiper-button-prev {
+                  color: orange;
+                  position: absolute;
+                  top: 50%;
+                  transform: translateY(-50%);
+                  z-index: 10;
+              }
+
+              .swiper-button-next {
+                  right: 10px;
+              }
+
+              .swiper-button-prev {
+                  left: 10px;
+              }
+
+              .btn-close {
+                  position: absolute;
+                  top: -17px;
+                  right: -10px;
+                  background: none;
+                  border: none;
+                  color: red;
+                  cursor: pointer;
+                  font-size: 30px;
+              }
+          </style>
+
+          <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+          <script>
+            const swiper = new Swiper('.swiper-container', {
+              slidesPerView: 6,
+              spaceBetween: 10,
+              navigation: {
+                  nextEl: '.swiper-button-next',
+                  prevEl: '.swiper-button-prev',
+              },
+          });
+
+          const images = [];
+
+          function addImage(file) {
+              if (images.length < 13) {
+                  images.push(file);
+                  renderImages();
+              } else {
+                  alert("Você só pode adicionar até 13 imagens.");
+              }
+          }
+
+          function renderImages() {
+              const swiperWrapper = document.querySelector('.swiper-wrapper');
+              swiperWrapper.innerHTML = '';
+
+              images.forEach((image, index) => {
+                  const slide = document.createElement('div');
+                  slide.classList.add('swiper-slide');
+                  slide.innerHTML = `
+                      <img src="${URL.createObjectURL(image)}" alt="Imagem">
+                      <button class="btn-close" onclick="removeImage(${index})">&times;</button>
+                  `;
+                  swiperWrapper.appendChild(slide);
               });
 
+              swiper.update();
+          }
 
-            </script>
+          const fotosInput = document.getElementById('fotos');
+          fotosInput.addEventListener('change', function(event) {
+              const files = Array.from(event.target.files);
+              files.forEach(file => addImage(file));
+          });
+
+          function removeImage(index) {
+              images.splice(index, 1);
+              renderImages();
+          }
+
+          </script>
         </div>
     </div>
 </div>
