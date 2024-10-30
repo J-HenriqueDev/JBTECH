@@ -1,21 +1,23 @@
 @extends('layouts.layoutMaster')
 
-@section('title', 'Produtos')
+@section('title', 'Lista de Produtos')
 
 @section('content')
 
-@if(session('noti'))
+@if(session('success'))
 <div class="alert alert-primary alert-dismissible" role="alert">
-  <h6 class="alert-heading d-flex align-items-center fw-bold mb-1">
-    <i class="fas fa-check-circle me-1"></i> Sucesso!
-  </h6>
-  <p class="mb-0">{{ session('noti') }}</p>
-  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <h6 class="alert-heading d-flex align-items-center fw-bold mb-1">
+        <i class="fas fa-check-circle me-1"></i> Sucesso!
+    </h6>
+    <p class="mb-0">{!! session('success') !!}</p>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
 @endif
 
-<div class="d-flex justify-content-between align-items-center">
-    <h1>Cadastro de Produtos</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0 text-primary" style="font-size: 2.5rem; font-weight: bold; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);">
+        <i class="fas fa-box"></i> Lista de Produtos
+    </h1>
     <a href="{{ route('produtos.create') }}" class="btn btn-primary">
         <i class="fas fa-plus-circle me-1"></i> Novo Produto
     </a>
@@ -24,30 +26,35 @@
 <div class="row">
     <div class="col-md-12">
         <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title">Produtos Cadastrados</h5>
+            </div>
             <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table">
+                <div class="table-responsive text-nowrap">
+                    <table class="table table-striped">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Nome do Produto</th>
+                                <th>Nome</th>
+                                <th>Preço de Custo</th>
                                 <th>Preço de Venda</th>
+                                <th>Estoque</th>
                                 <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($produtos as $produto)
+                            @foreach ($produtos as $produto)
                                 <tr>
-                                    <td>{{ $produto->id }}</td>
-                                    <td>{{ $produto->nome_produto }}</td>
-                                    <td>{{ $produto->preco_venda }}</td>
+                                    <td>{{ $produto->nome }}</td>
+                                    <td>{{ number_format($produto->preco_custo, 2, ',', '.') }}</td>
+                                    <td>{{ number_format($produto->preco_venda, 2, ',', '.') }}</td>
+                                    <td>{{ $produto->estoque }}</td>
                                     <td>
-                                        <a href="{{ route('produtos.edit', $produto->id) }}" class="btn btn-primary">
-                                            <i class="fas fa-pencil-alt"></i> Editar
-                                        </a>
-                                        <a href="#" class="btn btn-danger btn-delete" data-toggle="modal" data-target="#confirmDelete" data-id="{{ $produto->id }}">
-                                            <i class="fas fa-trash-alt"></i> Excluir
-                                        </a>
+                                        <a href="{{ route('produtos.edit', $produto->id) }}" class="btn btn-warning">Editar</a>
+                                        <form action="{{ route('produtos.destroy', $produto->id) }}" method="POST" style="display:inline;">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger">Excluir</button>
+                                        </form>
                                     </td>
                                 </tr>
                             @endforeach
@@ -59,40 +66,4 @@
     </div>
 </div>
 
-<div class="modal fade" id="confirmDelete" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Excluir Produto</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                Tem certeza de que deseja excluir este produto?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                <a href="#" id="confirmDeleteBtn" class="btn btn-danger">Excluir</a>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    $(document).ready(function() {
-        let produtoIdToDelete;
-
-        $('.btn-delete').on('click', function() {
-            produtoIdToDelete = $(this).data('id');
-        });
-
-        $('#confirmDeleteBtn').on('click', function() {
-            if (produtoIdToDelete) {
-                let deleteUrl = "{{ route('produtos.destroy', '') }}" + "/" + produtoIdToDelete;
-                window.location.href = deleteUrl;
-            }
-        });
-    });
-</script>
 @endsection

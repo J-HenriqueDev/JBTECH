@@ -78,8 +78,8 @@ class OSController extends Controller
 
               // Pegue o cliente relacionado
           $cliente = $os->cliente; // Certifique-se que isso retorna o cliente correto
-
       }
+      dd($os);
 
        // Redireciona com a mensagem formatada
       return redirect()->route('os.index')->with('success', 'OS <strong>' . $os->id . '</strong> criada com sucesso para o cliente <strong>' . $cliente->nome . '</strong>.');

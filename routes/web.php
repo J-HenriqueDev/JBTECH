@@ -5,12 +5,13 @@ use App\Http\Controllers\language\LanguageController;
 use App\Http\Controllers\pages\HomePage;
 use App\Http\Controllers\pages\Page2;
 use App\Http\Controllers\pages\MiscError;
-use App\Http\Controllers\authentications\LoginBasic;
-use App\Http\Controllers\authentications\RegisterBasic;
 use App\Http\Controllers\pages\Landing;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ClientesController;
 use App\Http\Controllers\OSController;
+use App\Http\Controllers\ProdutosController;
+use App\Http\Controllers\CategoriaController;
+
 
 Route::get('/get-reviews', [ReviewController::class, 'getReviews']);
 // Em routes/web.php
@@ -28,6 +29,22 @@ Route::get('/page-2', [Page2::class, 'index'])->name('pages-page-2');
 
 Route::resource('dashboard/clientes', ClientesController::class);
 Route::resource('dashboard/os', OSController::class);
+// Route para produtos
+Route::resource('dashboard/produtos', ProdutosController::class);
+
+Route::post('dashboard/produtos/import', [ProdutosController::class, 'import'])->name('produtos.import');
+Route::resource('dashboard/categorias', CategoriaController::class)->only([
+  'index', 'store', 'destroy'
+]);
+
+
+
+
+
+
+
+
+
 // Route::resource('dashboard/os/ordens-equipamentos', OSController::class);
 
 

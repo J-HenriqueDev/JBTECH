@@ -154,73 +154,149 @@
                   </div>
 
                   <div class="row">
-                      <!-- Campo Avarias -->
-                      <div class="col-md-6 mb-3">
-                          <label for="avarias" class="form-label">
-                              <i class="bx bx-wrench"></i> Avarias do Equipamento
-                          </label>
-                          <textarea class="form-control" name="avarias" id="avarias" rows="4">{{ old('avarias', $os->avarias) }}</textarea>
-                          @error('avarias')
-                          <small class="text-danger fw-bold">{{ $message }}</small>
-                          @enderror
-                      </div>
+                    <!-- Campo Avarias -->
+                    <div class="col-md-6 mb-3">
+                        <label for="avarias" class="form-label">
+                            <i class="bx bx-wrench"></i> Avarias do Equipamento
+                        </label>
+                        <textarea class="form-control" name="avarias" id="avarias" rows="4">{{ old('avarias', $os->avarias) }}</textarea>
+                        @error('avarias')
+                        <small class="text-danger fw-bold">{{ $message }}</small>
+                        @enderror
+                    </div>
 
-                      <!-- Campo para Upload de Fotos -->
-                      <div class="col-md-6 mb-3">
-                          <label for="fotos" class="form-label">
-                              <i class="bx bx-camera"></i> Fotos do Equipamento
-                          </label>
-                          <input type="file" class="form-control" id="fotos" name="fotos[]" multiple accept="image/*">
-                          <small class="text-muted">Selecione uma ou mais fotos do equipamento.</small>
-                          @error('fotos')
-                          <small class="text-danger fw-bold">{{ $message }}</small>
-                          @enderror
-                      </div>
+                    <!-- Campo para Upload de Fotos -->
+                    <div class="col-md-6 mb-3">
+                        <label for="fotos" class="form-label">
+                            <i class="bx bx-camera"></i> Fotos do Equipamento
+                        </label>
+                        <input type="file" class="form-control" id="fotos" name="fotos[]" multiple accept="image/*">
+                        <small class="text-muted">Selecione uma ou mais fotos do equipamento.</small>
+                        @error('fotos')
+                        <small class="text-danger fw-bold">{{ $message }}</small>
+                        @enderror
+                    </div>
+                </div>
 
-                      <!-- Visualizador de Fotos -->
-                      <div class="col-md-6">
-                          <div class="image-preview">
-                              <h5>Imagens do Equipamento</h5>
-                              <div class="swiper-container">
-                                  <div class="swiper-wrapper">
-                                      @foreach($os->fotos as $foto)
-                                          <div class="swiper-slide">
-                                              <img src="{{ asset('storage/' . $foto) }}" class="img-fluid" alt="Imagem do equipamento">
-                                              <button type="button" class="btn btn-danger" onclick="deleteImage('{{ $foto }}')">Excluir</button>
-                                          </div>
-                                      @endforeach
-                                      <div class="swiper-slide">
-                                          <img src="path/to/add-icon.png" class="add-image-icon" onclick="document.getElementById('fotos').click()">
-                                      </div>
-                                  </div>
-                                  <div class="swiper-pagination"></div>
-                              </div>
-                          </div>
-                      </div>
-                  </div>
+                <div class="col-md-12 mb-3">
+                    <div class="swiper-area form-control">
+                        <label for="previewFotos" class="form-label">
+                            <i class="bx bx-show"></i> Visualização das Fotos
+                        </label>
+                        <div class="swiper-container">
+                            <div class="swiper-wrapper">
+                                @foreach($os->fotos as $foto)
+                                    <div class="swiper-slide">
+                                        <img src="{{ asset('storage/' . $foto) }}" class="img-fluid" alt="Imagem do equipamento">
+                                        <button type="button" class="btn-close" onclick="deleteImage('{{ $foto }}')">×</button>
+                                    </div>
+                                @endforeach
+                                <div class="swiper-slide">
+                                    <img src="path/to/add-icon.png" class="add-image-icon" onclick="document.getElementById('fotos').click()">
+                                </div>
+                            </div>
+                            <div class="swiper-button-next"></div>
+                            <div class="swiper-button-prev"></div>
+                        </div>
+                    </div>
+                </div>
 
-                  <div class="row">
-                      <div class="col-12 d-flex justify-content-end">
-                          <button type="submit" class="btn btn-primary me-2">
-                              <i class="bx bx-save"></i> Salvar
-                          </button>
-                          <a href="{{ route('os.index') }}" class="btn btn-secondary">
-                              <i class="bx bx-x"></i> Cancelar
-                          </a>
-                      </div>
-                  </div>
+                <div class="card-footer d-flex justify-content-end">
+                  <button type="submit" class="btn btn-md btn-primary fw-bold me-2">
+                      <i class="bx bx-plus"></i> Atualizar
+                  </button>
+                  <button type="button" class="btn btn-outline-secondary" onclick="history.back();">
+                      <i class="bx bx-x"></i> Cancelar
+                  </button>
               </div>
+
           </form>
       </div>
   </div>
 </div>
 
-<script>
-function deleteImage(foto) {
-    // Aqui você pode implementar a lógica para excluir a imagem via AJAX ou redirecionar para um endpoint de exclusão
-    console.log("Imagem para excluir: ", foto);
-    // Adicione a lógica para atualizar a interface após a exclusão da imagem
-}
-</script>
+  <style>
+    .swiper-area {
+        max-width: 100%;
+        height: 215px;
+        overflow: hidden;
+        border: 2px solid #ccc;
+        border-radius: 8px;
+        background-color: #f1f1f1;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        z-index: 100;
+    }
+
+    .swiper-container {
+        width: 100%;
+        height: 100%;
+    }
+
+    .swiper-wrapper {
+        height: 100%;
+    }
+
+    .swiper-slide {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+    }
+
+    .swiper-slide img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+
+    .swiper-button-next, .swiper-button-prev {
+        color: orange;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 10;
+    }
+
+    .swiper-button-next {
+        right: 10px;
+    }
+
+    .swiper-button-prev {
+        left: 10px;
+    }
+
+    .btn-close {
+        position: absolute;
+        top: -17px;
+        right: -10px;
+        background: none;
+        border: none;
+        color: red;
+        cursor: pointer;
+        font-size: 30px;
+    }
+  </style>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const swiper = new Swiper('.swiper-container', {
+        slidesPerView: 6,
+        spaceBetween: 10,
+        navigation: {
+          nextEl: '.swiper-button-next',
+          prevEl: '.swiper-button-prev',
+        },
+        loop: false,
+      });
+    });
+
+    function deleteImage(foto) {
+      console.log("Imagem para excluir: ", foto);
+      // Lógica de exclusão pode ser adicionada aqui
+    }
+  </script>
+
 
 @endsection
