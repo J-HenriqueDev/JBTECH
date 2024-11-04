@@ -12,21 +12,20 @@ class Produto extends Model
     use HasFactory;
 
     protected $fillable = [
-        'nome',
-        'preco_custo',
-        'preco_venda',
-        'codigo_barras',
-        'ncm',
-        'cfop',
-        'tipo_produto',
-        'estoque',
-        'categoria_id', // Campo de chave estrangeira
-        'usuario_id', // Campo de chave estrangeira para usuários
-        'fornecedor_cnpj',
-        'fornecedor_nome',
-        'fornecedor_telefone',
-        'fornecedor_email',
-    ];
+      'nome',
+      'preco_custo',
+      'preco_venda',
+      'codigo_barras',
+      'ncm',
+      'estoque', // Adicionado
+      'categoria_id',
+      'usuario_id', // Adicionado
+      'fornecedor_cnpj',
+      'fornecedor_nome',
+      'fornecedor_telefone',
+      'fornecedor_email',
+  ];
+
 
     // Definindo o relacionamento com a categoria
     public function categoria()

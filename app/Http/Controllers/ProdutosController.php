@@ -25,12 +25,8 @@ class ProdutosController extends Controller
     public function create(Request $request)
     {
         $categorias = Categoria::all(); // Obtém todas as categorias
-
-        // Obtém os dados dos produtos importados se existirem na requisição
-        $productsData = $request->input('productsData', []);
-
-        // Retorna a view com os dados, se houver
-        return view('content.produtos.criar', compact('categorias', 'productsData'));
+        $productsData = $request->input('productsData', []); // Obtém os dados dos produtos importados se existirem na requisição
+        return view('content.produtos.criar', compact('categorias', 'productsData')); // Retorna a view com os dados
     }
 
     /**
@@ -68,13 +64,12 @@ class ProdutosController extends Controller
                 'preco_venda' => (float) $produto->prod->vProd * 1.2,
                 'codigo_barras' => (string) $produto->prod->cEAN,
                 'ncm' => (string) $produto->prod->NCM,
-                'cfop' => (string) $produto->prod->CFOP ?? '',
-                'tipo_produto' => (string) $produto->prod->uCom,
+                'tipo_produto' => (string) $produto->prod->uCom, // Se não estiver mais no formulário, remova
                 'estoque' => (int) $produto->prod->qCom,
                 'fornecedor_cnpj' => (string) $xml->NFe->infNFe->emit->CNPJ,
                 'fornecedor_nome' => (string) $xml->NFe->infNFe->emit->xNome,
                 'fornecedor_telefone' => (string) $xml->NFe->infNFe->emit->enderEmit->fone,
-                'fornecedor_email' => 'fornecedor@exemplo.com',
+                'fornecedor_email' => 'fornecedor@exemplo.com', // Se não estiver mais, remova
             ];
         }
 
@@ -90,13 +85,40 @@ class ProdutosController extends Controller
      */
     public function store(Request $request)
     {
+        // Validação dos campos do fornecedor
+        $request->validate([
+            'fornecedor_cnpj' => 'required|string|max:14',
+            'fornecedor_nome' => 'required|string|max:255',
+            'fornecedor_telefone' => 'required|string|max:15',
+            'fornecedor_email' => 'required|email',
+        ]);
+
         $produtos = $request->input('produtos');
 
         // Validação e armazenamento de cada produto
         foreach ($produtos as $produto) {
-            $validated = $this->validateProduto($produto);
-            Produto::create($validated); // Cria o produto
-        }
+          // Convertendo os preços para float
+          $produto['preco_custo'] = str_replace(',', '.', str_replace('.', '', $produto['preco_custo']));
+          $produto['preco_venda'] = str_replace(',', '.', str_replace('.', '', $produto['preco_venda']));
+
+          try {
+              // Validação dos dados do produto
+              $validated = $this->validateProduto($produto);
+
+              // Criação do produto
+              Produto::create(array_merge($validated, [
+                  'fornecedor_cnpj' => $request->fornecedor_cnpj,
+                  'fornecedor_nome' => $request->fornecedor_nome,
+                  'fornecedor_telefone' => $request->fornecedor_telefone,
+                  'fornecedor_email' => $request->fornecedor_email,
+                  'usuario_id' => $request->usuario_id,
+              ]));
+          } catch (\Exception $e) {
+              Log::error('Erro ao salvar o produto: ' . $e->getMessage());
+              return redirect()->back()->withErrors('Erro ao salvar o produto: ' . $e->getMessage());
+          }
+      }
+
 
         return redirect()->route('produtos.index')->with('success', 'Produtos cadastrados com sucesso!');
     }
@@ -105,21 +127,16 @@ class ProdutosController extends Controller
     protected function validateProduto($produto)
     {
         return validator()->make($produto, [
-            'nome' => 'required|string|max:255',
+            'nome' => 'required|string|max:255|unique:produtos,nome',
             'preco_custo' => 'required|numeric',
             'preco_venda' => 'required|numeric',
             'codigo_barras' => 'required|string|max:13',
             'ncm' => 'required|string|max:8',
-            'cfop' => 'string|max:7|nullable',
-            'tipo_produto' => 'required|string|max:100',
             'estoque' => 'required|integer',
-            'fornecedor_cnpj' => 'required|string',
-            'fornecedor_nome' => 'required|string|max:255',
-            'fornecedor_telefone' => 'required|string',
-            'fornecedor_email' => 'required|email',
             'categoria_id' => 'required|exists:categorias,id', // Validação do campo categoria_id
         ])->validate();
     }
+
 
     /**
      * Display the specified resource.
@@ -139,24 +156,13 @@ class ProdutosController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
-     */
-    // public function update(Request $request, Produto $produto)
-    // {
-    //     $validated = $request->validate($this->validaionRules()); // Valida os dados
-    //     $produto->update($validated); // Atualiza o produto
-
-    //     return redirect()->route('dashboard.produtos.index')->with('success', 'Produto atualizado com sucesso!'); // Redireciona com mensagem de sucesso
-    // }
-
-    /**
      * Remove the specified resource from storage.
      */
     public function destroy(Produto $produto)
     {
         $produto->delete(); // Remove o produto
 
-        return redirect()->route('dashboard.produtos.index')->with('success', 'Produto removido com sucesso!'); // Redireciona com mensagem de sucesso
+        return redirect()->route('produtos.index')->with('success', 'Produto removido com sucesso!'); // Redireciona com mensagem de sucesso
     }
 
     // Outros métodos se necessário...
