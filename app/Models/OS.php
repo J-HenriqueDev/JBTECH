@@ -1,6 +1,6 @@
 <?php
 
-/// app/Models/OS.php
+// app/Models/OS.php
 
 namespace App\Models;
 
@@ -21,6 +21,8 @@ class OS extends Model
         'problema_item',
         'acessorios',
         'senha_do_dispositivo',
+        'modelo_do_dispositivo', // Novo campo
+        'sn',                    // Novo campo
         'avarias',
         'fotos',
         'usuario_id'
@@ -29,21 +31,21 @@ class OS extends Model
     protected $casts = [
         'fotos' => 'array', // Para armazenar múltiplas fotos como um array
     ];
+
     // Definindo os tipos de equipamento disponíveis
     public const TIPOS_DE_EQUIPAMENTO = [
-      'COMPUTADOR' => 'Computador',
-      'NOTEBOOK' => 'Notebook',
-      'IMPRESSORA' => 'Impressora',
-      'DVR' => 'DVR',
-      'CAMERA' => 'Câmera',
-      'IMPRESSORA_TERMICA' => 'Impressora Térmica',
-      'MACBOOK' => 'MacBook',
-      'OUTROS' => 'Outros', // Categoria para equipamentos não listados
-  ];
+        'COMPUTADOR' => 'Computador',
+        'NOTEBOOK' => 'Notebook',
+        'IMPRESSORA' => 'Impressora',
+        'DVR' => 'DVR',
+        'CAMERA' => 'Câmera',
+        'IMPRESSORA_TERMICA' => 'Impressora Térmica',
+        'MACBOOK' => 'MacBook',
+        'OUTROS' => 'Outros',
+    ];
 
-
-  public function cliente()
-  {
-      return $this->belongsTo(Clientes::class, 'cliente_id'); // Altere 'cliente_id' para o nome real da sua chave estrangeira
-  }
+    public function cliente()
+    {
+        return $this->belongsTo(Clientes::class, 'cliente_id'); // Altere 'cliente_id' para o nome real da sua chave estrangeira
+    }
 }

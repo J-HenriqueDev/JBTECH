@@ -1,40 +1,58 @@
 {
   "menu": [
     {
+      "url": "/dashboard",
+      "name": "Dashboard",
+      "icon": "menu-icon tf-icons fas fa-chart-line text-success",
+      "slug": "dashboard"
+    },
+    {
       "url": "/",
-      "name": "Home",
-      "icon": "menu-icon tf-icons bx bx-home-circle",
+      "name": "Landing Page",
+      "icon": "menu-icon tf-icons fas fa-globe text-primary",
       "slug": "home"
+    },
+    {
+      "url": "/dashboard/categorias",
+      "name": "Categorias",
+      "icon": "menu-icon tf-icons fas fa-th-list text-warning",
+      "slug": "categorias"
     },
     {
       "url": "/dashboard/clientes",
       "name": "Clientes",
-      "icon": "menu-icon tf-icons bx bx-group",
+      "icon": "menu-icon tf-icons fas fa-address-book text-info",
       "slug": "clientes"
+    },
+    {
+      "url": "/dashboard/orcamentos",
+      "name": "Orçamentos",
+      "icon": "menu-icon tf-icons fas fa-file-invoice text-danger",
+      "slug": "orcamentos"
+    },
+    {
+      "url": "/dashboard/os",
+      "name": "Ordens de Serviço",
+      "icon": "menu-icon tf-icons fas fa-tools text-secondary",
+      "slug": "ordens-servico"
     },
     {
       "url": "/dashboard/produtos",
       "name": "Produtos",
-      "icon": "menu-icon tf-icons bx bx-box",
+      "icon": "menu-icon tf-icons fas fa-box text-success",
       "slug": "produtos"
     },
     {
-      "url": "/dashboard/oss",
-      "name": "Ordens de Serviço",
-      "icon": "menu-icon tf-icons bx bx-wrench",
-      "slug": "ordens-servico",
-      "submenu": [
-        {
-          "url": "/dashboard/oss/ordens-servico",
-          "name": "Ordens de Serviço",
-          "slug": "ordens-servico-list"
-        },
-        {
-          "url": "/dashboard/oss/ordens-equipamentos",
-          "name": "Ordens de Equipamentos",
-          "slug": "ordens-equipamentos-list"
-        }
-      ]
+      "url": "/dashboard/relatorios",
+      "name": "Relatórios",
+      "icon": "menu-icon tf-icons fas fa-file-alt text-info",
+      "slug": "relatorios"
+    },
+    {
+      "url": "/dashboard/vendas",
+      "name": "Vendas",
+      "icon": "menu-icon tf-icons fas fa-cash-register text-warning",
+      "slug": "vendas"
     }
   ]
 }

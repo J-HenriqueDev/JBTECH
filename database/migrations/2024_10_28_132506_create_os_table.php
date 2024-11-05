@@ -19,6 +19,8 @@ class CreateOSTable extends Migration
             $table->text('problema_item');
             $table->string('acessorios')->nullable();
             $table->string('senha_do_dispositivo')->nullable();
+            $table->string('modelo_do_dispositivo')->nullable(); // Novo campo
+            $table->string('sn')->nullable(); // Novo campo
             $table->text('avarias')->nullable();
             $table->json('fotos')->nullable(); // Para armazenar uma lista de fotos
             $table->unsignedBigInteger('usuario_id');

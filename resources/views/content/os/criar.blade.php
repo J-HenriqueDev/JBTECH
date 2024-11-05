@@ -22,8 +22,8 @@
 @endsection
 
 @section('content')
-<h1 class="mb-4  text-primary" style="font-size: 2.5rem; font-weight: bold; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);">
-  <i class="fas fa-file-alt"></i> Cadastro de OS
+<h1 class="mb-4 text-primary" style="font-size: 2.5rem; font-weight: bold; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);">
+  <i class="bx bx-file"></i> Cadastro de OS
 </h1>
 
 <div class="row">
@@ -37,7 +37,7 @@
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label for="cliente_id">
-                                    <i class="fas fa-id-card"></i> Cliente
+                                    <i class="bx bx-id-card"></i> Cliente
                                 </label>
                                 <select id="select2Basic" class="select2 form-select" data-live-search="true" name="cliente_id">
                                     <option value="" disabled selected>Selecione um cliente</option>
@@ -57,7 +57,7 @@
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label for="tipo_id">
-                                    <i class="fas fa-laptop"></i> Tipo de equipamento
+                                    <i class="bx bx-laptop"></i> Tipo de equipamento
                                 </label>
                                 <select class="form-select" id="tipo_id" name="tipo_id">
                                     <option value="" disabled selected>Selecione um tipo</option>
@@ -71,13 +71,11 @@
                             </div>
                         </div>
 
-
-
                         <!-- Campo Data de Entrada -->
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label for="data" class="form-label">
-                                    <i class="fas fa-calendar-alt"></i> Data de entrada
+                                    <i class="bx bx-calendar"></i> Data de entrada
                                 </label>
                                 <input type="date" class="form-control" name="data_de_entrada" id="data" value="{{ date('Y-m-d') }}">
                                 @error('data_de_entrega')
@@ -90,7 +88,7 @@
                         <div class="col-md-3">
                           <div class="form-group">
                               <label for="prazo_entrega" class="form-label">
-                                  <i class="fas fa-calendar-check"></i> Prazo de entrega
+                                  <i class="bx bx-calendar-check"></i> Prazo de entrega
                               </label>
                               <input type="date" class="form-control" name="prazo_entrega" id="prazo_entrega"
                                      value="{{ date('Y-m-d', strtotime('+7 days')) }}">
@@ -99,14 +97,13 @@
                               @enderror
                           </div>
                       </div>
-
                     </div>
 
                     <div class="row">
                         <!-- Campo Problema Apresentado -->
                         <div class="col-sm-6">
                             <label for="descricao" class="form-label">
-                                <i class="fas fa-exclamation-circle"></i> Problema apresentado
+                                <i class="bx bx-error-circle"></i> Problema apresentado
                             </label>
                             <textarea class="form-control" name="problema_item" id="descricao" rows="4" placeholder="Computador com muita lentidão, liga e às vezes fica em tela preta." required></textarea>
                             @error('problema_item')
@@ -115,37 +112,59 @@
                             <small>* É importante preencher a descrição de forma correta para que os técnicos possam ser mais rápidos no diagnóstico.</small>
                         </div>
 
-                        <!-- Acessórios (checkboxes ajustados) -->
-                        <div class="col-sm-5">
-                          <label for="acessorio" class="form-label d-block">
-                              <i class="fas fa-plug"></i> Acessórios
-                          </label>
-                        <div class="acessorios-container ">
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="checkbox" name="acessorios[]" value="nenhum" checked> Nenhum
+                        <!-- Acessórios -->
+                        <div class="col-sm-6">
+                            <label for="acessorio" class="form-label d-block">
+                                <i class="bx bx-plug"></i> Acessórios
+                            </label>
+                            <div class="d-flex align-items-center flex-wrap">
+                                <div class="form-check form-check-inline me-3">
+                                    <input class="form-check-input" type="checkbox" name="acessorios[]" value="nenhum" checked> Nenhum
+                                </div>
+                                <div class="form-check form-check-inline me-3">
+                                    <input class="form-check-input" type="checkbox" name="acessorios[]" value="carregador"> Carregador
+                                </div>
+                                <div class="form-check form-check-inline me-3">
+                                    <input class="form-check-input" type="checkbox" name="acessorios[]" value="ssd"> SSD
+                                </div>
+                                <div class="form-check form-check-inline d-flex align-items-center me-3">
+                                    <input class="form-check-input" type="checkbox" name="acessorios[]" value="outros"> Outros:
+                                    <input type="text" class="form-control ms-2" name="outros_acessorios" placeholder="Especificar" style="width: 120px;">
+                                </div>
                             </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="checkbox" name="acessorios[]" value="carregador"> Carregador
+
+
+
+                            <div class="row mb-3">
+                                <!-- Senha do Dispositivo -->
+                                <div class="col-md-4">
+                                    <label for="senha_pc" class="form-label">
+                                        <i class="bx bx-key"></i> Senha do dispositivo:
+                                    </label>
+                                    <input type="text" class="form-control" name="senha_do_dispositivo" id="senha_pc" placeholder="Ex: Henrique123" aria-label="Senha do dispositivo">
+                                </div>
+
+                                <!-- Modelo do Dispositivo -->
+                                <div class="col-md-4">
+                                    <label for="modelo_pc" class="form-label">
+                                        <i class="bx bx-laptop"></i> Modelo do dispositivo:
+                                    </label>
+                                    <input type="text" class="form-control" name="modelo_do_dispositivo" id="modelo_pc" placeholder="Ex: ACER NITRO 5" aria-label="Modelo do dispositivo">
+                                </div>
+
+                                <!-- S/N do Dispositivo -->
+                                <div class="col-md-4">
+                                    <label for="sn" class="form-label">
+                                        <i class="bx bx-barcode"></i> S/N:
+                                    </label>
+                                    <input type="text" class="form-control" name="sn" id="sn" placeholder="Ex: 123456789" aria-label="S/N do dispositivo">
+                                </div>
                             </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="checkbox" name="acessorios[]" value="ssd"> SSD
-                            </div>
-                            <div class="form-check form-check-inline d-flex align-items-center">
-                                <input class="form-check-input" type="checkbox" name="acessorios[]" value="outros"> Outros:
-                                <input type="text" class="form-control ms-2" name="outros_acessorios" placeholder="Especificar" style="width: 120px;">
-                            </div>
+
+                            <!-- Campo oculto para o ID do Usuário Autenticado -->
+                            <input type="hidden" name="usuario_id" value="{{ auth()->user()->id }}">
                         </div>
 
-                <!-- Senha do Dispositivo (adicionado name) -->
-                <label for="senha_pc" class="form-label">
-                  <i class="fas fa-key"></i> Senha do dispositivo:
-              </label>
-                  <input type="text" class="form-control" name="senha_do_dispositivo" id="senha_pc" placeholder="Ex: Henrique123" aria-label="Senha do dispositivo">
-
-                    <!-- Campo oculto para o ID do Usuário Autenticado -->
-                    <input type="hidden" name="usuario_id" value="{{ auth()->user()->id }}">
-
-                    </div>
                     <div class="divider my-6">
                       <div class="divider-text">
                           <i class="bx bx-package"></i> Itens
@@ -200,7 +219,6 @@
                           <i class="bx bx-x"></i> Cancelar
                       </button>
                   </div>
-
             </form>
 
             <style>
@@ -316,7 +334,6 @@
               images.splice(index, 1);
               renderImages();
           }
-
           </script>
         </div>
     </div>
