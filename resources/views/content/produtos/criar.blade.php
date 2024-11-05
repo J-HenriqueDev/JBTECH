@@ -159,7 +159,7 @@
                 </label>
                 <select class="form-select" id="unidade_medida_{{ $index }}" name="produtos[{{ $index }}][unidade_medida]" required>
                   <option value="" disabled selected>Selecione a unidade</option>
-                  <option value="Unidade">Unidade</option>
+                  <option value="Unidade" selected>Unidade</option>
                   <option value="Kg">Kg</option>
                   <option value="Litro">Litro</option>
                   <option value="Metro">Metro</option>
@@ -481,7 +481,7 @@
                           <i class="fas fa-dollar-sign"></i> Preço de Venda
                       </label>
                       <input type="number" class="form-control" name="produtos[0][preco_venda]" id="preco_venda_0" required step="0.01">
-                      
+
                   </div>
               </div>
 
@@ -540,7 +540,7 @@
                     </label>
                     <select class="form-select" id="unidade_medida_${productCount}" name="produtos[${productCount}][unidade_medida]" required>
                       <option value="" disabled selected>Selecione a unidade</option>
-                      <option value="Unidade">Unidade</option>
+                      <option value="Unidade" selected>Unidade</option>
                       <option value="Kg">Kg</option>
                       <option value="Litro">Litro</option>
                       <option value="Metro">Metro</option>

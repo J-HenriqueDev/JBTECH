@@ -3,7 +3,9 @@
 @section('title', 'Novo Cliente')
 
 @section('content')
-<h1 class="mb-3">Cadastro de Cliente</h1>
+ <h1 class="text-primary" style="font-size: 2.5rem; font-weight: bold; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);">
+  <i class="fas fa-plus-circle"></i> Cadastro de Clientes
+</h1>
 <div class="row">
     <div class="col-md-12">
         <div class="card mb-4">

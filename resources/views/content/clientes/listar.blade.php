@@ -16,7 +16,9 @@
 
 
 <div class="d-flex justify-content-between align-items-center">
-    <h1>Lista de Clientes</h1>
+  <h1 class="text-primary" style="font-size: 2.5rem; font-weight: bold; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);">
+    <i class="fas fa-plus-circle"></i> Clientes
+  </h1>
     <a href="{{ route('clientes.create') }}" class="btn btn-primary">
         <i class="fas fa-plus-circle me-1"></i> Novo Cliente
     </a>
