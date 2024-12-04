@@ -84,14 +84,14 @@ public function search(Request $request)
                     }
                 }
             ],
-            'telefone' => 'required|string|max:15',
+            'telefone' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'cep' => [
                 'required',
                 'string',
                 function($attribute, $value, $fail) use ($cep) {
-                    if (strlen($cep) !== 8) {
-                        $fail('O campo CEP deve ter 8 dígitos.');
+                    if (strlen($cep) !== 255) {
+                        // $fail('O campo CEP deve ter 8 dígitos.');
                     }
                 }
             ],
@@ -114,9 +114,9 @@ public function search(Request $request)
         // Cadastra o endereço
         $endereco = Enderecos::create([
             'cep' => $cep,
-            'endereco' => $endereco['logradouro'],
+            'endereco' => $request['endereco'],
             'numero' => $request->numero,
-            'bairro' => $endereco['bairro'],
+            'bairro' => $request['bairro'],
             'cidade' => $endereco['localidade'],
             'estado' => $endereco['uf'],
             'created_at' => Carbon::now()

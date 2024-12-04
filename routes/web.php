@@ -11,7 +11,7 @@ use App\Http\Controllers\ClientesController;
 use App\Http\Controllers\OSController;
 use App\Http\Controllers\ProdutosController;
 use App\Http\Controllers\CategoriaController;
-
+use App\Http\Controllers\OrcamentoController;
 
 Route::get('/get-reviews', [ReviewController::class, 'getReviews']);
 // Em routes/web.php
@@ -36,6 +36,11 @@ Route::post('dashboard/produtos/import', [ProdutosController::class, 'import'])-
 Route::resource('dashboard/categorias', CategoriaController::class)->only([
   'index', 'store', 'destroy'
 ]);
+Route::resource('dashboard/orcamentos', OrcamentoController::class);
+Route::post('/dashboard/orcamentos/obter-coordenadas', [OrcamentoController::class, 'obterCoordenadas'])->name('orcamentos.obterCoordenadas');
+Route::get('/dashboard/orcamentos/{id}/exportar-pdf', [OrcamentoController::class, 'exportarPdf'])->name('orcamentos.exportarPdf');
+
+
 
 
 

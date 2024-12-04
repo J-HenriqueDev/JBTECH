@@ -88,6 +88,10 @@
                         </div>
                     </div>
 
+                    <div class="divider my-6">
+                      <div class="divider-text"><i class="fas fa-briefcase"></i> Endereço</div>
+                    </div>
+
                     <!-- Endereço -->
                     <div class="row mt-4">
                         <div class="col-md-3">
@@ -96,7 +100,7 @@
                                     <i class="fas fa-map-marker-alt"></i> CEP
                                 </label>
                                 <div class="input-group">
-                                    <input type="text" name="cep" id="cep" class="form-control" data-mask="00000-000" placeholder="27520-000" required>
+                                    <input type="text" name="cep" id="cep" class="form-control" data-mask="00.000-000" placeholder="27520-000" required>
                                     @error('cep')
                                     <span class="text-danger">{{ $message }}</span>
                                     @enderror

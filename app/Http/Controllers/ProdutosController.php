@@ -105,19 +105,34 @@ class ProdutosController extends Controller
               // Validação dos dados do produto
               $validated = $this->validateProduto($produto);
 
-              // Criação do produto
-              Produto::create(array_merge($validated, [
-                  'fornecedor_cnpj' => $request->fornecedor_cnpj,
-                  'fornecedor_nome' => $request->fornecedor_nome,
-                  'fornecedor_telefone' => $request->fornecedor_telefone,
-                  'fornecedor_email' => $request->fornecedor_email,
-                  'usuario_id' => $request->usuario_id,
-              ]));
+              // Verifica se o produto já existe
+              $produtoExistente = Produto::where('nome', $validated['nome'])->first();
+
+              if ($produtoExistente) {
+                  // Atualiza o produto existente
+                  $produtoExistente->update(array_merge($validated, [
+                      'fornecedor_cnpj' => $request->fornecedor_cnpj,
+                      'fornecedor_nome' => $request->fornecedor_nome,
+                      'fornecedor_telefone' => $request->fornecedor_telefone,
+                      'fornecedor_email' => $request->fornecedor_email,
+                      'usuario_id' => $request->usuario_id,
+                  ]));
+              } else {
+                  // Cria um novo produto
+                  Produto::create(array_merge($validated, [
+                      'fornecedor_cnpj' => $request->fornecedor_cnpj,
+                      'fornecedor_nome' => $request->fornecedor_nome,
+                      'fornecedor_telefone' => $request->fornecedor_telefone,
+                      'fornecedor_email' => $request->fornecedor_email,
+                      'usuario_id' => $request->usuario_id,
+                  ]));
+              }
           } catch (\Exception $e) {
               Log::error('Erro ao salvar o produto: ' . $e->getMessage());
               return redirect()->back()->withErrors('Erro ao salvar o produto: ' . $e->getMessage());
           }
       }
+
 
 
         return redirect()->route('produtos.index')->with('success', 'Produtos cadastrados com sucesso!');
@@ -127,7 +142,7 @@ class ProdutosController extends Controller
     protected function validateProduto($produto)
     {
         return validator()->make($produto, [
-            'nome' => 'required|string|max:255|unique:produtos,nome',
+            'nome' => 'required|string|max:255', // Removida a regra `unique`
             'preco_custo' => 'required|numeric',
             'preco_venda' => 'required|numeric',
             'codigo_barras' => 'required|string|max:13',
@@ -136,6 +151,7 @@ class ProdutosController extends Controller
             'categoria_id' => 'required|exists:categorias,id', // Validação do campo categoria_id
         ])->validate();
     }
+
 
 
     /**
@@ -152,8 +168,9 @@ class ProdutosController extends Controller
     public function edit(Produto $produto)
     {
         $categorias = Categoria::all(); // Obtém todas as categorias
-        return view('content.produtos.editar', compact('produto', 'categorias')); // Retorna a view de edição
+        return view('content.produtos.editar', compact('produto', 'categorias')); // Passa a variável $produto para a view
     }
+
 
     /**
      * Remove the specified resource from storage.

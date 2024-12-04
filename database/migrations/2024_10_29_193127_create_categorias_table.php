@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 class CreateCategoriasTable extends Migration
 {
@@ -13,6 +14,16 @@ class CreateCategoriasTable extends Migration
             $table->string('nome'); // Nome da categoria
             $table->timestamps();
         });
+
+        // Inserir categorias básicas
+        DB::table('categorias')->insert([
+            ['nome' => 'Placas-mãe', 'created_at' => now(), 'updated_at' => now()],
+            ['nome' => 'Memórias', 'created_at' => now(), 'updated_at' => now()],
+            ['nome' => 'SSD', 'created_at' => now(), 'updated_at' => now()],
+            ['nome' => 'HD', 'created_at' => now(), 'updated_at' => now()],
+            ['nome' => 'Computador', 'created_at' => now(), 'updated_at' => now()],
+            ['nome' => 'Outros', 'created_at' => now(), 'updated_at' => now()],
+        ]);
     }
 
     public function down()

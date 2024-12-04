@@ -17,9 +17,10 @@ class CreateProdutosTable extends Migration
             $table->string('ncm');
             // Removido 'cest' e 'tipo_produto' se não forem utilizados
             $table->unsignedInteger('estoque');
-            $table->foreignId('usuario_id')->constrained()->onDelete('cascade'); // Chave estrangeira para usuários
+            // $table->foreignId('usuario_id')->constrained()->onDelete('cascade'); // Chave estrangeira para usuários
+            $table->unsignedBigInteger('usuario_id');
             $table->foreignId('categoria_id')->constrained()->onDelete('cascade'); // Chave estrangeira para categorias
-            $table->string('fornecedor_cnpj')->unique();
+            $table->string('fornecedor_cnpj');
             $table->string('fornecedor_nome');
             $table->string('fornecedor_telefone');
             $table->string('fornecedor_email')->nullable();
