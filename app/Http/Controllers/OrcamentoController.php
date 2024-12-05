@@ -12,14 +12,23 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class OrcamentoController extends Controller
 {
-    // Exibir a listagem dos orçamentos
-    public function index()
-    {
-        $orcamentos = Orcamento::with('cliente')->get();
-        return view('orcamentos.index', compact('orcamentos'));
-    }
+  public function index(Request $request)
+  {
+      $search = $request->input('search');
 
-    // Exibir o formulário de criação de um novo orçamento
+      $orcamentos = Orcamento::with('cliente')
+          ->when($search, function ($query, $search) {
+              return $query->where('id', 'like', "%$search%")
+                  ->orWhereHas('cliente', function ($query) use ($search) {
+                      $query->where('nome', 'like', "%$search%");
+                  });
+          })
+          ->paginate(10); // Paginação com 10 itens por página
+
+      return view('content.orcamentos.index', compact('orcamentos'));
+  }
+
+
     public function create()
     {
         $clientes = Clientes::with('endereco')->get();
@@ -27,7 +36,6 @@ class OrcamentoController extends Controller
         return view('content.orcamentos.criar', compact('clientes', 'produtos'));
     }
 
-    // Armazenar um novo orçamento
     public function store(Request $request)
     {
         // Logar todos os dados recebidos para verificar
@@ -40,7 +48,7 @@ class OrcamentoController extends Controller
             'validade' => 'required|date|after_or_equal:data',
             'observacoes' => 'nullable|string',
             'produtos' => 'required|array',
-            'produtos.*.quantidade' => 'required|numeric|min:1|max:10000', // Limitar a quantidade para evitar valores absurdamente altos
+            'produtos.*.quantidade' => 'required|numeric|min:1|max:10000', // Limitar a quantidade
             'produtos.*.valor_unitario' => 'required|string',
         ]);
 
@@ -54,25 +62,8 @@ class OrcamentoController extends Controller
             // Inicializar valor total do orçamento
             $valorTotal = 0;
 
-            // Extrair o valor do serviço, se houver, antes do loop de produtos
-            $valorServico = isset($request->produtos['servico'])
-                ? floatval(str_replace(['R$', '.', ','], ['', '', '.'], $request->produtos['servico']['valor_unitario']))
-                : 0;
-
-            // Atualizar o valor do serviço no orçamento, se houver
-            if ($valorServico > 0) {
-                $orcamento->update(['valor_servico' => $valorServico]);
-                Log::info('Valor do serviço atualizado no orçamento', ['valor_servico' => $valorServico]);
-            }
-
             // Processar produtos e calcular o valor total
-            foreach ($request->produtos as $key => $produto) {
-                // Pular o serviço na iteração do loop
-                if ($key === 'servico') {
-                    $valorTotal += $valorServico; // Adicionar o valor do serviço ao valor total
-                    continue;
-                }
-
+            foreach ($request->produtos as $id => $produto) {
                 // Tratamento do valor_unitario para garantir que está no formato correto
                 $valorUnitario = str_replace(['R$', '.', ','], ['', '', '.'], $produto['valor_unitario']);
                 $valorUnitario = floatval($valorUnitario);
@@ -81,8 +72,8 @@ class OrcamentoController extends Controller
                 $quantidade = intval($produto['quantidade']);
                 $valorTotalProduto = $quantidade * $valorUnitario;
 
-                // Produto existente: associar ao orçamento
-                $orcamento->produtos()->attach($produto['id'], [
+                // Associar produto ao orçamento
+                $orcamento->produtos()->attach($id, [
                     'quantidade' => $quantidade,
                     'valor_unitario' => $valorUnitario,
                 ]);
@@ -91,7 +82,7 @@ class OrcamentoController extends Controller
                 $valorTotal += $valorTotalProduto;
             }
 
-            // Atualizar o valor total do orçamento após somar produtos e serviços
+            // Atualizar o valor total do orçamento após somar produtos
             $orcamento->update(['valor_total' => $valorTotal]);
             Log::info('Valor total do orçamento atualizado', ['valor_total' => $valorTotal]);
 
@@ -108,7 +99,6 @@ class OrcamentoController extends Controller
     }
 
 
-    // Exportar o orçamento em PDF
     public function exportarPdf($id)
     {
         $orcamento = Orcamento::with(['cliente', 'produtos'])->findOrFail($id);
@@ -116,7 +106,6 @@ class OrcamentoController extends Controller
         return $pdf->download('orcamento-' . $orcamento->id . '.pdf');
     }
 
-    // Obter coordenadas do endereço do cliente
     public function obterCoordenadas(Request $request)
     {
         $request->validate([
@@ -127,16 +116,100 @@ class OrcamentoController extends Controller
         $apiKey = env('GOOGLE_GEOCODING_API_KEY');
         $url = "https://maps.googleapis.com/maps/api/geocode/json?address=" . urlencode($endereco) . "&key={$apiKey}";
 
-        $response = file_get_contents($url);
-        $data = json_decode($response);
+        try {
+            $response = file_get_contents($url);
+            $data = json_decode($response);
 
-        if ($data->status !== 'OK') {
-            return response()->json(['error' => 'Erro ao obter coordenadas.']);
+            if ($data->status !== 'OK') {
+                throw new \Exception('Erro ao obter coordenadas do endereço');
+            }
+
+            $lat = $data->results[0]->geometry->location->lat;
+            $lng = $data->results[0]->geometry->location->lng;
+
+            return response()->json(['lat' => $lat, 'lng' => $lng]);
+        } catch (\Exception $e) {
+            Log::error('Erro ao obter coordenadas:', ['message' => $e->getMessage()]);
+            return response()->json(['error' => 'Não foi possível obter coordenadas. Verifique o endereço e tente novamente.']);
+        }
+    }
+    public function search(Request $request)
+    {
+        $search = $request->input('search');
+
+        $orcamentos = Orcamento::with('cliente')
+            ->when($search, function ($query, $search) {
+                return $query->where('id', 'like', "%$search%")
+                    ->orWhereHas('cliente', function ($query) use ($search) {
+                        $query->where('nome', 'like', "%$search%");
+                    });
+            })
+            ->get();
+
+        return response()->json($orcamentos);
+    }
+    public function edit($id)
+    {
+        $orcamento = Orcamento::with(['cliente', 'produtos'])->findOrFail($id);
+        $clientes = Clientes::all();
+        $produtos = Produto::all();
+
+        return view('content.orcamentos.editar', compact('orcamento', 'clientes', 'produtos'));
+    }
+
+
+    public function update(Request $request, $id)
+{
+    $validated = $request->validate([
+        'cliente_id' => 'required|exists:clientes,id',
+        'data' => 'required|date',
+        'validade' => 'required|date|after_or_equal:data',
+        'observacoes' => 'nullable|string',
+        'produtos' => 'required|array',
+        'produtos.*.quantidade' => 'required|integer|min:1',
+        'produtos.*.valor_unitario' => 'required|string',
+    ]);
+
+    DB::beginTransaction();
+
+    try {
+        // Localizar o orçamento e atualizar os campos principais
+        $orcamento = Orcamento::findOrFail($id);
+        $orcamento->update($request->only(['cliente_id', 'data', 'validade', 'observacoes']));
+
+        // Remover os produtos antigos associados ao orçamento
+        $orcamento->produtos()->detach();
+
+        // Inicializar o valor total
+        $valorTotal = 0;
+
+        // Reassociar os produtos e calcular o valor total
+        foreach ($request->produtos as $produtoId => $produto) {
+            $valorUnitario = floatval(str_replace(['R$', '.', ','], ['', '', '.'], $produto['valor_unitario']));
+            $quantidade = intval($produto['quantidade']);
+            $valorTotalProduto = $valorUnitario * $quantidade;
+
+            $orcamento->produtos()->attach($produtoId, [
+                'quantidade' => $quantidade,
+                'valor_unitario' => $valorUnitario,
+            ]);
+
+            // Incrementar o valor total
+            $valorTotal += $valorTotalProduto;
         }
 
-        $lat = $data->results[0]->geometry->location->lat;
-        $lng = $data->results[0]->geometry->location->lng;
+        // Atualizar o valor total no orçamento
+        $orcamento->update(['valor_total' => $valorTotal]);
 
-        return response()->json(['lat' => $lat, 'lng' => $lng]);
+        DB::commit();
+
+        return redirect()->route('content.orcamentos.index')->with('success', 'Orçamento atualizado com sucesso!');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return redirect()->back()->withErrors('Erro ao atualizar orçamento. Tente novamente mais tarde.');
     }
+}
+
+
+
 }

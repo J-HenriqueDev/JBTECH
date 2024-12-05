@@ -157,9 +157,15 @@ class ProdutosController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Produto $produto)
+    public function show($id)
     {
-        return view('content.produtos.show', compact('produto')); // Retorna a view de detalhes do produto
+        $produto = Produto::find($id);
+
+        if (!$produto) {
+            return response()->json(['error' => 'Produto não encontrado'], 404);
+        }
+
+        return response()->json($produto);
     }
 
     /**

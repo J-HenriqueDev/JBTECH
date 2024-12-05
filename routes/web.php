@@ -33,10 +33,16 @@ Route::resource('dashboard/os', OSController::class);
 Route::resource('dashboard/produtos', ProdutosController::class);
 
 Route::post('dashboard/produtos/import', [ProdutosController::class, 'import'])->name('produtos.import');
+// Route::get('dashboard/produtos/{id}', [ProdutosController::class, 'show']);
+Route::get('/dashboard/produtos/show/{id}', [ProdutosController::class, 'show'])->name('produtos.show');
+
+
 Route::resource('dashboard/categorias', CategoriaController::class)->only([
   'index', 'store', 'destroy'
 ]);
 Route::resource('dashboard/orcamentos', OrcamentoController::class);
+Route::get('dashboard/orcamentos/search', [OrcamentoController::class, 'search'])->name('orcamentos.search');
+
 Route::post('/dashboard/orcamentos/obter-coordenadas', [OrcamentoController::class, 'obterCoordenadas'])->name('orcamentos.obterCoordenadas');
 Route::get('/dashboard/orcamentos/{id}/exportar-pdf', [OrcamentoController::class, 'exportarPdf'])->name('orcamentos.exportarPdf');
 
