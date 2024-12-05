@@ -228,17 +228,6 @@
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_GEOCODING_API_KEY') }}&libraries=geometry"></script>
 
-       atualizarValorTotalTabela();
-   });
-
-
-    // Atualiza o valor do produto e o valor total ao selecionar um produto
-    $('#produto_id').on('change', function () {
-      const preco = parseFloat($(this).find(':selected').data('preco') || 0);
-      $('#valor_unitario').val(preco > 0 ? formatCurrency(preco) : '');
-      calcularValorTotal(preco);
-  });
-
 @include('content.orcamentos.scripts')
 
 @endsection
