@@ -50,10 +50,14 @@
                             @foreach ($orcamentos as $orcamento)
                                 <tr>
                                     <td>{{ $orcamento->id }}</td>
-                                    <td class="orcamento-cliente">{{ $orcamento->cliente->nome ?? 'Cliente não encontrado' }}</td>
+                                    {{--  <td class="orcamento-cliente"><strong>{{ $orcamento->cliente->nome ?? 'Cliente não encontrado' }}</strong></td>  --}}
+                                    <td class="orcamento-cliente">
+                                      <strong>{{ \Illuminate\Support\Str::limit($orcamento->cliente->nome ?? 'Cliente não encontrado', 40, '...') }}</strong>
+                                    </td>
+
                                     <td class="orcamento-data">{{ \Carbon\Carbon::parse($orcamento->data)->format('d/m/Y') }}</td>
                                     <td class="orcamento-validade">{{ \Carbon\Carbon::parse($orcamento->validade)->format('d/m/Y') }}</td>
-                                    <td class="orcamento-valor">{{ number_format($orcamento->valor_total, 2, ',', '.') }}</td>
+                                    <td class="orcamento-valor"><strong>R$ {{ number_format($orcamento->valor_total, 2, ',', '.') }}</strong></td>
                                     <td>
                                         {{--  <a href="{{ route('orcamentos.edit', $orcamento->id) }}" class="btn btn-warning">Editar</a>  --}}
                                         <a href="{{ route('orcamentos.edit', $orcamento->id) }}" class="btn btn-info">

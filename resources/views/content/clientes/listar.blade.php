@@ -54,8 +54,10 @@
                             <!-- Os clientes serão inseridos aqui via JavaScript -->
                             @foreach($clientes as $cliente)
                                 <tr>
-                                    <td>{{ formatarCpfCnpj($cliente->cpf_cnpj) }}</td>
-                                    <td>{{ $cliente->nome }}</td>
+                                    <td><strong>{{ formatarCpfCnpj($cliente->cpf_cnpj) }}</td>
+                                    {{--  <td><strong>{{ $cliente->nome }}</td>  --}}
+                                    <td><strong>{{\Illuminate\Support\Str::limit($cliente->nome, 40, '...') }}</strong></td>
+
                                     <td>{{ $cliente->email }}</td>
                                     <td>{{ $cliente->telefone }}</td>
                                     <td>

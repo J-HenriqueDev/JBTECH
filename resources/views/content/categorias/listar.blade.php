@@ -1,46 +1,102 @@
 @extends('layouts.layoutMaster')
 
+@section('title', 'Gerenciar Categorias')
+
 @section('vendor-style')
-@vite([/* CSS do Bootstrap ou qualquer outro que você estiver usando */])
+@vite(['resources/css/app.css'])
 <style>
-    .modal-header {
+    /* Estilo do tema */
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #007bff; /* Cor principal do tema */
+    }
+    .btn-primary {
         background-color: #007bff;
-        color: white;
+        border-color: #007bff;
+        font-weight: bold;
+    }
+    .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #004085;
     }
     .accordion-button {
         font-weight: bold;
         color: #333;
         background-color: #f8f9fa;
+        border-radius: 8px !important;
     }
     .accordion-button:not(.collapsed) {
         color: #007bff;
-        background-color: #e7f1ff;
+        background-color: #e3f2fd;
+    }
+    .accordion-item {
+        border: none;
+        margin-bottom: 10px;
+    }
+    .accordion-header i {
+        margin-right: 10px; /* Espaço entre o ícone e o texto */
     }
     .list-group-item {
         display: flex;
         align-items: center;
         justify-content: space-between;
+        background-color: #f8f9fa;
+        border-radius: 6px;
+        border: none;
+        padding: 10px 15px;
+        margin-bottom: 5px;
+        transition: background-color 0.3s;
     }
     .list-group-item:hover {
-        background-color: #f1f1f1;
+        background-color: #e3f2fd;
     }
     .btn-edit {
-        margin-left: 10px; /* Espaço entre o título e o botão de editar */
+        margin-left: 10px;
+    }
+    .modal-header {
+        background-color: #007bff;
+        color: white;
+        border-radius: 6px 6px 0 0;
+    }
+    .modal-footer {
+        border-top: none;
+    }
+    .form-control {
+        border-radius: 6px;
+    }
+    .input-group {
+        margin-bottom: 15px;
+    }
+    .input-group .form-control {
+        border-right: none;
+    }
+    .input-group .btn {
+        border-left: none;
+    }
+    @media (max-width: 768px) {
+        .accordion-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .btn-edit {
+            margin-top: 10px;
+        }
     }
 </style>
 @endsection
 
 @section('vendor-script')
-@vite([/* JS do Bootstrap ou qualquer outro que você estiver usando */])
+@vite(['resources/js/app.js'])
 @endsection
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="mb-4 text-primary" style="font-size: 2rem; font-weight: bold;">
-        <i class="fas fa-tags"></i> Lista de Categorias
+    <h1 class="page-title">
+        <i class="fas fa-tags"></i> Gerenciar Categorias
     </h1>
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalNovaCategoria">
-        <i class="fas fa-plus-circle"></i> Adicionar Categoria
+        <i class="fas fa-plus-circle"></i> Nova Categoria
     </button>
 </div>
 
@@ -49,7 +105,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalNovaCategoriaLabel">Adicionar Nova Categoria</h5>
+                <h5 class="modal-title" id="modalNovaCategoriaLabel">Adicionar Categoria</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -95,6 +151,7 @@
     </div>
 </div>
 
+<!-- Categorias -->
 <div class="accordion" id="accordionCategorias">
     @foreach ($categorias as $categoria)
         <div class="accordion-item">
@@ -110,9 +167,9 @@
             </h2>
             <div id="collapse{{ $categoria->id }}" class="accordion-collapse collapse" aria-labelledby="heading{{ $categoria->id }}" data-bs-parent="#accordionCategorias">
                 <div class="accordion-body">
-                    <div class="input-group mb-3">
+                    <div class="input-group">
                         <input type="text" class="form-control" placeholder="Buscar produtos..." onkeyup="filterProducts(this, '{{ $categoria->id }}')">
-                        <button class="btn btn-outline-secondary" type="button" id="button-addon2">
+                        <button class="btn btn-outline-secondary" type="button">
                             <i class="fas fa-search"></i>
                         </button>
                     </div>
@@ -142,11 +199,8 @@
     }
 
     function setEditCategory(id, nome) {
-        // Preenche o campo de nome do modal de edição
         document.getElementById('editar_nome').value = nome;
-        // Define a ação do formulário para a atualização da categoria
         document.getElementById('formEditarCategoria').action = `/categorias/${id}`;
     }
 </script>
-
 @endsection

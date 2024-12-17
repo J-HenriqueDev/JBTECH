@@ -157,10 +157,14 @@
                 <button type="submit" class="btn btn-md btn-primary fw-bold me-2">
                     <i class="bx bx-save"></i> Salvar Alterações
                 </button>
+                <a href="{{ route('orcamentos.gerarPdf', $orcamento->id) }}" target="_blank" class="btn btn-md btn-success fw-bold me-2">
+                    <i class="bx bx-file"></i> Exibir PDF
+                </a>
                 <button type="button" class="btn btn-outline-secondary" onclick="history.back();">
                     <i class="bx bx-x"></i> Cancelar
                 </button>
             </div>
+
         </div>
     </form>
 </div>

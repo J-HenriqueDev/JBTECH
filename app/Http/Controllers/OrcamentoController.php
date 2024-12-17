@@ -99,12 +99,7 @@ class OrcamentoController extends Controller
     }
 
 
-    public function exportarPdf($id)
-    {
-        $orcamento = Orcamento::with(['cliente', 'produtos'])->findOrFail($id);
-        $pdf = Pdf::loadView('orcamentos.pdf', compact('orcamento'));
-        return $pdf->download('orcamento-' . $orcamento->id . '.pdf');
-    }
+
 
     public function obterCoordenadas(Request $request)
     {
@@ -210,6 +205,17 @@ class OrcamentoController extends Controller
     }
 }
 
+public function gerarPdf($id)
+    {
+        $orcamento = Orcamento::with(['cliente', 'produtos'])->findOrFail($id);
+
+
+        // Atualize o caminho da view para refletir a nova localização
+        $logoBase64 = base64_encode(file_get_contents(public_path('assets/img/front-pages/landing-page/jblogo_black.png')));
+        $pdf = PDF::loadView('content.orcamentos.pdf', compact('orcamento', 'logoBase64'));
+        return $pdf->stream('orcamento.pdf');
+
+    }
 
 
 }
