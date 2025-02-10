@@ -1,4 +1,5 @@
 <script>
+  
   let custoCombustivel = 0; // Variável global para armazenar o custo do combustível
 
   // Formata valores em moeda brasileira
@@ -47,8 +48,10 @@
       // Inicializa o Select2 para o campo de produtos
       $('#produto_id').select2({
           dropdownParent: $('#modalAdicionarProduto'),
-          placeholder: 'Selecione um produto',
+          placeholder: 'Selecione um produto ou digite um novo',
           width: '100%'
+          tags: true, // Permite adicionar valores não listados
+
       });
 
       // Atualiza o valor_unitário e valor_total ao selecionar um produto
@@ -71,15 +74,14 @@
           $('#valor_total').val(formatCurrency(preco * quantidade));
       });
 
-      // Adiciona o produto na tabela
       $('#adicionarProduto').on('click', function () {
-        const produtoId = $('#produto_id').val();
-        const produtoNome = $('#produto_id option:selected').text().split(' - ')[0];
+        const produtoId = $('#produto_id').val(); // ID do produto (se selecionado)
+        const produtoNome = $('#produto_id').select2('data')[0].text; // Nome do produto (selecionado ou digitado)
         const precoUnitario = parseCurrency($('#valor_unitario').val());
         const quantidade = parseInt($('#quantidade').val() || 1);
         const valorTotal = precoUnitario * quantidade;
 
-        if (!produtoId || precoUnitario <= 0 || quantidade <= 0) {
+        if (!produtoNome || precoUnitario <= 0 || quantidade <= 0) {
             alert('Por favor, preencha todos os campos corretamente antes de adicionar um produto.');
             return;
         }
@@ -88,14 +90,14 @@
         $('#tabelaProdutos tbody').append(`
             <tr>
                 <td>
-                    <input type="hidden" name="produtos[${produtoId}][id]" value="${produtoId}">${produtoId}
+                    <input type="hidden" name="produtos[${produtoId || 'temporario'}][id]" value="${produtoId || 'temporario'}">${produtoId || 'Temporário'}
                 </td>
                 <td>${produtoNome}</td>
                 <td>
-                    <input type="number" class="form-control" name="produtos[${produtoId}][quantidade]" value="${quantidade}" min="1" readonly>
+                    <input type="number" class="form-control" name="produtos[${produtoId || 'temporario'}][quantidade]" value="${quantidade}" min="1" readonly>
                 </td>
                 <td>
-                    <input type="text" class="form-control" name="produtos[${produtoId}][valor_unitario]" value="${formatCurrency(precoUnitario)}" readonly>
+                    <input type="text" class="form-control" name="produtos[${produtoId || 'temporario'}][valor_unitario]" value="${formatCurrency(precoUnitario)}" readonly>
                 </td>
                 <td class="valor-total">${formatCurrency(valorTotal)}</td>
                 <td>

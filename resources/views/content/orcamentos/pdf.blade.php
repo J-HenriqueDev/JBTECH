@@ -10,16 +10,20 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f5f5f5;
+            background-color: #fff; /* Uniformiza o fundo */
             color: #333;
         }
         .container {
             max-width: 800px;
-            margin: 20px auto;
-            background: #fff;
-            border-radius: 6px;
+            margin: 0 auto;
             padding: 20px 30px;
+            border-radius: 6px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-color: #fff; /* Remove diferença de cor */
+            min-height: calc(100vh - 40px); /* Preenche quase toda a altura */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
         .header {
             text-align: center;
@@ -108,8 +112,11 @@
             font-size: 12px;
             color: #666;
             margin-top: 30px;
-            border-top: 1px solid #ddd;
             padding-top: 10px;
+            border-top: 1px solid #ddd;
+            padding-bottom: 5px;
+            background-color: #fff; /* Remove discrepâncias de cor */
+            page-break-inside: avoid; /* Evita quebra de página no rodapé */
         }
     </style>
 </head>
@@ -123,14 +130,13 @@
 
         <!-- Informações do Cliente -->
         <div class="info-section">
-          <p><strong>Cliente:</strong> {{ $orcamento->cliente->nome }}</p>
-          <p><strong>CPF/CNPJ:</strong> {{ $orcamento->cliente->cpf_cnpj }}</p>
-          <div style="display: flex; justify-content: space-between;">
-              <p><strong>Data de Emissão:</strong> {{ Carbon\Carbon::parse($orcamento->data)->translatedFormat('d \d\e F \d\e Y') }}</p>
-              <p><strong>Validade:</strong> {{ Carbon\Carbon::parse($orcamento->validade)->translatedFormat('d \d\e F \d\e Y') }}</p>
-          </div>
-      </div>
-
+            <p><strong>Cliente:</strong> {{ $orcamento->cliente->nome }}</p>
+            <p><strong>CPF/CNPJ:</strong> {{ $orcamento->cliente->cpf_cnpj }}</p>
+            <div style="display: flex; justify-content: space-between;">
+                <p><strong>Data de Emissão:</strong> {{ Carbon\Carbon::parse($orcamento->data)->translatedFormat('d \d\e F \d\e Y') }}</p>
+                <p><strong>Validade:</strong> {{ Carbon\Carbon::parse($orcamento->validade)->translatedFormat('d \d\e F \d\e Y') }}</p>
+            </div>
+        </div>
 
         <!-- Produtos e Serviços -->
         <h2>Produtos e Serviços</h2>
@@ -167,15 +173,19 @@
                 @endforeach
             </tbody>
         </table>
+
         <!-- Resumo Financeiro -->
         <div class="summary">
             <p><strong>Subtotal de Produtos (sem serviço):</strong> R$ {{ number_format($subtotalProdutos, 2, ',', '.') }}</p>
             <p><strong>Valor do Serviço:</strong> R$ {{ number_format($valorServico, 2, ',', '.') }}</p>
             <p class="total">Total Geral: R$ {{ number_format($subtotalProdutos + $valorServico, 2, ',', '.') }}</p>
         </div>
-
-        <!-- Divider -->
-        <div class="divider"></div>
+        @if (!empty($orcamento->observacoes))
+        <div class="description">
+            <h2>Descrição do Orçamento</h2>
+            <p>{{ $orcamento->observacoes }}</p>
+        </div>
+        @endif
 
         <!-- Formas de Pagamento -->
         <div class="payment-methods">
@@ -209,6 +219,7 @@
                 </tbody>
             </table>
         </div>
+
 
         <!-- Rodapé -->
         <div class="footer">

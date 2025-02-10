@@ -33,6 +33,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
     // Route para produtos
     Route::resource('dashboard/produtos', ProdutosController::class);
     Route::post('dashboard/produtos/import', [ProdutosController::class, 'import'])->name('produtos.import');
+    // Rota para importar produtos do XML
+    Route::get('dashboard/produtos/importar-view', [ProdutosController::class, 'importarView'])->name('produtos.importarView');
+
+// Rota para processar o upload do XML
     Route::get('/dashboard/produtos/show/{id}', [ProdutosController::class, 'show'])->name('produtos.show');
 
     Route::resource('dashboard/categorias', CategoriaController::class)->only([

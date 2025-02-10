@@ -25,12 +25,21 @@ class ProdutosController extends Controller
     public function create(Request $request)
     {
         $categorias = Categoria::all(); // Obtém todas as categorias
-        $productsData = $request->input('productsData', []); // Obtém os dados dos produtos importados se existirem na requisição
-        return view('content.produtos.criar', compact('categorias', 'productsData')); // Retorna a view com os dados
+        return view('content.produtos.criar', compact('categorias')); // Retorna a view de criação
     }
 
     /**
-     * Importa produtos de um arquivo XML e carrega os dados na view.
+     * View para importar e editar dados de XML.
+     */
+    public function importarView(Request $request)
+    {
+        $categorias = Categoria::all();
+        $productsData = $request->input('productsData', []); // Dados importados
+        return view('content.produtos.importar', compact('categorias', 'productsData'));
+    }
+
+    /**
+     * Importa produtos de um arquivo XML e carrega os dados na view de importação.
      */
     public function import(Request $request)
     {
@@ -39,24 +48,20 @@ class ProdutosController extends Controller
             'xml_file' => 'required|file|mimes:xml',
         ]);
 
-        // Inicializa a variável $productsData
         $productsData = [];
 
-        // Tenta carregar o arquivo XML
         try {
             $xml = simplexml_load_file($request->file('xml_file')->getRealPath());
         } catch (\Exception $e) {
             Log::error('Erro ao ler o arquivo XML: ' . $e->getMessage());
-            return redirect()->route('produtos.create')->withErrors('Erro ao ler o arquivo XML.');
+            return redirect()->route('produtos.importarView')->withErrors('Erro ao ler o arquivo XML.');
         }
 
-        // Validação da estrutura do XML
         if (!isset($xml->NFe->infNFe->det)) {
             Log::warning('Estrutura do XML inválida.');
-            return redirect()->route('produtos.create')->withErrors('Estrutura do XML inválida.');
+            return redirect()->route('produtos.importarView')->withErrors('Estrutura do XML inválida.');
         }
 
-        // Armazena os produtos em um array
         foreach ($xml->NFe->infNFe->det as $produto) {
             $productsData[] = [
                 'nome' => (string) $produto->prod->xProd,
@@ -64,20 +69,16 @@ class ProdutosController extends Controller
                 'preco_venda' => (float) $produto->prod->vProd * 1.2,
                 'codigo_barras' => (string) $produto->prod->cEAN,
                 'ncm' => (string) $produto->prod->NCM,
-                'tipo_produto' => (string) $produto->prod->uCom, // Se não estiver mais no formulário, remova
                 'estoque' => (int) $produto->prod->qCom,
                 'fornecedor_cnpj' => (string) $xml->NFe->infNFe->emit->CNPJ,
                 'fornecedor_nome' => (string) $xml->NFe->infNFe->emit->xNome,
                 'fornecedor_telefone' => (string) $xml->NFe->infNFe->emit->enderEmit->fone,
-                'fornecedor_email' => 'fornecedor@exemplo.com', // Se não estiver mais, remova
             ];
         }
 
-        // Log dos dados processados
         Log::info('Dados do XML processados:', ['productsData' => $productsData]);
 
-        // Redireciona para a rota de criação com todos os produtos como parâmetros
-        return redirect()->route('produtos.create', ['productsData' => $productsData]);
+        return redirect()->route('produtos.importarView', ['productsData' => $productsData]);
     }
 
     /**
@@ -85,7 +86,6 @@ class ProdutosController extends Controller
      */
     public function store(Request $request)
     {
-        // Validação dos campos do fornecedor
         $request->validate([
             'fornecedor_cnpj' => 'required|string|max:14',
             'fornecedor_nome' => 'required|string|max:255',
@@ -95,64 +95,51 @@ class ProdutosController extends Controller
 
         $produtos = $request->input('produtos');
 
-        // Validação e armazenamento de cada produto
         foreach ($produtos as $produto) {
-          // Convertendo os preços para float
-          $produto['preco_custo'] = str_replace(',', '.', str_replace('.', '', $produto['preco_custo']));
-          $produto['preco_venda'] = str_replace(',', '.', str_replace('.', '', $produto['preco_venda']));
+            $produto['preco_custo'] = str_replace(',', '.', str_replace('.', '', $produto['preco_custo']));
+            $produto['preco_venda'] = str_replace(',', '.', str_replace('.', '', $produto['preco_venda']));
 
-          try {
-              // Validação dos dados do produto
-              $validated = $this->validateProduto($produto);
+            try {
+                $validated = $this->validateProduto($produto);
 
-              // Verifica se o produto já existe
-              $produtoExistente = Produto::where('nome', $validated['nome'])->first();
+                $produtoExistente = Produto::where('nome', $validated['nome'])->first();
 
-              if ($produtoExistente) {
-                  // Atualiza o produto existente
-                  $produtoExistente->update(array_merge($validated, [
-                      'fornecedor_cnpj' => $request->fornecedor_cnpj,
-                      'fornecedor_nome' => $request->fornecedor_nome,
-                      'fornecedor_telefone' => $request->fornecedor_telefone,
-                      'fornecedor_email' => $request->fornecedor_email,
-                      'usuario_id' => $request->usuario_id,
-                  ]));
-              } else {
-                  // Cria um novo produto
-                  Produto::create(array_merge($validated, [
-                      'fornecedor_cnpj' => $request->fornecedor_cnpj,
-                      'fornecedor_nome' => $request->fornecedor_nome,
-                      'fornecedor_telefone' => $request->fornecedor_telefone,
-                      'fornecedor_email' => $request->fornecedor_email,
-                      'usuario_id' => $request->usuario_id,
-                  ]));
-              }
-          } catch (\Exception $e) {
-              Log::error('Erro ao salvar o produto: ' . $e->getMessage());
-              return redirect()->back()->withErrors('Erro ao salvar o produto: ' . $e->getMessage());
-          }
-      }
-
-
+                if ($produtoExistente) {
+                    $produtoExistente->update(array_merge($validated, [
+                        'fornecedor_cnpj' => $request->fornecedor_cnpj,
+                        'fornecedor_nome' => $request->fornecedor_nome,
+                        'fornecedor_telefone' => $request->fornecedor_telefone,
+                        'fornecedor_email' => $request->fornecedor_email,
+                    ]));
+                } else {
+                    Produto::create(array_merge($validated, [
+                        'fornecedor_cnpj' => $request->fornecedor_cnpj,
+                        'fornecedor_nome' => $request->fornecedor_nome,
+                        'fornecedor_telefone' => $request->fornecedor_telefone,
+                        'fornecedor_email' => $request->fornecedor_email,
+                    ]));
+                }
+            } catch (\Exception $e) {
+                Log::error('Erro ao salvar o produto: ' . $e->getMessage());
+                return redirect()->back()->withErrors('Erro ao salvar o produto: ' . $e->getMessage());
+            }
+        }
 
         return redirect()->route('produtos.index')->with('success', 'Produtos cadastrados com sucesso!');
     }
 
-    // Método para validar um produto
     protected function validateProduto($produto)
     {
         return validator()->make($produto, [
-            'nome' => 'required|string|max:255', // Removida a regra `unique`
+            'nome' => 'required|string|max:255',
             'preco_custo' => 'required|numeric',
             'preco_venda' => 'required|numeric',
-            'codigo_barras' => 'required|string|max:13',
+            'codigo_barras' => 'string|max:13',
             'ncm' => 'required|string|max:8',
             'estoque' => 'required|integer',
-            'categoria_id' => 'required|exists:categorias,id', // Validação do campo categoria_id
+            'categoria_id' => 'required|exists:categorias,id',
         ])->validate();
     }
-
-
 
     /**
      * Display the specified resource.
@@ -173,20 +160,17 @@ class ProdutosController extends Controller
      */
     public function edit(Produto $produto)
     {
-        $categorias = Categoria::all(); // Obtém todas as categorias
-        return view('content.produtos.editar', compact('produto', 'categorias')); // Passa a variável $produto para a view
+        $categorias = Categoria::all();
+        return view('content.produtos.editar', compact('produto', 'categorias'));
     }
-
 
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(Produto $produto)
     {
-        $produto->delete(); // Remove o produto
+        $produto->delete();
 
-        return redirect()->route('produtos.index')->with('success', 'Produto removido com sucesso!'); // Redireciona com mensagem de sucesso
+        return redirect()->route('produtos.index')->with('success', 'Produto removido com sucesso!');
     }
-
-    // Outros métodos se necessário...
 }
