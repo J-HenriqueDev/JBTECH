@@ -17,9 +17,9 @@ class Produto extends Model
       'preco_venda',
       'codigo_barras',
       'ncm',
-      'estoque', // Adicionado
+      'estoque',
       'categoria_id',
-      'usuario_id', // Adicionado
+      'usuario_id',
       'fornecedor_cnpj',
       'fornecedor_nome',
       'fornecedor_telefone',

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Produto;
 use App\Models\Categoria;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class ProdutosController extends Controller
@@ -17,6 +18,24 @@ class ProdutosController extends Controller
         $produtos = Produto::all(); // Obtém todos os produtos
         $categorias = Categoria::all(); // Obtém todas as categorias
         return view('content.produtos.listar', compact('produtos', 'categorias')); // Passa produtos e categorias para a view
+    }
+
+    public function listar()
+    {
+        // Tente obter os produtos do banco
+        try {
+            $produtos = Produto::all();  // Obtém todos os produtos
+
+            if ($produtos->isEmpty()) {
+                return response()->json(['error' => 'Nenhum produto encontrado'], 404);
+            }
+            Log::debug('Produtos retornados: ', $produtos->toArray());
+            return response()->json($produtos);
+
+        } catch (\Exception $e) {
+            // Se ocorrer um erro ao buscar os produtos
+            return response()->json(['error' => 'Erro ao buscar produtos: ' . $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -87,17 +106,45 @@ class ProdutosController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'fornecedor_cnpj' => 'required|string|max:14',
-            'fornecedor_nome' => 'required|string|max:255',
-            'fornecedor_telefone' => 'required|string|max:15',
-            'fornecedor_email' => 'required|email',
+            'fornecedor_cnpj' => 'nullable|string|max:20',
+            'fornecedor_nome' => 'nullable|string|max:255',
+            'fornecedor_telefone' => 'nullable|string|max:15',
+            'fornecedor_email' => 'nullable|email',
         ]);
 
         $produtos = $request->input('produtos');
 
+        // Verifique se $produtos é um array
+        if (!is_array($produtos)) {
+            return redirect()->back()->withErrors('Formato de dados inválido. Esperado um array de produtos.');
+        }
+
         foreach ($produtos as $produto) {
-            $produto['preco_custo'] = str_replace(',', '.', str_replace('.', '', $produto['preco_custo']));
-            $produto['preco_venda'] = str_replace(',', '.', str_replace('.', '', $produto['preco_venda']));
+            // Verifique se $produto é um array
+            if (!is_array($produto)) {
+                continue; // Pula para o próximo item se não for um array
+            }
+
+            // Verifique se os campos existem e são strings antes de processar
+            if (isset($produto['preco_custo']) && is_string($produto['preco_custo'])) {
+                $produto['preco_custo'] = str_replace(',', '.', str_replace('.', '', $produto['preco_custo']));
+            } else {
+                $produto['preco_custo'] = 0.00; // Valor padrão se não for válido
+            }
+
+            if (isset($produto['preco_venda']) && is_string($produto['preco_venda'])) {
+                $produto['preco_venda'] = str_replace(',', '.', str_replace('.', '', $produto['preco_venda']));
+            } else {
+                $produto['preco_venda'] = 0.00; // Valor padrão se não for válido
+            }
+
+            // Define categoria_id como 6 se não for fornecido
+            if (!isset($produto['categoria_id']) || empty($produto['categoria_id'])) {
+                $produto['categoria_id'] = 6;
+            }
+
+            // Adiciona o usuario_id do usuário autenticado
+            $produto['usuario_id'] = Auth::user()->id;
 
             try {
                 $validated = $this->validateProduto($produto);
@@ -117,6 +164,7 @@ class ProdutosController extends Controller
                         'fornecedor_nome' => $request->fornecedor_nome,
                         'fornecedor_telefone' => $request->fornecedor_telefone,
                         'fornecedor_email' => $request->fornecedor_email,
+                        'usuario_id' => Auth::user()->id,
                     ]));
                 }
             } catch (\Exception $e) {
@@ -127,33 +175,33 @@ class ProdutosController extends Controller
 
         return redirect()->route('produtos.index')->with('success', 'Produtos cadastrados com sucesso!');
     }
-
     protected function validateProduto($produto)
     {
         return validator()->make($produto, [
             'nome' => 'required|string|max:255',
             'preco_custo' => 'required|numeric',
             'preco_venda' => 'required|numeric',
-            'codigo_barras' => 'string|max:13',
-            'ncm' => 'required|string|max:8',
-            'estoque' => 'required|integer',
-            'categoria_id' => 'required|exists:categorias,id',
+            'codigo_barras' => 'nullable|string|max:13',
+            'ncm' => 'nullable|string|max:8',
+            'estoque' => 'nullable|integer',
+            'categoria_id' => 'nullable|exists:categorias,id',
+            'usuario_id' => 'required|exists:users,id', // Garantir que o usuario_id seja válido
         ])->validate();
     }
 
     /**
      * Display the specified resource.
      */
-    public function show($id)
-    {
-        $produto = Produto::find($id);
+    // public function show($id)
+    // {
+    //     $produto = Produto::find($id);
 
-        if (!$produto) {
-            return response()->json(['error' => 'Produto não encontrado'], 404);
-        }
+    //     if (!$produto) {
+    //         // return response()->json(['error' => 'Produto não encontrado'], 404);
+    //     }
 
-        return response()->json($produto);
-    }
+    //     return response()->json($produto);
+    // }
 
     /**
      * Show the form for editing the specified resource.

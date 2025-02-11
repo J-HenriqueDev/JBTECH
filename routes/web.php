@@ -32,6 +32,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
 
     // Route para produtos
     Route::resource('dashboard/produtos', ProdutosController::class);
+    Route::get('/produtos/lista', [ProdutosController::class, 'listar'])->name('produtos.lista');
+
     Route::post('dashboard/produtos/import', [ProdutosController::class, 'import'])->name('produtos.import');
     // Rota para importar produtos do XML
     Route::get('dashboard/produtos/importar-view', [ProdutosController::class, 'importarView'])->name('produtos.importarView');

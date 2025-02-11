@@ -1,5 +1,7 @@
 @extends('layouts.layoutMaster')
 
+@section('title', 'Criar orçamento')
+
 @section('vendor-style')
 @vite([
   'resources/assets/vendor/libs/select2/select2.scss',
@@ -137,7 +139,7 @@
                   <i class="bx bx-dollar-circle"></i> Valor do Serviço
               </label>
               <div class="input-group">
-                  <input type="text" class="form-control" name="valor_servico" id="valor_servico" placeholder="R$ 0,00" required oninput="formatCurrencyService(this); validarValorServico()">
+                  <input type="text" class="form-control" name="valor_servico" id="valor_servico" placeholder="R$ 0,00"  oninput="formatCurrencyService(this); validarValorServico()">
                   <button type="button" class="btn btn-primary" id="adicionarServico">Adicionar</button>
               </div>
               <small id="erro_valor_servico" class="text-danger fw-bold d-none">O valor do serviço deve ser maior ou igual ao custo de combustível.</small>
@@ -185,21 +187,22 @@
 <div class="modal fade" id="modalAdicionarProduto" tabindex="-1" aria-labelledby="modalAdicionarProdutoLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalAdicionarProdutoLabel">Adicionar Produto</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalAdicionarProdutoLabel">Adicionar Produto</h5>
+
+            <!-- Botão de adicionar produto -->
+            <a href="{{ route('produtos.create') }}" class="btn btn-success btn-sm ms-auto me-2" target="_blank">
+                <i class="fas fa-plus"></i> Adicionar Produto
+            </a>
+
+            <!-- Botão de fechar o modal -->
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
             <div class="modal-body">
                 <div class="row mb-3">
                     <div class="col-md-8">
                         <label for="produto_id" class="form-label">Selecionar Produto</label>
                         <select id="produto_id" class="select2 form-select" required>
-                            <option value="" disabled selected>Selecione um produto</option>
-                            @foreach ($produtos as $produto)
-                            <option value="{{ $produto->id }}" data-preco="{{ $produto->preco_venda }}">
-                                {{ $produto->nome }} - R$ {{ number_format($produto->preco_venda, 2, ',', '.') }}
-                            </option>
-                            @endforeach
                         </select>
                     </div>
                     <div class="col-md-4">
