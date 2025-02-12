@@ -26,18 +26,17 @@
   <h1 class="mb-4 text-primary" style="font-size: 2.5rem; font-weight: bold; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);">
     <i class="fas fa-plus-circle"></i> Cadastro de Produtos
   </h1>
-  <form action="{{ route('produtos.import') }}" method="POST" enctype="multipart/form-data" class="d-inline">
+  <form action="{) }}" method="POST" enctype="multipart/form-data" class="d-inline">
     @csrf
-    
+
     <!-- Campo oculto para o usuario_id -->
     <input type="hidden" name="produtos[0][usuario_id]" value="{{ auth()->id() }}">
 
 
-    <input type="file" name="xml_file" accept=".xml" required class="d-none" id="importXml">
-    <label for="importXml" class="btn btn-primary">
-        <i class="fas fa-plus-circle me-1"></i> Importar XML
-    </label>
-    <button type="submit" class="btn btn-success">Enviar XML</button>
+    <label for="importXml" class="btn btn-primary" onclick="window.location.href='{{ route('produtos.importar') }}'">
+      <i class="fas fa-plus-circle me-1"></i> Importar XML
+  </label>
+
   </form>
 </div>
 

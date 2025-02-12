@@ -39,7 +39,7 @@
                                 <label for="cliente_id">
                                     <i class="bx bx-id-card"></i> Cliente
                                 </label>
-                                <select id="select2Basic" class="select2 form-select" data-live-search="true" name="cliente_id">
+                                <select id="select2Basic" class="select2 form-select" data-live-search="true" name="cliente_id" required>
                                     <option value="" disabled selected>Selecione um cliente</option>
                                     @foreach ($clientes as $cliente)
                                     <option value="{{$cliente->id}}">
@@ -59,7 +59,7 @@
                                 <label for="tipo_id">
                                     <i class="bx bx-laptop"></i> Tipo de equipamento
                                 </label>
-                                <select class="form-select" id="tipo_id" name="tipo_id">
+                                <select class="form-select" id="tipo_id" name="tipo_id" required>
                                     <option value="" disabled selected>Selecione um tipo</option>
                                     @foreach ($tipos as $key => $tipo)
                                         <option value="{{ $key }}">{{ $tipo }}</option>
@@ -77,7 +77,7 @@
                                 <label for="data" class="form-label">
                                     <i class="bx bx-calendar"></i> Data de entrada
                                 </label>
-                                <input type="date" class="form-control" name="data_de_entrada" id="data" value="{{ date('Y-m-d') }}">
+                                <input type="date" class="form-control" name="data_de_entrada" id="data" value="{{ date('Y-m-d') }}" required>
                                 @error('data_de_entrega')
                                 <small class="text-danger fw-bold">{{ $message }}</small>
                                 @enderror
@@ -91,7 +91,7 @@
                                   <i class="bx bx-calendar-check"></i> Prazo de entrega
                               </label>
                               <input type="date" class="form-control" name="prazo_entrega" id="prazo_entrega"
-                                     value="{{ date('Y-m-d', strtotime('+7 days')) }}">
+                                     value="{{ date('Y-m-d', strtotime('+7 days')) }}" required>
                               @error('prazo_entrega')
                               <small class="text-danger fw-bold">{{ $message }}</small>
                               @enderror

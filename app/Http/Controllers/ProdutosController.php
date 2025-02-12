@@ -50,11 +50,12 @@ class ProdutosController extends Controller
     /**
      * View para importar e editar dados de XML.
      */
-    public function importarView(Request $request)
-    {
-        $categorias = Categoria::all();
-        $productsData = $request->input('productsData', []); // Dados importados
-        return view('content.produtos.importar', compact('categorias', 'productsData'));
+
+      public function importarView(Request $request)
+      {
+          $categorias = Categoria::all();
+          $productsData = []; // Definir como array vazio para evitar erro na view
+          return view('content.produtos.importar', compact('categorias', 'productsData'));
     }
 
     /**
@@ -62,12 +63,15 @@ class ProdutosController extends Controller
      */
     public function import(Request $request)
     {
+        $categorias = Categoria::all();
+
         // Validação do arquivo de upload
         $request->validate([
             'xml_file' => 'required|file|mimes:xml',
         ]);
 
         $productsData = [];
+        $fornecedor = []; // Array para armazenar os dados do fornecedor
 
         try {
             $xml = simplexml_load_file($request->file('xml_file')->getRealPath());
@@ -76,28 +80,40 @@ class ProdutosController extends Controller
             return redirect()->route('produtos.importarView')->withErrors('Erro ao ler o arquivo XML.');
         }
 
+        // Verifica se o XML tem a estrutura esperada
         if (!isset($xml->NFe->infNFe->det)) {
             Log::warning('Estrutura do XML inválida.');
             return redirect()->route('produtos.importarView')->withErrors('Estrutura do XML inválida.');
         }
 
-        foreach ($xml->NFe->infNFe->det as $produto) {
-            $productsData[] = [
-                'nome' => (string) $produto->prod->xProd,
-                'preco_custo' => (float) $produto->prod->vProd,
-                'preco_venda' => (float) $produto->prod->vProd * 1.2,
-                'codigo_barras' => (string) $produto->prod->cEAN,
-                'ncm' => (string) $produto->prod->NCM,
-                'estoque' => (int) $produto->prod->qCom,
-                'fornecedor_cnpj' => (string) $xml->NFe->infNFe->emit->CNPJ,
-                'fornecedor_nome' => (string) $xml->NFe->infNFe->emit->xNome,
-                'fornecedor_telefone' => (string) $xml->NFe->infNFe->emit->enderEmit->fone,
+        // Extrai os dados do fornecedor do XML
+        if (isset($xml->NFe->infNFe->emit)) {
+            $fornecedor = [
+                'cnpj' => (string) $xml->NFe->infNFe->emit->CNPJ,
+                'nome' => (string) $xml->NFe->infNFe->emit->xNome,
+                'telefone' => (string) $xml->NFe->infNFe->emit->enderEmit->fone,
+                'email' => '', // O email do fornecedor geralmente não está no XML
             ];
         }
 
-        Log::info('Dados do XML processados:', ['productsData' => $productsData]);
+        // Percorre os produtos dentro do XML
+        foreach ($xml->NFe->infNFe->det as $produto) {
+            $productsData[] = [
+                'nome' => (string) $produto->prod->xProd,
+                'preco_custo' => (float) $produto->prod->vProd, // Valor original do XML
+                'preco_venda' => (float) $produto->prod->vProd, // Valor original do XML (sem margem de lucro)
+                'codigo_barras' => (string) $produto->prod->cEAN,
+                'ncm' => (string) $produto->prod->NCM,
+                'estoque' => (int) $produto->prod->qCom,
+                'categoria_id' => null, // Categoria não está no XML, será selecionada manualmente
+            ];
+        }
 
-        return redirect()->route('produtos.importarView', ['productsData' => $productsData]);
+        Log::info('Produtos extraídos do XML:', ['productsData' => $productsData]);
+        Log::info('Dados do fornecedor extraídos do XML:', ['fornecedor' => $fornecedor]);
+
+        // Redireciona para a view de importação com os dados extraídos
+        return view('content.produtos.importar', compact('productsData', 'categorias', 'fornecedor'));
     }
 
     /**
@@ -146,6 +162,11 @@ class ProdutosController extends Controller
             // Adiciona o usuario_id do usuário autenticado
             $produto['usuario_id'] = Auth::user()->id;
 
+            // Garante que o campo fabricante esteja presente, mesmo que vazio
+            if (!isset($produto['fabricante'])) {
+                $produto['fabricante'] = '';
+            }
+
             try {
                 $validated = $this->validateProduto($produto);
 
@@ -185,6 +206,7 @@ class ProdutosController extends Controller
             'ncm' => 'nullable|string|max:8',
             'estoque' => 'nullable|integer',
             'categoria_id' => 'nullable|exists:categorias,id',
+            'fabricante' => 'nullable|string|max:255', // Adicionado o campo fabricante
             'usuario_id' => 'required|exists:users,id', // Garantir que o usuario_id seja válido
         ])->validate();
     }
@@ -192,16 +214,16 @@ class ProdutosController extends Controller
     /**
      * Display the specified resource.
      */
-    // public function show($id)
-    // {
-    //     $produto = Produto::find($id);
+    public function show($id)
+    {
+        $produto = Produto::find($id);
 
-    //     if (!$produto) {
-    //         // return response()->json(['error' => 'Produto não encontrado'], 404);
-    //     }
+        if (!$produto) {
+            // return response()->json(['error' => 'Produto não encontrado'], 404);
+        }
 
-    //     return response()->json($produto);
-    // }
+        return response()->json($produto);
+    }
 
     /**
      * Show the form for editing the specified resource.
