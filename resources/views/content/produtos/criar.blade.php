@@ -282,6 +282,10 @@
 
           <div class="row">
             <div class="col-md-12 text-end">
+              <button type="button" class="btn btn-secondary me-2" onclick="window.history.back();">
+                <i class="bx bx-x"></i> Cancelar
+              </button>
+
               <button type="submit" class="btn btn-primary">
                 <i class="fas fa-save"></i> Salvar
               </button>

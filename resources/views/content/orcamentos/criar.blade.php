@@ -220,7 +220,10 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-secondary me-2" onclick="window.history.back();">
+                  <i class="bx bx-x"></i> Cancelar
+                </button>
+
                 <button type="button" class="btn btn-primary" id="adicionarProduto">Adicionar Produto</button>
             </div>
         </div>

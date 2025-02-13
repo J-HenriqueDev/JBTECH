@@ -12,6 +12,7 @@ use App\Http\Controllers\OSController;
 use App\Http\Controllers\ProdutosController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\OrcamentoController;
+use App\Http\Controllers\VendaController;
 
 // Rota principal "/" - acessível sem autenticação
 Route::get('/', [Landing::class, 'index'])->name('front-pages-landing');
@@ -43,6 +44,14 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
     Route::post('dashboard/produtos/importar', [ProdutosController::class, 'import'])->name('produtos.import');
 
 
+
+    // Route::post('dashboard/vendas', [VendaController::class,'create'])->name('vendas.create');
+    // Route::get('dashboard/vendas', [VendaController::class,'create'])->name('vendas');
+    Route::get('/dashboard/vendas/{id}/pdf', [OrcamentoController::class, 'gerarPdf'])->name('vendas.gerarPdf');
+    Route::resource('/dashboard/vendas', VendaController::class);
+
+
+
 // Rota para processar o upload do XML
 
     Route::resource('dashboard/categorias', CategoriaController::class)->only([
@@ -56,7 +65,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
     Route::get('/dashboard/orcamentos/{id}/exportar-pdf', [OrcamentoController::class, 'exportarPdf'])->name('orcamentos.exportarPdf');
 
     // Rota para erro misc
-    Route::get('/pages/misc-error', [MiscError::class, 'index'])->name('pages-misc-error');
+    Route::post('/pages/misc-error', [MiscError::class, 'index'])->name('pages-misc-error');
 });
 
 // Rota para trocar idioma - fora do middleware auth

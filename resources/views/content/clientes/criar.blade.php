@@ -200,6 +200,11 @@
                 </div>
 
                 <div class="card-footer d-flex justify-content-end">
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary me-2" onclick="window.history.back();">
+                      <i class="bx bx-x"></i> Cancelar
+                    </button>
+
                     <button class="btn btn-md btn-primary fw-bold">Adicionar</button>
                 </div>
             </form>

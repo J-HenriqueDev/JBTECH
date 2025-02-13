@@ -216,7 +216,9 @@
 
                 <div class="card-footer text-end">
                     <button type="submit" class="btn btn-primary">Atualizar</button>
-                    <a href="{{ route('clientes.index') }}" class="btn btn-secondary">Cancelar</a>
+                      <button type="button" class="btn btn-secondary me-2" onclick="window.history.back();">
+                        <i class="bx bx-x"></i> Cancelar
+                      </button>
                 </div>
             </form>
         </div>
