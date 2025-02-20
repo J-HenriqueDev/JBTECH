@@ -1315,10 +1315,6 @@
     "file": "assets/er-Dydv_4Ve.svg",
     "src": "resources/assets/vendor/fonts/flags/1x1/er.svg"
   },
-  "resources/assets/vendor/fonts/flags/1x1/es-ca.svg": {
-    "file": "assets/es-ca-Fqk3SOtP.svg",
-    "src": "resources/assets/vendor/fonts/flags/1x1/es-ca.svg"
-  },
   "resources/assets/vendor/fonts/flags/1x1/es-ct.svg": {
     "file": "assets/es-ct-DdzobtBd.svg",
     "src": "resources/assets/vendor/fonts/flags/1x1/es-ct.svg"
@@ -2406,10 +2402,6 @@
   "resources/assets/vendor/fonts/flags/4x3/er.svg": {
     "file": "assets/er-DiN9NuWm.svg",
     "src": "resources/assets/vendor/fonts/flags/4x3/er.svg"
-  },
-  "resources/assets/vendor/fonts/flags/4x3/es-ca.svg": {
-    "file": "assets/es-ca-DAJARzbg.svg",
-    "src": "resources/assets/vendor/fonts/flags/4x3/es-ca.svg"
   },
   "resources/assets/vendor/fonts/flags/4x3/es-ct.svg": {
     "file": "assets/es-ct-CVyhLp7O.svg",
