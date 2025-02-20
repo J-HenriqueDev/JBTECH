@@ -496,13 +496,13 @@
     "isEntry": true
   },
   "resources/assets/js/app-logistics-dashboard.js": {
-    "file": "assets/app-logistics-dashboard-CcHeCF10.js",
+    "file": "assets/app-logistics-dashboard-BtCpSIY9.js",
     "name": "app-logistics-dashboard",
     "src": "resources/assets/js/app-logistics-dashboard.js",
     "isEntry": true
   },
   "resources/assets/js/app-logistics-fleet.js": {
-    "file": "assets/app-logistics-fleet-C_qdL32p.js",
+    "file": "assets/app-logistics-fleet-BF1An6_e.js",
     "name": "app-logistics-fleet",
     "src": "resources/assets/js/app-logistics-fleet.js",
     "isEntry": true
@@ -724,7 +724,7 @@
     "isEntry": true
   },
   "resources/assets/js/forms-selects.js": {
-    "file": "assets/forms-selects-CNovrPq4.js",
+    "file": "assets/forms-selects-Bvk99ty7.js",
     "name": "forms-selects",
     "src": "resources/assets/js/forms-selects.js",
     "isEntry": true
@@ -934,7 +934,7 @@
     "isEntry": true
   },
   "resources/assets/js/ui-cards-analytics.js": {
-    "file": "assets/ui-cards-analytics-C5utX7be.js",
+    "file": "assets/ui-cards-analytics-CyuYopEg.js",
     "name": "ui-cards-analytics",
     "src": "resources/assets/js/ui-cards-analytics.js",
     "isEntry": true
@@ -1314,6 +1314,10 @@
   "resources/assets/vendor/fonts/flags/1x1/er.svg": {
     "file": "assets/er-Dydv_4Ve.svg",
     "src": "resources/assets/vendor/fonts/flags/1x1/er.svg"
+  },
+  "resources/assets/vendor/fonts/flags/1x1/es-ca.svg": {
+    "file": "assets/es-ca-Fqk3SOtP.svg",
+    "src": "resources/assets/vendor/fonts/flags/1x1/es-ca.svg"
   },
   "resources/assets/vendor/fonts/flags/1x1/es-ct.svg": {
     "file": "assets/es-ct-DdzobtBd.svg",
@@ -2403,6 +2407,10 @@
     "file": "assets/er-DiN9NuWm.svg",
     "src": "resources/assets/vendor/fonts/flags/4x3/er.svg"
   },
+  "resources/assets/vendor/fonts/flags/4x3/es-ca.svg": {
+    "file": "assets/es-ca-DAJARzbg.svg",
+    "src": "resources/assets/vendor/fonts/flags/4x3/es-ca.svg"
+  },
   "resources/assets/vendor/fonts/flags/4x3/es-ct.svg": {
     "file": "assets/es-ct-CVyhLp7O.svg",
     "src": "resources/assets/vendor/fonts/flags/4x3/es-ct.svg"
@@ -3237,7 +3245,7 @@
     "src": "resources/assets/vendor/fonts/fontawesome/fa-v4compatibility.woff2"
   },
   "resources/assets/vendor/js/bootstrap.js": {
-    "file": "assets/bootstrap-B-W6M1Y3.js",
+    "file": "assets/bootstrap-BqFZZLXP.js",
     "name": "bootstrap",
     "src": "resources/assets/vendor/js/bootstrap.js",
     "isEntry": true
@@ -3276,7 +3284,7 @@
     ]
   },
   "resources/assets/vendor/libs/@form-validation/auto-focus.js": {
-    "file": "assets/auto-focus-BizrJr_R.js",
+    "file": "assets/auto-focus-DQFs5rhr.js",
     "name": "auto-focus",
     "src": "resources/assets/vendor/libs/@form-validation/auto-focus.js",
     "isEntry": true,
@@ -3285,7 +3293,7 @@
     ]
   },
   "resources/assets/vendor/libs/@form-validation/bootstrap5.js": {
-    "file": "assets/bootstrap5-DjMKukTX.js",
+    "file": "assets/bootstrap5-GPxv84Av.js",
     "name": "bootstrap5",
     "src": "resources/assets/vendor/libs/@form-validation/bootstrap5.js",
     "isEntry": true,
@@ -3313,7 +3321,7 @@
     "isEntry": true
   },
   "resources/assets/vendor/libs/animate-on-scroll/animate-on-scroll.js": {
-    "file": "assets/animate-on-scroll-C6s87dA7.js",
+    "file": "assets/animate-on-scroll-kSEW1YFn.js",
     "name": "animate-on-scroll",
     "src": "resources/assets/vendor/libs/animate-on-scroll/animate-on-scroll.js",
     "isEntry": true,
@@ -3332,7 +3340,7 @@
     "isEntry": true
   },
   "resources/assets/vendor/libs/apex-charts/apexcharts.js": {
-    "file": "assets/apexcharts-CP_VfLCH.js",
+    "file": "assets/apexcharts-B0NIoEb0.js",
     "name": "apexcharts",
     "src": "resources/assets/vendor/libs/apex-charts/apexcharts.js",
     "isEntry": true,
@@ -3341,7 +3349,7 @@
     ]
   },
   "resources/assets/vendor/libs/autosize/autosize.js": {
-    "file": "assets/autosize-B_yujxLV.js",
+    "file": "assets/autosize-WyPVVt3G.js",
     "name": "autosize",
     "src": "resources/assets/vendor/libs/autosize/autosize.js",
     "isEntry": true
@@ -3433,13 +3441,13 @@
     "isEntry": true
   },
   "resources/assets/vendor/libs/chartjs/chartjs.js": {
-    "file": "assets/chartjs-c--ePZBk.js",
+    "file": "assets/chartjs-BMCAlAjM.js",
     "name": "chartjs",
     "src": "resources/assets/vendor/libs/chartjs/chartjs.js",
     "isEntry": true
   },
   "resources/assets/vendor/libs/cleavejs/cleave-phone.js": {
-    "file": "assets/cleave-phone-DRZWSJE_.js",
+    "file": "assets/cleave-phone-ISED2JIh.js",
     "name": "cleave-phone",
     "src": "resources/assets/vendor/libs/cleavejs/cleave-phone.js",
     "isEntry": true,
@@ -3466,7 +3474,7 @@
     ]
   },
   "resources/assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js": {
-    "file": "assets/datatables-bootstrap5-APQrx3vs.js",
+    "file": "assets/datatables-bootstrap5-COVYdYwu.js",
     "name": "datatables-bootstrap5",
     "src": "resources/assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js",
     "isEntry": true,
@@ -4408,7 +4416,7 @@
     "isEntry": true
   },
   "resources/assets/vendor/libs/fullcalendar/fullcalendar.js": {
-    "file": "assets/fullcalendar-BWAouJ1K.js",
+    "file": "assets/fullcalendar-Cpp2dkzB.js",
     "name": "fullcalendar",
     "src": "resources/assets/vendor/libs/fullcalendar/fullcalendar.js",
     "isEntry": true
@@ -4430,7 +4438,7 @@
     "isEntry": true
   },
   "resources/assets/vendor/libs/highlight/highlight.js": {
-    "file": "assets/highlight-DEcLmaz4.js",
+    "file": "assets/highlight-sTfP49hR.js",
     "name": "highlight",
     "src": "resources/assets/vendor/libs/highlight/highlight.js",
     "isEntry": true,
@@ -4565,7 +4573,7 @@
     "isEntry": true
   },
   "resources/assets/vendor/libs/mapbox-gl/mapbox-gl.js": {
-    "file": "assets/mapbox-gl-t21XUnI6.js",
+    "file": "assets/mapbox-gl-CYa6P4pO.js",
     "name": "mapbox-gl",
     "src": "resources/assets/vendor/libs/mapbox-gl/mapbox-gl.js",
     "isEntry": true,
@@ -4609,7 +4617,7 @@
     "isEntry": true
   },
   "resources/assets/vendor/libs/numeral/numeral.js": {
-    "file": "assets/numeral-CDEz25Q-.js",
+    "file": "assets/numeral-BCnviesb.js",
     "name": "numeral",
     "src": "resources/assets/vendor/libs/numeral/numeral.js",
     "isEntry": true,
@@ -4637,7 +4645,7 @@
     "isEntry": true
   },
   "resources/assets/vendor/libs/pickr/pickr.js": {
-    "file": "assets/pickr-BuhU8evt.js",
+    "file": "assets/pickr-CW9TcyKb.js",
     "name": "pickr",
     "src": "resources/assets/vendor/libs/pickr/pickr.js",
     "isEntry": true,
@@ -4646,7 +4654,7 @@
     ]
   },
   "resources/assets/vendor/libs/plyr/plyr.js": {
-    "file": "assets/plyr-FcMVHU1S.js",
+    "file": "assets/plyr-MHpkrsI2.js",
     "name": "plyr",
     "src": "resources/assets/vendor/libs/plyr/plyr.js",
     "isEntry": true
@@ -4657,7 +4665,7 @@
     "isEntry": true
   },
   "resources/assets/vendor/libs/popper/popper.js": {
-    "file": "assets/popper-DNZnuk_L.js",
+    "file": "assets/popper-CjuU2q1_.js",
     "name": "popper",
     "src": "resources/assets/vendor/libs/popper/popper.js",
     "isEntry": true,
@@ -4707,7 +4715,7 @@
     "isEntry": true
   },
   "resources/assets/vendor/libs/select2/select2.js": {
-    "file": "assets/select2-Cf8QheUJ.js",
+    "file": "assets/select2-BEw2KOXq.js",
     "name": "select2",
     "src": "resources/assets/vendor/libs/select2/select2.js",
     "isEntry": true,
@@ -4717,7 +4725,7 @@
     ]
   },
   "resources/assets/vendor/libs/select2/select2.scss": {
-    "file": "assets/select2-BqQbEued.css",
+    "file": "assets/select2-B0mLiP2S.css",
     "src": "resources/assets/vendor/libs/select2/select2.scss",
     "isEntry": true
   },
@@ -4764,7 +4772,7 @@
     "isEntry": true
   },
   "resources/assets/vendor/libs/swiper/swiper.js": {
-    "file": "assets/swiper-CY5T_L6i.js",
+    "file": "assets/swiper-DsDvhY6v.js",
     "name": "swiper",
     "src": "resources/assets/vendor/libs/swiper/swiper.js",
     "isEntry": true
@@ -4775,7 +4783,7 @@
     "isEntry": true
   },
   "resources/assets/vendor/libs/tagify/tagify.js": {
-    "file": "assets/tagify-D6IG1b0s.js",
+    "file": "assets/tagify-Dh6WBWwB.js",
     "name": "tagify",
     "src": "resources/assets/vendor/libs/tagify/tagify.js",
     "isEntry": true,
@@ -5070,7 +5078,7 @@
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-C1-XIpUa.js",
+    "file": "assets/app-B-cDXisM.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true
