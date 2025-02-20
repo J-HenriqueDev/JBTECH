@@ -13,6 +13,7 @@ use App\Http\Controllers\ProdutosController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\OrcamentoController;
 use App\Http\Controllers\VendaController;
+use App\Http\Controllers\PagSeguroController;
 
 // Rota principal "/" - acessível sem autenticação
 Route::get('/', [Landing::class, 'index'])->name('front-pages-landing');
@@ -47,8 +48,12 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
 
     // Route::post('dashboard/vendas', [VendaController::class,'create'])->name('vendas.create');
     // Route::get('dashboard/vendas', [VendaController::class,'create'])->name('vendas');
-    Route::get('/dashboard/vendas/{id}/pdf', [OrcamentoController::class, 'gerarPdf'])->name('vendas.gerarPdf');
+    // Route::post('/vendas/{id}/gerar-cobranca', [VendaController::class, 'gerarCobranca'])->name('vendas.gerarCobranca');
+    Route::post('/vendas/{id}/gerar-cobranca', [VendaController::class, 'gerarCobranca'])->name('vendas.gerarCobranca');
+    Route::get('/dashboard/vendas/{id}/pdf', [VendaController::class, 'exportarPdf'])->name('vendas.exportarPdf');
     Route::resource('/dashboard/vendas', VendaController::class);
+
+    Route::post('/pagseguro/notification', [PagSeguroController::class, 'notification'])->name('pagseguro.notification');
 
 
 

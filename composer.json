@@ -17,6 +17,7 @@
     "laravel/tinker": "^2.9",
     "livewire/livewire": "^3.0",
     "nfephp-org/sped-nfe": "^5.1",
+    "pagseguro/pagseguro-php-sdk": "^4.2",
     "php-extended/php-simple-cache-filesystem": "^7.0"
   },
   "require-dev": {

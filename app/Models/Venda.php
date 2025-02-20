@@ -10,12 +10,14 @@ class Venda extends Model
     use HasFactory;
 
     protected $fillable = [
-        'cliente_id',
-        'user_id',
-        'data_venda',
-        'observacoes',
-        'valor_total',
-    ];
+      'cliente_id',
+      'user_id',
+      'data_venda',
+      'observacoes',
+      'valor_total',
+      // 'reference', // Referência da venda no PagSeguro
+      // 'status' // Status do pagamento
+  ];
 
     // Relacionamento com o cliente
     public function cliente()

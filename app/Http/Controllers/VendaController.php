@@ -10,6 +10,9 @@ use App\Models\Clientes;
 use App\Models\Produto;
 use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
+use PagSeguro\Configuration\Configure;
+use PagSeguro\Domains\Requests\Payment;
+use PagSeguro\Library;
 
 class VendaController extends Controller
 {
@@ -200,6 +203,65 @@ class VendaController extends Controller
     {
         //
     }
+    public function gerarCobranca($id)
+    {
+        // Recupera a venda
+        $venda = Venda::with(['cliente'])->findOrFail($id);
+
+        // Configura o ambiente do PagSeguro
+        Library::initialize();
+        $env = env('PAGSEGURO_ENV', 'sandbox'); // 'sandbox' ou 'production'
+        Configure::setEnvironment($env);
+        Configure::setAccountCredentials(env('PAGSEGURO_EMAIL'), env('PAGSEGURO_TOKEN'));
+
+        // Cria a cobrança
+        $payment = new Payment();
+        $payment->addItems()->withParameters(
+            '001', // ID do item
+            'Venda #' . $venda->id, // Descrição
+            1, // Quantidade
+            $venda->valor_total // Valor
+        );
+        $payment->setCurrency('BRL');
+        $payment->setReference($venda->id); // Referência da venda
+        $payment->setRedirectUrl(route('vendas.show', $venda->id)); // URL de redirecionamento
+        $payment->setNotificationUrl(route('pagseguro.notification')); // URL de notificação
+
+        // Define os dados do cliente
+        $payment->setSender()->setName($venda->cliente->nome);
+        $payment->setSender()->setEmail($venda->cliente->email);
+
+        // Define o método de pagamento
+        $method = request()->input('metodoPagamento'); // PIX ou Boleto
+        if ($method === 'pix') {
+            $payment->setPaymentMethod('pix');
+        } elseif ($method === 'boleto') {
+            $payment->setPaymentMethod('boleto');
+        }
+
+        try {
+            // Envia a cobrança
+            $response = $payment->register(Configure::getAccountCredentials());
+
+            // Verifica se o e-mail deve ser enviado
+            if (request()->input('enviarEmail')) {
+                // Gera o PDF da venda
+                $pdf = Pdf::loadView('vendas.pdf', compact('venda'));
+
+                // Envia o e-mail com o PDF
+                Mail::to($venda->cliente->email)->send(new CobrancaEnviada($venda, $pdf));
+            }
+
+            // Retorna a URL de redirecionamento
+            return response()->json([
+                'redirectUrl' => $response->getRedirectUrl()
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erro ao gerar cobrança: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 
     public function exportarPdf($id)
     {
@@ -215,4 +277,5 @@ class VendaController extends Controller
         // Retorna o PDF para visualização
         return $pdf->stream('venda.pdf');
     }
+
 }

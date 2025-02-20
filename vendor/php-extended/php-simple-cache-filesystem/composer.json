@@ -1,0 +1,41 @@
+{
+	"name" : "php-extended/php-simple-cache-filesystem",
+	"description" : "A psr-16 compliant cache that uses filesystems to store cache data.",
+	"type" : "library",
+	"keywords" : [
+		"php",
+		"simple",
+		"cache",
+		"filesystem",
+		"psr-16"
+	],
+	"homepage" : "https://gitlab.com/php-extended/php-simple-cache-filesystem",
+	"license" : "MIT",
+	"authors" : [
+		{
+			"name" : "Anastaszor",
+			"homepage" : "https://gitlab.com/Anastaszor",
+			"role" : "developer"
+		}
+	],
+	"support" : {
+		"issues" : "https://gitlab.com/php-extended/php-simple-cache-filesystem/issues",
+		"source" : "https://gitlab.com/php-extended/php-simple-cache-filesystem"
+	},
+	"require" : {
+		"php" : ">=8.0",
+		"php-extended/php-file-interface" : "^7",
+		"psr/simple-cache" : "^3"
+	},
+	"require-dev" : {
+		"php-extended/placeholder-phpunit" : "^9"
+	},
+	"provide" : {
+		"psr/simple-cache-implementation" : "^1"
+	},
+	"autoload" : {
+		"psr-4" : {
+			"PhpExtended\\SimpleCache\\" : "src"
+		}
+	}
+}

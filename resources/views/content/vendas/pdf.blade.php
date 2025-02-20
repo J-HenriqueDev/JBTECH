@@ -16,7 +16,7 @@
     <img src="data:image/png;base64,{{ $logoBase64 }}" alt="Logo" class="logo">
     <h1>Relatório de Venda #{{ $venda->id }}</h1>
     <p><strong>Cliente:</strong> {{ $venda->cliente->nome }}</p>
-    <p><strong>Data da Venda:</strong> {{ $venda->data_venda->format('d/m/Y') }}</p>
+    <p><strong>Data de Venda:</strong> {{ Carbon\Carbon::parse($venda->data)->translatedFormat('d \d\e F \d\e Y') }}</p>
     <p><strong>Observações:</strong> {{ $venda->observacoes }}</p>
 
     <h2>Produtos</h2>

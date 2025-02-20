@@ -1,0 +1,34 @@
+{
+	"name" : "php-extended/php-file-interface",
+	"description" : "Interfaces to secure the manipulation of files in file systems.",
+	"type" : "library",
+	"keywords" : [
+		"php",
+		"file",
+		"folder",
+		"filesystem",
+		"interface"
+	],
+	"homepage" : "https://gitlab.com/php-extended/php-file-interface",
+	"license" : "MIT",
+	"authors" : [
+		{
+			"name" : "Anastaszor",
+			"homepage" : "https://gitlab.com/Anastazor",
+			"role" : "developer"
+		}
+	],
+	"support" : {
+		"issues" : "https://gitlab.com/php-extended/php-file-interface/issues",
+		"source" : "https://gitlab.com/php-extended/php-file-interface"
+	},
+	"require" : {
+		"php" : ">=8.0",
+		"psr/http-message" : "^2"
+	},
+	"autoload" : {
+		"psr-4" : {
+			"PhpExtended\\File\\" : "src"
+		}
+	}
+}

@@ -131,6 +131,14 @@
 
             <!-- Botões de Ação -->
             <div class="card-footer d-flex justify-content-end">
+                <a href="{{ route('vendas.exportarPdf', $venda->id) }}" class="btn btn-success me-2">
+                    <i class="bx bx-download"></i> Exportar PDF
+                </a>
+                    @csrf
+                    <button type="button" class="btn btn-primary me-2" id="abrirModalCobranca">
+                        <i class="bx bx-money"></i> Gerar Cobrança
+                    </button>
+                </form>
                 <button type="button" class="btn btn-secondary me-2" onclick="window.history.back();">
                     <i class="bx bx-x"></i> Cancelar
                 </button>
@@ -138,7 +146,7 @@
                     <i class="bx bx-check"></i> Salvar Alterações
                 </button>
             </div>
-        </div>
+
     </form>
 </div>
 
@@ -187,6 +195,39 @@
         </div>
     </div>
 </div>
+
+<!-- Modal de Cobrança -->
+<div class="modal fade" id="modalCobranca" tabindex="-1" aria-labelledby="modalCobrancaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCobrancaLabel">Gerar Cobrança</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Escolha o método de pagamento:</p>
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-primary" id="gerarPix">
+                        <i class="bx bx-qr"></i> PIX
+                    </button>
+                    <button type="button" class="btn btn-success" id="gerarBoleto">
+                        <i class="bx bx-barcode"></i> Boleto
+                    </button>
+                </div>
+                <div class="mt-3">
+                    <label>
+                        <input type="checkbox" id="enviarEmail"> Enviar cobrança por e-mail
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form id="formCobranca" action="{{ route('vendas.gerarCobranca', $venda->id) }}" method="POST" style="display: none;">
+    @csrf
+    <input type="hidden" id="metodoPagamento" name="metodoPagamento">
+</form>
 
 @include('content.vendas.scripts-edit')
 
