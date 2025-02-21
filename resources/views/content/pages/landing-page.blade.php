@@ -10,7 +10,6 @@ $configData = Helper::appClasses();
 
 <!-- AOS CSS -->
 <link href="https://cdn.jsdelivr.net/npm/aos@2.3.1/dist/aos.css" rel="stylesheet">
-@vite(['resources/assets/vendor/js/template-customizer.js'])
 
 
 <!-- AOS JS -->
