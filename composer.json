@@ -30,13 +30,17 @@
     "spatie/laravel-ignition": "^2.4",
     "themeselection/sneat-html-laravel-jetstream": "^2.0"
   },
-  "autoload": {
+"autoload": {
     "psr-4": {
-      "App\\": "app/",
-      "Database\\Factories\\": "database/factories/",
-      "Database\\Seeders\\": "database/seeders/"
-    }
-  },
+        "App\\": "app/",
+        "Database\\Factories\\": "database/factories/",
+        "Database\\Seeders\\": "database/seeders/"
+    },
+    "files": [
+        "app/Helpers/formatacao.php",
+        "app/Helpers/Helpers.php"
+    ]
+},
   "autoload-dev": {
     "psr-4": {
       "Tests\\": "tests/"
