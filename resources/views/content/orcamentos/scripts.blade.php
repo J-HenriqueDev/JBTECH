@@ -153,10 +153,10 @@ $('#produto_id').on('change', function () {
                 </td>
                 <td>${produtoNome}</td>
                 <td>
-                    <input type="number" class="form-control" name="produtos[${produtoId}][quantidade]" value="${quantidade}" min="1" readonly>
+                    <input type="number" class="form-control" name="produtos[${produtoId}][quantidade]" value="${quantidade}" min="1">
                 </td>
                 <td>
-                    <input type="text" class="form-control" name="produtos[${produtoId}][valor_unitario]" value="${formatCurrency(precoUnitario)}" readonly>
+                    <input type="text" class="form-control" name="produtos[${produtoId}][valor_unitario]" value="${formatCurrency(precoUnitario)}">
                 </td>
                 <td class="valor-total">${formatCurrency(valorTotal)}</td>
                 <td>
