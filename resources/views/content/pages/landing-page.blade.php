@@ -6,11 +6,8 @@ $configData = Helper::appClasses();
 
 @section('title', 'Home')
 
-
-
 <!-- AOS CSS -->
 <link href="https://cdn.jsdelivr.net/npm/aos@2.3.1/dist/aos.css" rel="stylesheet">
-
 
 <!-- AOS JS -->
 <script src="https://cdn.jsdelivr.net/npm/aos@2.3.1/dist/aos.js"></script>
@@ -21,10 +18,7 @@ $configData = Helper::appClasses();
       once: true       // A animação ocorre apenas uma vez
     });
   });
-
 </script>
-
-
 
 <!-- Vendor Styles -->
 @section('vendor-style')
@@ -52,121 +46,167 @@ $configData = Helper::appClasses();
 @vite(['resources/assets/js/front-page-landing.js'])
 @endsection
 
-
 @section('content')
 <!-- Swiper: Início -->
 <div class="swiper mySwiper" id="landingHero">
   <div class="swiper-wrapper">
-    <!-- Slide 1 -->
-    <div class="swiper-slide">
+    <!-- Slide 1: Apresentação Impactante -->
+    <<div class="swiper-slide">
       <section id="hero-slide-1">
         <div class="section-py landing-hero position-relative">
           <img src="{{asset('assets/img/front-pages/landing-page/design-teste-landing.jpg')}}"
                alt="Slide 1"
                class="w-100 h-100 object-fit-cover"
-               style="max-width: 100%; height: auto;" />
-          <!-- Texto e Botão na primeira imagem -->
+               style="max-width: 100%; height: auto;"
+               loading="lazy" />
+          <!-- Overlay com gradiente -->
+          <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.3));"></div>
+          <!-- Texto e Botão no Slide 1 -->
           <div class="text-overlay position-absolute top-50 start-50 translate-middle text-center">
-            <h2 class="text-white" data-aos="zoom-in">Bem-vindo à JBTECH!</h2>
-            <p class="text-white">Descubra nossos serviços de TI.</p>
-            <a href="#landingFeatures" class="btn btn-lg btn-primary">Saiba Mais</a>
+            <h2 class="text-white display-4 fw-bold mb-3" data-aos="zoom-in" style="background: linear-gradient(90deg, #ffffff, #00ff88); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+              Bem-vindo à JBTECH!
+            </h2>
+            <p class="text-white fs-5 mb-4" data-aos="fade-up" data-aos-delay="200">
+              Transformamos desafios de TI em oportunidades de crescimento para o seu negócio.
+            </p>
+            <a href="#landingFeatures" class="btn btn-lg btn-primary btn-hover-animate d-inline-flex align-items-center" data-aos="fade-up" data-aos-delay="400">
+              <i class='bx bx-rocket bx-sm me-2'></i>
+              Conheça nossos serviços
+            </a>
           </div>
         </div>
       </section>
     </div>
 
-    <!-- Slide 2 -->
-<div class="swiper-slide">
-  <section id="hero-slide-2">
-    <div class="section-py landing-hero position-relative">
-      <img src="{{asset('assets/img/front-pages/landing-page/design-teste-landing1.jpeg')}}"
-           alt="Slide 2"
-           class="w-100 h-100 object-fit-cover"
-           style="max-width: 100%; height: auto;" />
-      <div class="text-overlay position-absolute top-10 start-99 text-center">
-        <h2 class="text-white" data-aos="zoom-in">Quer um conserto de computador?</h2>
-        <p class="text-white">Vem comigo gatão</p>
-        <a href="#landingQualities" class="btn btn-lg btn-primary">Saiba Mais</a>
-      </div>
-
-      <!-- Curiosidades: Início -->
-      <section id="landingFunFacts" class="section-py landing-fun-facts mt-5">
-        <div class="container">
-          <div class="row gy-6">
-            <div class="col-sm-6 col-lg-3">
-              <div class="card border border-primary shadow-none">
-                <div class="card-body text-center">
-                  <img src="{{asset('assets/img/front-pages/icons/laptop.svg')}}" alt="laptop" class="mb-3" style="width: 60px; height: auto;" />
-                  <h3 class="mb-2">7.1k+</h3>
-                  <p class="fw-medium mb-0">
-                    Chamados<br />
-                    Resolvidos
-                  </p>
+    <div class="swiper-slide">
+      <section id="hero-slide-2">
+        <div class="section-py landing-hero position-relative">
+          <img src="{{asset('assets/img/front-pages/landing-page/design-teste-landing1.jpeg')}}"
+               alt="Slide 2"
+               class="w-100 h-100 object-fit-cover"
+               style="max-width: 100%; height: auto;"
+               loading="lazy" />
+          <!-- Overlay com gradiente -->
+          <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.3));"></div>
+          <!-- Texto e Cards no Slide 2 -->
+          <div class="text-overlay position-absolute top-50 start-50 translate-middle text-center">
+            <!-- Título com gradiente -->
+            <h2 class="text-white display-4 fw-bold mb-4" data-aos="zoom-in" style="background: linear-gradient(90deg, #ffffff, #00ff88); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+              Transforme sua empresa com tecnologia de ponta!
+            </h2>
+            <p class="text-white fs-5 mb-5" data-aos="fade-up" data-aos-delay="200">
+              Na JBTECH, não resolvemos problemas de TI — criamos oportunidades para o seu negócio crescer.
+            </p>
+            <div class="row gy-4">
+              <div class="col-md-6">
+                <div class="card bg-transparent border-light hover-scale glassmorphism-card">
+                  <div class="card-body">
+                    <i class='bx bx-trending-up bx-lg text-white mb-3 icon-animate'></i>
+                    <h5 class="text-white">Produtividade Aumentada</h5>
+                    <p class="text-white mb-0">Reduza custos e aumente a eficiência operacional.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="card bg-transparent border-light hover-scale glassmorphism-card">
+                  <div class="card-body">
+                    <i class='bx bx-shield bx-lg text-white mb-3 icon-animate'></i>
+                    <h5 class="text-white">Segurança Garantida</h5>
+                    <p class="text-white mb-0">Proteja seus dados e sistemas com soluções avançadas.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="card bg-transparent border-light hover-scale glassmorphism-card">
+                  <div class="card-body">
+                    <i class='bx bx-bulb bx-lg text-white mb-3 icon-animate'></i>
+                    <h5 class="text-white">Inovação Constante</h5>
+                    <p class="text-white mb-0">Esteja sempre à frente com tecnologia atualizada.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="card bg-transparent border-light hover-scale glassmorphism-card">
+                  <div class="card-body">
+                    <i class='bx bx-user-check bx-lg text-white mb-3 icon-animate'></i>
+                    <h5 class="text-white">Suporte Personalizado</h5>
+                    <p class="text-white mb-0">Conte com uma equipe dedicada ao seu sucesso.</p>
+                  </div>
                 </div>
               </div>
             </div>
-            <div class="col-sm-6 col-lg-3">
-              <div class="card border border-success shadow-none">
-                <div class="card-body text-center">
-                  <img src="{{asset('assets/img/front-pages/icons/user-success.svg')}}" alt="usuário" class="mb-3" style="width: 60px; height: auto;" />
-                  <h3 class="mb-2">50k+</h3>
-                  <p class="fw-medium mb-0">
-                    Junte-se à comunidade<br />
-                    criativa
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div class="col-sm-6 col-lg-3">
-              <div class="card border border-info shadow-none">
-                <div class="card-body text-center">
-                  <img src="{{asset('assets/img/front-pages/icons/diamond-info.svg')}}" alt="informação" class="mb-3" style="width: 60px; height: auto;" />
-                  <h3 class="mb-2">4.8/5</h3>
-                  <p class="fw-medium mb-0">
-                    Produtos<br />
-                    Altamente Avaliados
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div class="col-sm-6 col-lg-3">
-              <div class="card border border-warning shadow-none">
-                <div class="card-body text-center">
-                  <img src="{{asset('assets/img/front-pages/icons/check-warning.svg')}}" alt="garantia" class="mb-3" style="width: 60px; height: auto;" />
-                  <h3 class="mb-2">100%</h3>
-                  <p class="fw-medium mb-0">
-                    Garantia de<br />
-                    Devolução do Dinheiro
-                  </p>
-                </div>
-              </div>
-            </div>
+            <!-- Botão com ícone e efeito de hover -->
+            <a href="#footercontact" class="btn btn-lg btn-primary btn-hover-animate mt-5 d-inline-flex align-items-center" data-aos="fade-up" data-aos-delay="400">
+              <i class='bx bx-rocket bx-sm me-2'></i>
+              Descubra como podemos ajudar
+            </a>
           </div>
         </div>
       </section>
-      <!-- Curiosidades: Fim -->
-
     </div>
-  </section>
-</div>
 
-
-    <!-- Slide 3 -->
     <div class="swiper-slide">
       <section id="hero-slide-3">
         <div class="section-py landing-hero position-relative">
           <img src="{{asset('assets/img/front-pages/landing-page/design-teste-landing2.jpg')}}"
                alt="Slide 3"
                class="w-100 h-100 object-fit-cover"
-               style="max-width: 100%; height: auto;" />
+               style="max-width: 100%; height: auto;"
+               loading="lazy" />
+          <!-- Overlay com gradiente -->
+          <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.3));"></div>
+          <!-- Texto e Carrossel de Depoimentos no Slide 3 -->
+          <div class="text-overlay position-absolute top-50 start-50 translate-middle text-center">
+            <!-- Título com gradiente -->
+            <h2 class="text-white display-4 fw-bold mb-4" data-aos="zoom-in" style="background: linear-gradient(90deg, #ffffff, #00ff88); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+              Resultados que falam por si!
+            </h2>
+            <div class="swiper testimonialSwiper">
+              <div class="swiper-wrapper">
+                <div class="swiper-slide">
+                  <div class="card bg-transparent border-light glassmorphism-card">
+                    <div class="card-body">
+                      <img src="{{asset('assets/img/front-pages/clients/client-1.jpg')}}" alt="" class="rounded-circle mb-3 client-photo" width="80" height="80">
+                      <p class="text-white mb-0">"A JBTECH modernizou nossa infraestrutura de TI, aumentando a produtividade em 30%."</p>
+                      <p class="text-white fw-bold mt-2">- Mercado da Julia</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="swiper-slide">
+                  <div class="card bg-transparent border-light glassmorphism-card">
+                    <div class="card-body">
+                      <img src="{{asset('assets/img/front-pages/clients/client-2.jpg')}}" alt="Cliente 2" class="rounded-circle mb-3 client-photo" width="80" height="80">
+                      <p class="text-white mb-0">"Suporte técnico rápido e eficiente. Recomendamos!"</p>
+                      <p class="text-white fw-bold mt-2">- Empresa B</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="swiper-slide">
+                  <div class="card bg-transparent border-light glassmorphism-card">
+                    <div class="card-body">
+                      <img src="{{asset('assets/img/front-pages/clients/client-3.jpg')}}" alt="Cliente 3" class="rounded-circle mb-3 client-photo" width="80" height="80">
+                      <p class="text-white mb-0">"Soluções personalizadas que se adaptaram perfeitamente às nossas necessidades."</p>
+                      <p class="text-white fw-bold mt-2">- Empresa C</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="swiper-pagination"></div>
+            </div>
+            <!-- Botão com ícone e efeito de hover -->
+            <a href="#footercontact" class="btn btn-lg btn-primary btn-hover-animate mt-5 d-inline-flex align-items-center" data-aos="fade-up" data-aos-delay="400">
+              <i class='bx bx-message-rounded-dots bx-sm me-2'></i>
+              Fale Conosco
+            </a>
+          </div>
         </div>
       </section>
     </div>
   </div>
 
   <!-- Controles do Swiper -->
-  <div class="swiper-button-next"></div>
-  <div class="swiper-button-prev"></div>
+  <div class="swiper-button-next" aria-label="Próximo slide"></div>
+  <div class="swiper-button-prev" aria-label="Slide anterior"></div>
   <div class="swiper-pagination"></div>
 </div>
 <!-- Swiper: Fim -->
@@ -179,7 +219,11 @@ $configData = Helper::appClasses();
   var swiper = new Swiper(".mySwiper", {
     slidesPerView: 1,
     spaceBetween: 30,
-    loop: false,
+    loop: true,
+    autoplay: {
+      delay: 5000,
+      disableOnInteraction: false,
+    },
     pagination: {
       el: ".swiper-pagination",
       clickable: true,
@@ -193,34 +237,95 @@ $configData = Helper::appClasses();
 
 <!-- Estilos para o texto sobreposto -->
 <style>
+  /* Efeito de hover nos cards */
+  .hover-scale {
+    transition: transform 0.3s ease;
+  }
+  .hover-scale:hover {
+    transform: scale(1.05);
+  }
+
+  /* Animação no botão */
+  .btn-hover-animate {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .btn-hover-animate:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Estilo para o carrossel de depoimentos */
+  .testimonialSwiper {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
   .text-overlay {
-    z-index: 2; /* Para garantir que o texto fique acima da imagem */
-    color: white; /* Cor do texto */
-    text-align: center; /* Centralizar texto */
-    top: 20%; /* Aumenta a distância da navbar */
+    z-index: 2;
+    color: white;
+    text-align: center;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    border-radius: 10px;
   }
 
   .text-overlay h2,
   .text-overlay p {
-    margin: 0; /* Remove margens */
+    margin: 0;
   }
+  /* Efeito de vidro (Glassmorphism) nos cards */
+.glassmorphism-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glassmorphism-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Animação nas fotos dos clientes */
+.client-photo {
+  transition: transform 0.3s ease;
+}
+
+.client-photo:hover {
+  transform: scale(1.1);
+}
+
+/* Efeito de hover no botão */
+.btn-hover-animate {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background: linear-gradient(90deg, #00ff88, #00b8ff);
+  border: none;
+  color: rgb(0, 0, 0);
+  padding: 12px 24px;
+  border-radius: 50px;
+}
+
+.btn-hover-animate:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 255, 136, 0.3);
+}
 
   @media (max-width: 768px) {
     .text-overlay h2 {
-      font-size: 24px; /* Tamanho do texto em dispositivos móveis */
+      font-size: 20px;
     }
-
     .text-overlay p {
-      font-size: 16px; /* Tamanho do texto em dispositivos móveis */
+      font-size: 14px;
     }
-
-    /* Aumentar altura da imagem em dispositivos móveis */
     .landing-hero {
-      height: 70vh; /* Ajuste conforme necessário */
+      height: 70vh;
     }
   }
 </style>
-
 
 <!-- Qualidades da JBTECH: Início -->
 <section id="landingFeatures" class="section-py landing-features" data-aos="fade-right">
@@ -371,8 +476,6 @@ $configData = Helper::appClasses();
 </section>
 <!-- Avaliações de clientes reais: Fim -->
 
-
-
 <!-- Nossa Equipe Incrível: Início -->
 <section id="landingTeam" class="section-py landing-team">
   <div class="container">
@@ -414,64 +517,6 @@ $configData = Helper::appClasses();
   </div>
 </section>
 <!-- Nossa Equipe Incrível: Fim -->
-
-
-{{--  <!-- Curiosidades: Início -->
-<section id="landingFunFacts" class="section-py landing-fun-facts">
-  <div class="container">
-    <div class="row gy-6">
-      <div class="col-sm-6 col-lg-3">
-        <div class="card border border-primary shadow-none">
-          <div class="card-body text-center">
-            <img src="{{asset('assets/img/front-pages/icons/laptop.svg')}}" alt="laptop" class="mb-4" />
-            <h3 class="mb-0">7.1k+</h3>
-            <p class="fw-medium mb-0">
-              Chamados<br />
-              Resolvidos
-            </p>
-          </div>
-        </div>
-      </div>
-      <div class="col-sm-6 col-lg-3">
-        <div class="card border border-success shadow-none">
-          <div class="card-body text-center">
-            <img src="{{asset('assets/img/front-pages/icons/user-success.svg')}}" alt="usuário" class="mb-4" />
-            <h3 class="mb-0">50k+</h3>
-            <p class="fw-medium mb-0">
-              Junte-se à comunidade<br />
-              criativa
-            </p>
-          </div>
-        </div>
-      </div>
-      <div class="col-sm-6 col-lg-3">
-        <div class="card border border-info shadow-none">
-          <div class="card-body text-center">
-            <img src="{{asset('assets/img/front-pages/icons/diamond-info.svg')}}" alt="informação" class="mb-4" />
-            <h3 class="mb-0">4.8/5</h3>
-            <p class="fw-medium mb-0">
-              Produtos<br />
-              Altamente Avaliados
-            </p>
-          </div>
-        </div>
-      </div>
-      <div class="col-sm-6 col-lg-3">
-        <div class="card border border-warning shadow-none">
-          <div class="card-body text-center">
-            <img src="{{asset('assets/img/front-pages/icons/check-warning.svg')}}" alt="garantia" class="mb-4" />
-            <h3 class="mb-0">100%</h3>
-            <p class="fw-medium mb-0">
-              Garantia de<br />
-              Devolução do Dinheiro
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-<!-- Curiosidades: Fim -->  --}}
 
 <!-- FAQ: Início -->
 <section id="landingFAQ" class="section-py bg-body landing-faq">
@@ -560,105 +605,8 @@ $configData = Helper::appClasses();
 </section>
 <!-- FAQ: Fim -->
 
-
-
-{{--  <!-- CTA: Início -->
-<section id="landingCTA" class="section-py landing-cta position-relative p-lg-0 pb-0">
-  <img src="{{asset('assets/img/front-pages/backgrounds/cta-bg-'.$configData['style'].'.png')}}" class="position-absolute bottom-0 end-0 scaleX-n1-rtl h-100 w-100 z-n1" alt="imagem de cta" data-app-light-img="front-pages/backgrounds/cta-bg-light.png" data-app-dark-img="front-pages/backgrounds/cta-bg-dark.png" />
-  <div class="container">
-    <div class="row align-items-center gy-12">
-      <div class="col-lg-6 text-start text-sm-center text-lg-start">
-        <h3 class="cta-title text-primary fw-bold mb-1">Pronto para Começar?</h3>
-        <h5 class="text-body mb-8">Inicie seu projeto com um teste gratuito de 14 dias</h5>
-        <a href="{{url('/front-pages/payment')}}" class="btn btn-lg btn-primary">Começar</a>
-      </div>
-      <div class="col-lg-6 pt-lg-12 text-center text-lg-end">
-        <img src="{{asset('assets/img/front-pages/landing-page/cta-dashboard.png')}}" alt="painel de cta" class="img-fluid mt-lg-4" />
-      </div>
-    </div>
-  </div>
-</section>
-<!-- CTA: Fim -->  --}}
-
-
-{{--  <!-- Fale Conosco: Início -->
-<section id="landingContact" class="section-py bg-body landing-contact">
-  <div class="container">
-    <div class="text-center mb-4">
-      <span class="badge bg-label-primary">Fale Conosco</span>
-    </div>
-    <h4 class="text-center mb-1">
-      <span class="position-relative fw-extrabold z-1">Vamos trabalhar
-        <img src="{{asset('assets/img/front-pages/icons/section-title-icon.png')}}" alt="carregando laptop" class="section-title-img position-absolute object-fit-contain bottom-0 z-n1">
-      </span>
-      juntos
-    </h4>
-    <p class="text-center mb-12 pb-md-4">Alguma dúvida ou comentário? Basta nos enviar uma mensagem</p>
-    <div class="row g-6">
-      <div class="col-lg-5">
-        <div class="contact-img-box position-relative border p-2 h-100">
-          <img src="{{asset('assets/img/front-pages/icons/contact-border.png')}}" alt="borda de contato" class="contact-border-img position-absolute d-none d-lg-block scaleX-n1-rtl" />
-          <img src="{{asset('assets/img/front-pages/landing-page/contact-customer-service.png')}}" alt="atendimento ao cliente" class="contact-img w-100 scaleX-n1-rtl" />
-          <div class="p-4 pb-2">
-            <div class="row g-4">
-              <div class="col-md-6 col-lg-12 col-xl-6">
-                <div class="d-flex align-items-center">
-                  <div class="badge bg-label-primary rounded p-1_5 me-3"><i class="bx bx-envelope bx-lg"></i></div>
-                  <div>
-                    <p class="mb-0">Email</p>
-                    <h6 class="mb-0"><a href="mailto:example@gmail.com" class="text-heading">example@gmail.com</a></h6>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6 col-lg-12 col-xl-6">
-                <div class="d-flex align-items-center">
-                  <div class="badge bg-label-success rounded p-1_5 me-3"><i class="bx bx-phone-call bx-lg"></i></div>
-                  <div>
-                    <p class="mb-0">Telefone</p>
-                    <h6 class="mb-0"><a href="tel:+1234-568-963" class="text-heading">+1234 568 963</a></h6>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-7">
-        <div class="card h-100">
-          <div class="card-body">
-            <h4 class="mb-2">Enviar uma mensagem</h4>
-            <p class="mb-6">
-              Se você gostaria de discutir qualquer coisa relacionada a pagamento, conta, licenciamento,<br class="d-none d-lg-block" />
-              parcerias ou se tiver perguntas pré-venda, você está no lugar certo.
-            </p>
-            <form>
-              <div class="row g-4">
-                <div class="col-md-6">
-                  <label class="form-label" for="contact-form-fullname">Nome Completo</label>
-                  <input type="text" class="form-control" id="contact-form-fullname" placeholder="joão" />
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label" for="contact-form-email">Email</label>
-                  <input type="text" id="contact-form-email" class="form-control" placeholder="johndoe@gmail.com" />
-                </div>
-                <div class="col-12">
-                  <label class="form-label" for="contact-form-message">Mensagem</label>
-                  <textarea id="contact-form-message" class="form-control" rows="11" placeholder="Escreva uma mensagem"></textarea>
-                </div>
-                <div class="col-12">
-                  <button type="submit" class="btn btn-primary">Enviar consulta</button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>  --}}
-
 <!-- Ícone do WhatsApp Flutuante -->
-<a href="https://wa.me/5524981132097?text=Olá%20JBTech%20Informática,%20encontrei%20vocês%20através%20do%20seu%20site"  target="_blank">
+<a href="https://wa.me/5524981132097?text=Olá%20JBTech%20Informática,%20encontrei%20vocês%20através%20do%20seu%20site" target="_blank">
     <i class='bx bxl-whatsapp whatsapp-icon'></i>
 </a>
 
@@ -688,11 +636,6 @@ $configData = Helper::appClasses();
     .whatsapp-icon {
         font-size: 40px; /* Tamanho do ícone */
     }
-
 </style>
 
-
-
-<!-- Fale Conosco: Fim -->
-</div>
 @endsection

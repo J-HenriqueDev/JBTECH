@@ -61,15 +61,9 @@
         <span class="footer-cnpj">CNPJ: 54.819.910/0001-20</span> <!-- Adicione seu CNPJ aqui -->
       </div>
       <div>
-        <i class='bx bxl-instagram'></i>
-        <a href="https://www.instagram.com/henriquelxx_" class="me-3" target="_blank">Desenvolvido por José Henrique
+        <i class='bx bxl-instagram text-white'></i>
+        <a href="https://www.instagram.com/henriquelxx_" class="me-3 text-white" target="_blank">Desenvolvido por José Henrique
         </a>
-        {{--  <a href="https://www.instagram.com/jbtech.resende" class="me-3" target="_blank">
-          <i class='bx bxl-instagram'></i>
-        </a>
-        <a href="https://wa.me/5524981132097" target="_blank">
-          <i class='bx bxl-whatsapp'></i>
-        </a>  --}}
       </div>
     </div>
   </div>
