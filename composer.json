@@ -39,7 +39,9 @@
     },
     "files": [
         "app/Helpers/formatacao.php",
-        "app/Helpers/Helpers.php"
+        "app/Helpers/Helpers.php",
+        "app/Helpers/saudacao.php"
+
     ]
 },
   "autoload-dev": {
@@ -48,7 +50,9 @@
     },
     "files": [
       "app/Helpers/formatacao.php",
-      "app/Helpers/Helpers.php"
+      "app/Helpers/Helpers.php",
+      "app/Helpers/saudacao.php"
+
     ]
   },
   "scripts": {

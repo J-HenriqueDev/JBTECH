@@ -10,8 +10,12 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #fff; /* Uniformiza o fundo */
+            background-color: #fff;
             color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* Garante que o body ocupe pelo menos a altura da tela */
+            position: relative; /* Permite posicionar o footer de forma absoluta */
         }
         .container {
             max-width: 800px;
@@ -19,11 +23,9 @@
             padding: 20px 30px;
             border-radius: 6px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            background-color: #fff; /* Remove diferença de cor */
-            min-height: calc(100vh - 40px); /* Preenche quase toda a altura */
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            background-color: #fff;
+            flex: 1; /* Faz o container crescer para ocupar o espaço disponível */
+            padding-bottom: 150px; /* Espaço para o footer */
         }
         .header {
             text-align: center;
@@ -107,16 +109,26 @@
             font-weight: bold;
             color: #007bff;
         }
+        .observacao {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+        .observacao h2 {
+            margin-top: 0;
+        }
         .footer {
             text-align: center;
             font-size: 12px;
             color: #666;
-            margin-top: 30px;
-            padding-top: 10px;
+            padding: 10px 0;
             border-top: 1px solid #ddd;
-            padding-bottom: 5px;
-            background-color: #fff; /* Remove discrepâncias de cor */
-            page-break-inside: avoid; /* Evita quebra de página no rodapé */
+            background-color: #fff;
+            position: absolute; /* Fixa o footer no rodapé */
+            bottom: 20px; /* Aumentei a distância do rodapé */
+            width: 100%; /* Ocupa toda a largura */
         }
     </style>
 </head>
@@ -124,14 +136,14 @@
     <div class="container">
         <!-- Cabeçalho -->
         <div class="header">
-            <img src="data:image/png;base64,{{ $logoBase64 }}" alt="JBTECH Logo">
+            <img src="https://jbtechresende.com.br/assets/img/front-pages/landing-page/jblogo_black.png" alt="JBTECH Logo">
             <h1>Orçamento #{{ $orcamento->id }}</h1>
         </div>
 
         <!-- Informações do Cliente -->
         <div class="info-section">
             <p><strong>Cliente:</strong> {{ $orcamento->cliente->nome }}</p>
-            <p><strong>CPF/CNPJ:</strong> {{ $orcamento->cliente->cpf_cnpj }}</p>
+            <p><strong>CPF/CNPJ:</strong> {{ formatarCpfCnpj($orcamento->cliente->cpf_cnpj) }}</p>
             <div style="display: flex; justify-content: space-between;">
                 <p><strong>Data de Emissão:</strong> {{ Carbon\Carbon::parse($orcamento->data)->translatedFormat('d \d\e F \d\e Y') }}</p>
                 <p><strong>Validade:</strong> {{ Carbon\Carbon::parse($orcamento->validade)->translatedFormat('d \d\e F \d\e Y') }}</p>
@@ -180,8 +192,10 @@
             <p><strong>Valor do Serviço:</strong> R$ {{ number_format($valorServico, 2, ',', '.') }}</p>
             <p class="total">Total Geral: R$ {{ number_format($subtotalProdutos + $valorServico, 2, ',', '.') }}</p>
         </div>
+
+        <!-- Observação -->
         @if (!empty($orcamento->observacoes))
-        <div class="description">
+        <div class="observacao">
             <h2>Descrição do Orçamento</h2>
             <p>{{ $orcamento->observacoes }}</p>
         </div>
@@ -219,14 +233,13 @@
                 </tbody>
             </table>
         </div>
+    </div>
 
-
-        <!-- Rodapé -->
-        <div class="footer">
-            <p>JBTECH Informática - Tecnologia ao Seu Alcance</p>
-            <p>Av. Tocantinha, 470, Sala 02, Resende, RJ | CNPJ: 54.819.910/0001-20</p>
-            <p>Telefone: +55 (24) 98113-2097 | E-mail: contato@jbtech.com</p>
-        </div>
+    <!-- Rodapé -->
+    <div class="footer">
+        <p>JBTECH Informática - Tecnologia ao Seu Alcance</p>
+        <p>Rua Willy Faulstich, 252, Resende, RJ | CNPJ: 54.819.910/0001-20</p>
+        <p>Telefone: +55 (24) 98113-2097 | E-mail: informatica.jbtech@gmail.com</p>
     </div>
 </body>
 </html>

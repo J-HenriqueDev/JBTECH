@@ -174,9 +174,6 @@
               <button type="button" class="btn btn-outline-secondary" onclick="history.back();">
                   <i class="bx bx-x"></i> Cancelar
               </button>
-              <a href="{{ route('orcamentos.exportarPdf', $orcamento->id ?? 1) }}" class="btn btn-md btn-danger fw-bold me-2" target="_blank">
-                <i class="bx bx-download"></i> Exportar PDF
-            </a>
           </div>
 
         </div>

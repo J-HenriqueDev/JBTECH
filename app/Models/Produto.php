@@ -37,4 +37,11 @@ class Produto extends Model
     {
         return $this->belongsTo(User::class); // Relacionamento com usuário
     }
+
+    public function vendas()
+    {
+        return $this->belongsToMany(Venda::class, 'produto_venda')
+            ->withPivot('quantidade', 'valor_unitario', 'valor_total')
+            ->withTimestamps();
+    }
 }
