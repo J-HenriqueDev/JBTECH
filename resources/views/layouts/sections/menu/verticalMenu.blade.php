@@ -5,19 +5,23 @@ $configData = Helper::appClasses();
 
 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
 
-  <!-- ! Hide app brand if navbar-full -->
-  @if(!isset($navbarFull))
-    <div class="app-brand demo">
-      <a href="{{url('/')}}" class="app-brand-link">
-        <span class="app-brand-logo demo">@include('_partials.macros',["width"=>25,"withbg"=>'var(--bs-primary)'])</span>
-        <span class="app-brand-text demo menu-text fw-bold ms-2">{{config('variables.templateName')}}</span>
-      </a>
+  <!-- Esconde a marca do aplicativo se a navbar estiver em modo "full" (navbarFull) -->
+@if(!isset($navbarFull))
+  <div class="app-brand demo">
+    <a href="{{url('/')}}" class="app-brand-link">
+      <span class="app-brand-logo demo">
+        <!-- Exibe o logo da empresa JBTECH -->
+        <img src="{{ asset('assets/img/front-pages/landing-page/jblogo_black.png') }}" alt="JBTECH Logo"
+             style="width: 190px; height: auto;">
+      </span>
+    </a>
 
-      <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
-        <i class="bx bx-chevron-left bx-sm d-flex align-items-center justify-content-center"></i>
-      </a>
-    </div>
-  @endif
+    <!-- Botão para alternar o menu (usado em layouts responsivos) -->
+    <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
+      <i class="bx bx-chevron-left bx-sm d-flex align-items-center justify-content-center"></i>
+    </a>
+  </div>
+@endif
 
   <div class="menu-inner-shadow"></div>
 
