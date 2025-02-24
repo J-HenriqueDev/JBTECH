@@ -14,104 +14,102 @@
             color: #333;
             display: flex;
             flex-direction: column;
-            min-height: 100vh; /* Garante que o body ocupe pelo menos a altura da tela */
-            position: relative; /* Permite posicionar o footer de forma absoluta */
+            min-height: 100vh;
+            position: relative;
         }
         .container {
             max-width: 800px;
             margin: 0 auto;
-            padding: 20px 30px;
-            border-radius: 6px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
             background-color: #fff;
-            flex: 1; /* Faz o container crescer para ocupar o espaço disponível */
-            padding-bottom: 150px; /* Espaço para o footer */
+            flex: 1;
+            padding-bottom: 100px; /* Reduzido para aproximar o rodapé */
         }
         .header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px; /* Reduzido */
         }
         .header img {
-            max-width: 150px;
-            margin-bottom: 10px;
+            max-width: 120px; /* Reduzido */
+            margin-bottom: 5px; /* Reduzido */
         }
         .header h1 {
-            font-size: 24px;
+            font-size: 20px; /* Reduzido */
             color: #333;
             margin: 0;
         }
         .info-section {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
+            gap: 10px; /* Reduzido */
+            margin-bottom: 15px; /* Reduzido */
             border-bottom: 1px solid #ddd;
-            padding-bottom: 15px;
+            padding-bottom: 10px; /* Reduzido */
         }
         .info-section p {
-            margin: 5px 0;
-            font-size: 14px;
+            margin: 3px 0; /* Reduzido */
+            font-size: 13px; /* Reduzido */
         }
         h2 {
-            font-size: 18px;
-            margin-bottom: 15px;
+            font-size: 16px; /* Reduzido */
+            margin-bottom: 10px; /* Reduzido */
             color: #007bff;
             border-bottom: 2px solid #007bff;
-            padding-bottom: 5px;
+            padding-bottom: 3px; /* Reduzido */
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 15px; /* Reduzido */
         }
         table th, table td {
             border: 1px solid #ddd;
-            padding: 10px;
+            padding: 8px; /* Reduzido */
             text-align: left;
-            font-size: 14px;
+            font-size: 13px; /* Reduzido */
         }
         table th {
             background-color: #f9f9f9;
             font-weight: bold;
         }
         .divider {
-            margin: 20px 0;
+            margin: 10px 0; /* Reduzido */
             border-bottom: 1px solid #ddd;
         }
         .payment-methods {
-            margin-top: 20px;
-            font-size: 14px;
+            margin-top: 15px; /* Reduzido */
+            font-size: 13px; /* Reduzido */
         }
         .payment-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 15px; /* Reduzido */
         }
         .payment-table th, .payment-table td {
             border: 1px solid #ddd;
-            padding: 10px;
+            padding: 8px; /* Reduzido */
             text-align: left;
-            font-size: 14px;
+            font-size: 13px; /* Reduzido */
         }
         .payment-table th {
             background-color: #f9f9f9;
         }
         .summary {
             text-align: right;
-            margin-top: 20px;
+            margin-top: 15px; /* Reduzido */
         }
         .summary p {
-            margin: 5px 0;
-            font-size: 14px;
+            margin: 3px 0; /* Reduzido */
+            font-size: 13px; /* Reduzido */
         }
         .summary .total {
-            font-size: 16px;
+            font-size: 14px; /* Reduzido */
             font-weight: bold;
             color: #007bff;
         }
         .observacao {
-            margin-top: 20px;
-            padding: 15px;
+            margin-top: 15px; /* Reduzido */
+            padding: 10px; /* Reduzido */
             background-color: #f9f9f9;
             border: 1px solid #ddd;
             border-radius: 6px;
@@ -121,14 +119,14 @@
         }
         .footer {
             text-align: center;
-            font-size: 12px;
+            font-size: 11px; /* Reduzido */
             color: #666;
-            padding: 10px 0;
+            padding: 8px 0; /* Reduzido */
             border-top: 1px solid #ddd;
             background-color: #fff;
-            position: absolute; /* Fixa o footer no rodapé */
-            bottom: 20px; /* Aumentei a distância do rodapé */
-            width: 100%; /* Ocupa toda a largura */
+            position: absolute;
+            bottom: 10px; /* Reduzido */
+            width: 100%;
         }
     </style>
 </head>

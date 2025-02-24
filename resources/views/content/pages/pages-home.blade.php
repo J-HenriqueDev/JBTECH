@@ -15,7 +15,7 @@
             <!-- Primeira Linha: Cards de Resumo -->
             <div class="row mb-4">
                 <div class="col-md-3">
-                    <div class="card bg-gradient-primary text-white shadow">
+                    <div class="card bg-primary text-white shadow">
                         <div class="card-body">
                             <h5 class="card-title text-white"><i class="fas fa-users text-white"></i> Clientes</h5>
                             <p class="card-text">{{ $totalClientes }} cadastrados</p>
@@ -24,7 +24,7 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card bg-gradient-success text-white shadow">
+                    <div class="card bg-success text-white shadow">
                         <div class="card-body">
                             <h5 class="card-title text-white"><i class="fas fa-box"></i> Produtos</h5>
                             <p class="card-text">{{ $totalProdutos }} cadastrados</p>
@@ -33,7 +33,7 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card bg-gradient-warning text-white shadow">
+                    <div class="card bg-warning text-white shadow">
                         <div class="card-body">
                             <h5 class="card-title text-white"><i class="fas fa-file-invoice-dollar"></i> Orçamentos</h5>
                             <p class="card-text">{{ $totalOrcamentos }} emitidos</p>
@@ -42,7 +42,7 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card bg-gradient-danger text-white shadow">
+                    <div class="card bg-danger text-white shadow">
                         <div class="card-body">
                             <h5 class="card-title text-white"><i class="fas fa-shopping-cart"></i> Vendas</h5>
                             <p class="card-text">{{ $totalVendas }} realizadas</p>
@@ -80,7 +80,7 @@
             <div class="row mb-4">
                 <div class="col-md-4">
                     <div class="card shadow">
-                        <div class="card-header bg-gradient-primary text-white">
+                        <div class="card-header bg-primary text-white">
                             <h5 class="card-title text-white"><i class="fas fa-user-plus"></i> Clientes Recentes</h5>
                         </div>
                         <div class="card-body text-dark">
@@ -100,7 +100,7 @@
                 </div>
                 <div class="col-md-4">
                     <div class="card shadow">
-                        <div class="card-header bg-gradient-warning text-white">
+                        <div class="card-header bg-warning text-white">
                             <h5 class="card-title text-white"><i class="fas fa-file-alt"></i> Orçamentos Recentes</h5>
                         </div>
                         <div class="card-body text-dark">
@@ -109,7 +109,7 @@
                                 <li class="list-group-item">
                                     <a href="{{ route('orcamentos.edit', $orcamento->id) }}" class="text-decoration-none text-dark">
                                         <strong>#{{ $orcamento->id }}</strong> - {{ $orcamento->cliente->nome }}
-                                        <span class="badge bg-warning float-end">{{ $orcamento->created_at->format('d/m/Y') }}</span>
+                                        <span class="badge bg-warning float-end"> {{ \DateTime::createFromFormat('Y-m-d', $orcamento->data)->format('d/m/Y') }}</span>
                                     </a>
                                 </li>
                                 @endforeach
@@ -120,7 +120,7 @@
                 </div>
                 <div class="col-md-4">
                     <div class="card shadow">
-                        <div class="card-header bg-gradient-secondary text-white">
+                        <div class="card-header bg-secondary text-white">
                             <h5 class="card-title text-white"><i class="fas fa-tasks"></i> Ordens de Serviço Recentes</h5>
                         </div>
                         <div class="card-body text-dark">
@@ -144,8 +144,8 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="card shadow">
-                        <div class="card-header bg-gradient-success text-white">
-                            <h5 class="card-title text-white"><i class="fas fa-bolt"></i> Ações Rápidas</h5>
+                        <div class="card-header bg text-black">
+                            <h5 class="card-title "><i class="fas fa-bolt"></i> Ações Rápidas</h5>
                         </div>
                         <div class="card-body">
                             <a href="{{ route('clientes.create') }}" class="btn btn-primary me-2"><i class="fas fa-user-plus"></i> Cadastrar Cliente</a>
