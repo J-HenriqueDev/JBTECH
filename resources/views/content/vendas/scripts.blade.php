@@ -3,6 +3,56 @@
 <script>
 let custoCombustivel = 0; // Variável global para armazenar o custo do combustível
 
+// Função para atualizar os produtos
+function atualizarProdutos() {
+  carregandoProdutos = true; // Indica que uma requisição está em andamento
+  console.log('Carregando produtos...');
+
+  $.ajax({
+      url: '/produtos/lista', // Altere para a URL correta da sua rota de produtos
+      method: 'GET',
+      success: function (produtos) {
+          console.log('Produtos carregados:', produtos);
+
+          // Limpa as opções atuais
+          $('#produto_id').empty();
+
+          // Adiciona um placeholder
+          $('#produto_id').append('<option value="" disabled selected>Selecione um produto</option>');
+
+          // Adiciona as novas opções ao select2
+          produtos.forEach(function (produto) {
+              const option = new Option(
+                  `${produto.nome} - R$ ${parseFloat(produto.preco_venda).toFixed(2).replace('.', ',')}`,
+                  produto.id,
+                  false,
+                  false
+              );
+              // Adiciona o preço como um atributo de dados
+              $(option).data('preco', produto.preco_venda);
+              $('#produto_id').append(option);
+          });
+
+          // Atualiza o Select2 para refletir as novas opções
+          $('#produto_id').trigger('change.select2');
+
+          // Abre o dropdown manualmente após a atualização
+          $('#produto_id').select2('open');
+      },
+      error: function (xhr, status, error) {
+          console.error('Erro na requisição:', error);
+          alert('Erro ao carregar os produtos. Tente novamente mais tarde.');
+      },
+      complete: function () {
+          carregandoProdutos = false; // Indica que a requisição foi concluída
+      }
+  });
+}
+
+let produtosCarregados = false; // Indica se os produtos já foram carregados
+let carregandoProdutos = false; // Indica se uma requisição está em andamento
+
+
 function formatCurrency(value) {
   if (isNaN(value) || value === null) return 'R$ 0,00';
   value = Math.abs(parseFloat(value)).toFixed(2);
@@ -57,6 +107,17 @@ $(document).ready(function () {
         placeholder: 'Selecione um produto',
         width: '100%'
     });
+    limparCamposModal();
+
+     // Carrega os produtos ao carregar a página
+     atualizarProdutos();
+
+     $('#produto_id').on('select2:opening', function (e) {
+       if (!produtosCarregados && !carregandoProdutos) {
+           e.preventDefault(); // Impede a abertura automática do dropdown
+           atualizarProdutos(); // Atualiza os produtos
+       }
+   });
 
     $('#produto_id').on('change', function () {
       const preco = $(this).find(':selected').data('preco'); // Obtém o preço do produto selecionado
