@@ -14,46 +14,46 @@ use Illuminate\Support\Facades\DB;
 
 class HomePage extends Controller
 {
-    public function index()
-    {
-        // Total de registros
-        $totalClientes = Clientes::count();
-        $totalProdutos = Produto::count();
-        $totalOrcamentos = Orcamento::count();
-        $totalVendas = Venda::count();
+  public function index()
+  {
+      // Total de registros
+      $totalClientes = Clientes::count();
+      $totalProdutos = Produto::count();
+      $totalOrcamentos = Orcamento::count();
+      $totalVendas = Venda::count();
 
-        // Ordens de serviço recentes (com paginação)
-        $ordensRecentes = OS::with('cliente') // Carrega o relacionamento com cliente
-            ->orderBy('created_at', 'desc')
-            ->paginate(5, ['*'], 'ordens_page'); // Paginação com 5 itens por página
+      // Ordens de serviço recentes (com paginação)
+      $ordensRecentes = OS::with('cliente') // Carrega o relacionamento com cliente
+          ->orderBy('created_at', 'desc')
+          ->paginate(4, ['*'], 'ordens_page'); // Paginação com 5 itens por página
 
-        // Orçamentos recentes (com paginação)
-        $orcamentosRecentes = Orcamento::with('cliente') // Carrega o relacionamento com cliente
-            ->orderBy('created_at', 'desc')
-            ->paginate(5, ['*'], 'orcamentos_page'); // Paginação com 5 itens por página
+      // Orçamentos recentes (com paginação)
+      $orcamentosRecentes = Orcamento::with('cliente') // Carrega o relacionamento com cliente
+          ->orderBy('created_at', 'desc')
+          ->paginate(4, ['*'], 'orcamentos_page'); // Paginação com 5 itens por página
 
-        // Orçamentos próximos da validade (últimos 7 dias)
-        $orcamentosProximosValidade = Orcamento::where('validade', '>=', Carbon::now())
-            ->where('validade', '<=', Carbon::now()->addDays(7))
-            ->with('cliente') // Carrega o relacionamento com cliente
-            ->orderBy('validade', 'asc')
-            ->paginate(5, ['*'], 'validade_page'); // Paginação com 5 itens por página
+      // Orçamentos próximos da validade (últimos 7 dias)
+      $orcamentosProximosValidade = Orcamento::where('validade', '>=', Carbon::now())
+          ->where('validade', '<=', Carbon::now()->addDays(7))
+          ->with('cliente') // Carrega o relacionamento com cliente
+          ->orderBy('validade', 'asc')
+          ->paginate(4, ['*'], 'validade_page'); // Paginação com 5 itens por página
 
-        // Dados para gráficos
-        $vendasMensais = $this->getVendasMensais(); // Vendas dos últimos 12 meses
-        $produtosMaisVendidos = $this->getProdutosMaisVendidos(); // Produtos mais vendidos
+      // Dados para gráficos
+      $vendasMensais = $this->getVendasMensais(); // Vendas dos últimos 12 meses
+      $produtosMaisVendidos = $this->getProdutosMaisVendidos(); // Produtos mais vendidos
 
-                // Vendas recentes (com paginação)
-        $vendasRecentes = Venda::with('cliente') // Carrega o relacionamento com cliente
-        ->orderBy('created_at', 'desc')
-        ->paginate(5, ['*'], 'vendas_page'); // Paginação com 5 itens por página
+      // Vendas recentes (com paginação)
+      $vendasRecentes = Venda::with('cliente') // Carrega o relacionamento com cliente
+          ->orderBy('created_at', 'desc')
+          ->paginate(4, ['*'], 'vendas_page'); // Paginação com 5 itens por página
 
-        // Clientes recentes (com paginação)
-        $clientesRecentes = Clientes::orderBy('created_at', 'desc')
-        ->paginate(5, ['*'], 'clientes_page'); // Paginação com 5 itens por página
+      // Clientes recentes (com paginação)
+      $clientesRecentes = Clientes::orderBy('created_at', 'desc')
+          ->paginate(4, ['*'], 'clientes_page'); // Paginação com 5 itens por página
 
-        // Passa os dados para a view
-        return view('content.pages.pages-home', compact(
+      // Passa os dados para a view
+      return view('content.pages.pages-home', compact(
           'totalClientes',
           'totalProdutos',
           'totalOrcamentos',
@@ -66,9 +66,8 @@ class HomePage extends Controller
           'vendasMensais',
           'produtosMaisVendidos'
       ));
-    }
-
-    function saudacao()
+  }
+  function saudacao()
     {
         $hora = date('H');
         if ($hora >= 5 && $hora < 12) {

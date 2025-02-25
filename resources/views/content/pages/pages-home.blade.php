@@ -78,10 +78,14 @@
 
             <!-- Terceira Linha: Listas de Tarefas/Alertas -->
             <div class="row mb-4">
-                <div class="col-md-4">
+                <!-- Clientes Recentes -->
+                <div class="col-md-3 -bottom-3">
                     <div class="card shadow">
                         <div class="card-header bg-primary text-white">
                             <h5 class="card-title text-white"><i class="fas fa-user-plus"></i> Clientes Recentes</h5>
+                            <a href="{{ route('clientes.create') }}" class="btn btn-light btn-sm shadow-sm">
+                              <i class="fas fa-plus"></i> Novo Cliente
+                          </a>
                         </div>
                         <div class="card-body text-dark">
                             <ul class="list-group">
@@ -94,14 +98,67 @@
                                 </li>
                                 @endforeach
                             </ul>
-                            {{ $clientesRecentes->links() }} <!-- Paginação -->
+                            <!-- Paginação personalizada -->
+                            @if ($clientesRecentes->hasPages())
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination">
+                                    {{-- Botão "Anterior" --}}
+                                    @if ($clientesRecentes->onFirstPage())
+                                        <li class="page-item disabled">
+                                            <span class="page-link" aria-label="Previous">
+                                                <span aria-hidden="true">&laquo;</span>
+                                                <span class="sr-only">Previous</span>
+                                            </span>
+                                        </li>
+                                    @else
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ $clientesRecentes->previousPageUrl() }}" aria-label="Previous">
+                                                <span aria-hidden="true">&laquo;</span>
+                                                <span class="sr-only">Previous</span>
+                                            </a>
+                                        </li>
+                                    @endif
+
+                                    {{-- Links das Páginas --}}
+                                    @foreach ($clientesRecentes->getUrlRange(1, $clientesRecentes->lastPage()) as $page => $url)
+                                        @if ($page == $clientesRecentes->currentPage())
+                                            <li class="page-item active"><span class="page-link">{{ $page }}</span></li>
+                                        @else
+                                            <li class="page-item"><a class="page-link" href="{{ $url }}">{{ $page }}</a></li>
+                                        @endif
+                                    @endforeach
+
+                                    {{-- Botão "Próxima" --}}
+                                    @if ($clientesRecentes->hasMorePages())
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ $clientesRecentes->nextPageUrl() }}" aria-label="Next">
+                                                <span aria-hidden="true">&raquo;</span>
+                                                <span class="sr-only">Next</span>
+                                            </a>
+                                        </li>
+                                    @else
+                                        <li class="page-item disabled">
+                                            <span class="page-link" aria-label="Next">
+                                                <span aria-hidden="true">&raquo;</span>
+                                                <span class="sr-only">Next</span>
+                                            </span>
+                                        </li>
+                                    @endif
+                                </ul>
+                            </nav>
+                            @endif
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+
+                <!-- Orçamentos Recentes -->
+                <div class="col-md-3">
                     <div class="card shadow">
                         <div class="card-header bg-warning text-white">
                             <h5 class="card-title text-white"><i class="fas fa-file-alt"></i> Orçamentos Recentes</h5>
+                            <a href="{{ route('orcamentos.create') }}" class="btn btn-light btn-sm shadow-sm">
+                              <i class="fas fa-plus"></i>  Novo Orçamento
+                          </a>
                         </div>
                         <div class="card-body text-dark">
                             <ul class="list-group">
@@ -114,14 +171,67 @@
                                 </li>
                                 @endforeach
                             </ul>
-                            {{ $orcamentosRecentes->links() }} <!-- Paginação -->
+                            <!-- Paginação personalizada -->
+                            @if ($orcamentosRecentes->hasPages())
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination">
+                                    {{-- Botão "Anterior" --}}
+                                    @if ($orcamentosRecentes->onFirstPage())
+                                        <li class="page-item disabled">
+                                            <span class="page-link" aria-label="Previous">
+                                                <span aria-hidden="true">&laquo;</span>
+                                                <span class="sr-only">Previous</span>
+                                            </span>
+                                        </li>
+                                    @else
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ $orcamentosRecentes->previousPageUrl() }}" aria-label="Previous">
+                                                <span aria-hidden="true">&laquo;</span>
+                                                <span class="sr-only">Previous</span>
+                                            </a>
+                                        </li>
+                                    @endif
+
+                                    {{-- Links das Páginas --}}
+                                    @foreach ($orcamentosRecentes->getUrlRange(1, $orcamentosRecentes->lastPage()) as $page => $url)
+                                        @if ($page == $orcamentosRecentes->currentPage())
+                                            <li class="page-item active"><span class="page-link">{{ $page }}</span></li>
+                                        @else
+                                            <li class="page-item"><a class="page-link" href="{{ $url }}">{{ $page }}</a></li>
+                                        @endif
+                                    @endforeach
+
+                                    {{-- Botão "Próxima" --}}
+                                    @if ($orcamentosRecentes->hasMorePages())
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ $orcamentosRecentes->nextPageUrl() }}" aria-label="Next">
+                                                <span aria-hidden="true">&raquo;</span>
+                                                <span class="sr-only">Next</span>
+                                            </a>
+                                        </li>
+                                    @else
+                                        <li class="page-item disabled">
+                                            <span class="page-link" aria-label="Next">
+                                                <span aria-hidden="true">&raquo;</span>
+                                                <span class="sr-only">Next</span>
+                                            </span>
+                                        </li>
+                                    @endif
+                                </ul>
+                            </nav>
+                            @endif
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+
+                <!-- Ordens de Serviço Recentes -->
+                <div class="col-md-3">
                     <div class="card shadow">
                         <div class="card-header bg-secondary text-white">
                             <h5 class="card-title text-white"><i class="fas fa-tasks"></i> Ordens de Serviço Recentes</h5>
+                            <a href="{{ route('os.create') }}" class="btn btn-light btn-sm shadow-sm">
+                              <i class="fas fa-plus"></i> Nova OS
+                          </a>
                         </div>
                         <div class="card-body text-dark">
                             <ul class="list-group">
@@ -134,12 +244,132 @@
                                 </li>
                                 @endforeach
                             </ul>
-                            {{ $ordensRecentes->links() }} <!-- Paginação -->
+                            <!-- Paginação personalizada -->
+                            @if ($ordensRecentes->hasPages())
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination">
+                                    {{-- Botão "Anterior" --}}
+                                    @if ($ordensRecentes->onFirstPage())
+                                        <li class="page-item disabled">
+                                            <span class="page-link" aria-label="Previous">
+                                                <span aria-hidden="true">&laquo;</span>
+                                                <span class="sr-only">Previous</span>
+                                            </span>
+                                        </li>
+                                    @else
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ $ordensRecentes->previousPageUrl() }}" aria-label="Previous">
+                                                <span aria-hidden="true">&laquo;</span>
+                                                <span class="sr-only">Previous</span>
+                                            </a>
+                                        </li>
+                                    @endif
+
+                                    {{-- Links das Páginas --}}
+                                    @foreach ($ordensRecentes->getUrlRange(1, $ordensRecentes->lastPage()) as $page => $url)
+                                        @if ($page == $ordensRecentes->currentPage())
+                                            <li class="page-item active"><span class="page-link">{{ $page }}</span></li>
+                                        @else
+                                            <li class="page-item"><a class="page-link" href="{{ $url }}">{{ $page }}</a></li>
+                                        @endif
+                                    @endforeach
+
+                                    {{-- Botão "Próxima" --}}
+                                    @if ($ordensRecentes->hasMorePages())
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ $ordensRecentes->nextPageUrl() }}" aria-label="Next">
+                                                <span aria-hidden="true">&raquo;</span>
+                                                <span class="sr-only">Next</span>
+                                            </a>
+                                        </li>
+                                    @else
+                                        <li class="page-item disabled">
+                                            <span class="page-link" aria-label="Next">
+                                                <span aria-hidden="true">&raquo;</span>
+                                                <span class="sr-only">Next</span>
+                                            </span>
+                                        </li>
+                                    @endif
+                                </ul>
+                            </nav>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vendas Recentes -->
+                <div class="col-md-3">
+                    <div class="card shadow">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="card-title text-white"><i class="fas fa-tasks"></i> Vendas Recentes</h5>
+                            <a href="{{ route('vendas.create') }}" class="btn btn-light btn-sm shadow-sm">
+                              <i class="fas fa-plus"></i> Nova Venda
+                          </a>
+                        </div>
+                        <div class="card-body text-dark">
+                            <ul class="list-group">
+                                @foreach($vendasRecentes as $venda)
+                                <li class="list-group-item">
+                                    <a href="{{ route('vendas.edit', $venda->id) }}" class="text-decoration-none text-dark">
+                                        <strong>#{{ $venda->id }}</strong> - {{ $venda->cliente->nome }}
+                                        <span class="badge bg-danger float-end">{{ $venda->created_at->format('d/m/Y') }}</span>
+                                    </a>
+                                </li>
+                                @endforeach
+                            </ul>
+                            <!-- Paginação personalizada -->
+                            @if ($vendasRecentes->hasPages())
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination">
+                                    {{-- Botão "Anterior" --}}
+                                    @if ($vendasRecentes->onFirstPage())
+                                        <li class="page-item disabled">
+                                            <span class="page-link" aria-label="Previous">
+                                                <span aria-hidden="true">&laquo;</span>
+                                                <span class="sr-only">Previous</span>
+                                            </span>
+                                        </li>
+                                    @else
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ $vendasRecentes->previousPageUrl() }}" aria-label="Previous">
+                                                <span aria-hidden="true">&laquo;</span>
+                                                <span class="sr-only">Previous</span>
+                                            </a>
+                                        </li>
+                                    @endif
+
+                                    {{-- Links das Páginas --}}
+                                    @foreach ($vendasRecentes->getUrlRange(1, $vendasRecentes->lastPage()) as $page => $url)
+                                        @if ($page == $vendasRecentes->currentPage())
+                                            <li class="page-item active"><span class="page-link">{{ $page }}</span></li>
+                                        @else
+                                            <li class="page-item"><a class="page-link" href="{{ $url }}">{{ $page }}</a></li>
+                                        @endif
+                                    @endforeach
+
+                                    {{-- Botão "Próxima" --}}
+                                    @if ($vendasRecentes->hasMorePages())
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ $vendasRecentes->nextPageUrl() }}" aria-label="Next">
+                                                <span aria-hidden="true">&raquo;</span>
+                                                <span class="sr-only">Next</span>
+                                            </a>
+                                        </li>
+                                    @else
+                                        <li class="page-item disabled">
+                                            <span class="page-link" aria-label="Next">
+                                                <span aria-hidden="true">&raquo;</span>
+                                                <span class="sr-only">Next</span>
+                                            </span>
+                                        </li>
+                                    @endif
+                                </ul>
+                            </nav>
+                            @endif
                         </div>
                     </div>
                 </div>
             </div>
-
             <!-- Quarta Linha: Links Rápidos -->
             <div class="row">
                 <div class="col-md-12">
@@ -164,6 +394,8 @@
 <!-- Scripts para Gráficos (ApexCharts) -->
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
+
+
     // Gráfico de Vendas Mensais
     const vendasMensaisChart = new ApexCharts(document.querySelector("#vendasMensaisChart"), {
         chart: {
@@ -225,6 +457,11 @@
     body {
         font-family: 'Poppins', sans-serif;
     }
+    .btn-light:hover {
+    background-color: #f8f9fa;
+    transform: translateY(-1px);
+    transition: all 0.2s ease-in-out;
+}
     .bg-gradient-primary {
         background: linear-gradient(45deg, #ffffff, #1d4ed8);
     }
