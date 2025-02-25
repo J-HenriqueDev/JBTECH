@@ -167,14 +167,14 @@
                     <td>{{ $produto->nome }}</td>
                     <td>{{ $produto->pivot->quantidade }}</td>
                     <td>R$ {{ number_format($produto->pivot->valor_unitario, 2, ',', '.') }}</td>
-                    <td><strong>R$ {{ number_format($produto->pivot->valor_total, 2, ',', '.') }}</strong></td>
+                    <td>R$ {{ number_format($produto->pivot->valor_total, 2, ',', '.') }}</td>
                 </tr>
                 @endforeach
             </tbody>
             <tfoot>
                 <tr>
                     <td colspan="4" class="text-end fw-bold">Total</td>
-                    <td>R$ {{ number_format($subtotalProdutos, 2, ',', '.') }}</td>
+                    <td><strong>R$ {{ number_format($subtotalProdutos, 2, ',', '.') }}</strong></td>
                 </tr>
             </tfoot>
         </table>
@@ -212,7 +212,7 @@
                         <td>Cartão</td>
                         <td>10x</td>
                         <td>12,44%</td>
-                        <td><strong>$ {{ number_format($valor10x, 2, ',', '.') }}</strong></td>
+                        <td>R$ {{ number_format($valor10x, 2, ',', '.') }}</td>
                     </tr>
                 </tbody>
             </table>
