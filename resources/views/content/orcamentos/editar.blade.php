@@ -23,9 +23,28 @@
 @endsection
 @section('content')
 
-<h1 class="mb-4 text-primary" style="font-size: 2.5rem; font-weight: bold; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);">
-    <i class="fas fa-edit"></i> Editar Orçamento #{{ $orcamento->id }}
-</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="mb-0 text-primary" style="font-size: 2.5rem; font-weight: bold; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);">
+      <i class="fas fa-edit"></i> Editar Orçamento #{{ $orcamento->id }}
+      <span class="badge bg-{{ $orcamento->status == 'autorizado' ? 'success' : ($orcamento->status == 'recusado' ? 'danger' : 'warning') }} ms-2">
+          {{ ucfirst($orcamento->status) }}
+      </span>
+  </h1>
+  <div>
+      <form action="{{ route('orcamentos.autorizar', $orcamento->id) }}" method="POST" class="d-inline">
+          @csrf
+          <button type="submit" class="btn btn-success" {{ $orcamento->status == 'autorizado' ? 'disabled' : '' }}>
+              <i class="fas fa-check"></i> Autorizar
+          </button>
+      </form>
+      <form action="{{ route('orcamentos.recusar', $orcamento->id) }}" method="POST" class="d-inline">
+          @csrf
+          <button type="submit" class="btn btn-danger" {{ $orcamento->status == 'recusado' ? 'disabled' : '' }}>
+              <i class="fas fa-times"></i> Recusar
+          </button>
+      </form>
+  </div>
+</div>
 
 <div class="card mb-4">
     <form action="{{ route('orcamentos.update', $orcamento->id) }}" method="POST">
@@ -212,9 +231,28 @@
     </div>
 </div>
 
+<!-- Modal de Confirmação -->
+<div class="modal fade" id="confirmarVendaSemEstoque" tabindex="-1" aria-labelledby="confirmarVendaSemEstoqueLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmarVendaSemEstoqueLabel">Estoque Insuficiente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Um ou mais produtos estão com estoque insuficiente. Deseja prosseguir com a venda mesmo assim?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="confirmarVenda" class="btn btn-primary">Prosseguir</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{--  @include('content.orcamentos.partials.modal_produto')  --}}
 {{--  @include('content.orcamentos.criar.partials.modal_produto')  --}}
-@include('content.orcamentos.scripts')
+@include('content.orcamentos.scripts-edit')
 
 
 <script>

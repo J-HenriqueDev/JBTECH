@@ -228,7 +228,7 @@
                 <div class="col-md-3">
                     <div class="card shadow">
                         <div class="card-header bg-secondary text-white">
-                            <h5 class="card-title text-white"><i class="fas fa-tasks"></i> Ordens de Serviço Recentes</h5>
+                            <h5 class="card-title text-white"><i class="fas fa-tasks"></i> OS Recentes</h5>
                             <a href="{{ route('os.create') }}" class="btn btn-light btn-sm shadow-sm">
                               <i class="fas fa-plus"></i> Nova OS
                           </a>
@@ -312,7 +312,8 @@
                                 <li class="list-group-item">
                                     <a href="{{ route('vendas.edit', $venda->id) }}" class="text-decoration-none text-dark">
                                         <strong>#{{ $venda->id }}</strong> - {{ $venda->cliente->nome }}
-                                        <span class="badge bg-danger float-end">{{ $venda->created_at->format('d/m/Y') }}</span>
+                                        <span class="badge bg-danger float-end"> {{ \DateTime::createFromFormat('Y-m-d', $venda->data_venda)->format('d/m/Y') }}</span>
+
                                     </a>
                                 </li>
                                 @endforeach

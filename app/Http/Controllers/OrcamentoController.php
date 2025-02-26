@@ -5,10 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Orcamento;
 use App\Models\Clientes;
 use App\Models\Produto;
+use App\Models\Venda;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Auth;
+
 
 class OrcamentoController extends Controller
 {
@@ -220,5 +223,152 @@ public function gerarPdf($id)
     return $pdf->stream($filename);
 }
 
+public function autorizar($id)
+{
+    DB::beginTransaction();
+    try {
+        Log::info('Iniciando autorização do orçamento:', ['orcamento_id' => $id]);
+
+        $orcamento = Orcamento::findOrFail($id);
+        Log::info('Orçamento encontrado:', $orcamento->toArray());
+
+        // Verifica se já existe uma venda duplicada para o mesmo cliente com os mesmos produtos
+        $vendaExistente = Venda::where('cliente_id', $orcamento->cliente_id)
+            ->whereHas('produtos', function ($query) use ($orcamento) {
+                // Verifica se todos os produtos do orçamento estão na venda existente
+                $produtosOrcamento = $orcamento->produtos->pluck('id')->toArray();
+                $query->whereIn('produto_id', $produtosOrcamento);
+            })
+            ->with('produtos')
+            ->first();
+
+        if ($vendaExistente) {
+            // Verifica se os produtos da venda existente são iguais aos do orçamento
+            $produtosVendaExistente = $vendaExistente->produtos->pluck('id')->toArray();
+            $produtosOrcamento = $orcamento->produtos->pluck('id')->toArray();
+
+            if (empty(array_diff($produtosVendaExistente, $produtosOrcamento))) {
+                Log::warning('Venda duplicada encontrada. Atualizando status do orçamento para "autorizado".', [
+                    'venda_id' => $vendaExistente->id,
+                    'orcamento_id' => $orcamento->id,
+                ]);
+
+                // Atualiza o status do orçamento para "autorizado"
+                $orcamento->update(['status' => Orcamento::STATUS_AUTORIZADO]);
+
+                DB::commit();
+
+                return redirect()->route('orcamentos.index')->with('success', 'Orçamento autorizado (venda duplicada encontrada).');
+            }
+        }
+
+        // Cria a venda a partir do orçamento
+        $venda = Venda::create([
+            'cliente_id' => $orcamento->cliente_id,
+            'user_id' => Auth::user()->id,
+            'data_venda' => now(),
+            'observacoes' => $orcamento->observacoes,
+            'valor_total' => $orcamento->valor_total,
+        ]);
+        Log::info('Venda criada:', $venda->toArray());
+
+        // Adiciona os produtos da venda (tabela pivô) e atualiza o estoque
+        foreach ($orcamento->produtos as $produto) {
+            $valorUnitario = $produto->pivot->valor_unitario;
+            $quantidade = $produto->pivot->quantidade;
+            $valorTotal = $valorUnitario * $quantidade;
+
+            $venda->produtos()->attach($produto->id, [
+                'quantidade' => $quantidade,
+                'valor_unitario' => $valorUnitario,
+                'valor_total' => $valorTotal,
+            ]);
+
+            // Atualiza o estoque do produto (pode ficar negativo)
+            $produto->estoque -= $quantidade;
+            $produto->save();
+
+            Log::info('Produto adicionado à venda e estoque atualizado:', [
+                'venda_id' => $venda->id,
+                'produto_id' => $produto->id,
+                'quantidade' => $quantidade,
+                'valor_unitario' => $valorUnitario,
+                'valor_total' => $valorTotal,
+                'novo_estoque' => $produto->estoque,
+            ]);
+        }
+
+        // Atualiza o status do orçamento para "autorizado"
+        $orcamento->update(['status' => Orcamento::STATUS_AUTORIZADO]);
+        Log::info('Status do orçamento atualizado para "autorizado".');
+
+        DB::commit();
+
+        // Recupera o nome do cliente
+        $cliente = Clientes::find($orcamento->cliente_id);
+
+        // Mensagem de sucesso
+        $mensagemSucesso = "Orçamento #{$orcamento->id} autorizado e transformado em venda #{$venda->id} para o cliente {$cliente->nome}.";
+        Log::info('Orçamento autorizado com sucesso:', ['mensagem' => $mensagemSucesso]);
+
+        return redirect()->route('orcamentos.index')->with('success', $mensagemSucesso);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error('Erro ao autorizar orçamento:', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+        return redirect()->back()->withErrors('Erro ao autorizar orçamento. Tente novamente mais tarde.');
+    }
+}
+
+public function recusar($id)
+{
+    DB::beginTransaction();
+    try {
+        $orcamento = Orcamento::findOrFail($id);
+
+        // Verifica se há uma venda associada ao orçamento
+        $venda = Venda::where('cliente_id', $orcamento->cliente_id)
+            ->whereHas('produtos', function ($query) use ($orcamento) {
+                $produtosOrcamento = $orcamento->produtos->pluck('id')->toArray();
+                $query->whereIn('produto_id', $produtosOrcamento);
+            })
+            ->first();
+
+        if ($venda) {
+            // Exclui a venda associada
+            $venda->produtos()->detach(); // Remove os produtos da tabela pivô
+            $venda->delete(); // Exclui a venda
+            Log::info('Venda excluída:', ['venda_id' => $venda->id]);
+        }
+
+        // Atualiza o status do orçamento para "recusado"
+        $orcamento->update(['status' => Orcamento::STATUS_RECUSADO]);
+        Log::info('Orçamento recusado:', ['orcamento_id' => $orcamento->id]);
+
+        DB::commit();
+
+        return redirect()->back()->with('success', 'Orçamento recusado e venda associada excluída com sucesso!');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error('Erro ao recusar orçamento:', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+        return redirect()->back()->withErrors('Erro ao recusar orçamento. Tente novamente mais tarde.');
+    }
+}
+
+    public function verificarEstoque($id)
+    {
+        $orcamento = Orcamento::findOrFail($id);
+        $estoqueInsuficiente = false;
+
+        foreach ($orcamento->produtos as $produto) {
+            if ($produto->estoque < $produto->pivot->quantidade) {
+                $estoqueInsuficiente = true;
+                break;
+            }
+        }
+
+        return response()->json([
+            'estoqueInsuficiente' => $estoqueInsuficiente,
+        ]);
+    }
 
 }

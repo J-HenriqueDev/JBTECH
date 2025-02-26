@@ -9,18 +9,18 @@ use Illuminate\Database\Eloquent\Model;
 class Orcamento extends Model
 {
     use HasFactory;
+     // Status possíveis
+     const STATUS_PENDENTE = 'pendente';
+     const STATUS_AUTORIZADO = 'autorizado';
+     const STATUS_RECUSADO = 'recusado';
 
-    protected $fillable = ['cliente_id', 'data', 'validade', 'observacoes', 'valor_total', 'valor_servico'];
+    protected $fillable = ['cliente_id', 'data', 'validade', 'observacoes', 'valor_total', 'status'];
 
     public function cliente()
     {
         return $this->belongsTo(Clientes::class);
     }
 
-    public function setValorServicoAttribute($value)
-    {
-        $this->attributes['valor_servico'] = str_replace(',', '.', str_replace('.', '', $value));
-    }
 
 
     public function produtos()

@@ -8,9 +8,8 @@
   'resources/assets/vendor/libs/typeahead-js/typeahead.scss',
   'resources/assets/vendor/libs/swiper/swiper.scss'
 ])
-
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
 @endsection
 
 @section('vendor-script')
@@ -27,16 +26,38 @@
 @endsection
 
 @section('content')
-<h1 class="mb-4 text-primary" style="font-size: 2.5rem; font-weight: bold; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);">
-    <i class="bx bx-cart"></i> Ver/Editar Venda
-</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="mb-0 text-primary" style="font-size: 2.5rem; font-weight: bold; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);">
+      <i class="fas fa-edit"></i> Editar Orçamento #{{ $venda->id }}
+      <span class="badge bg-{{ $venda->status == 'autorizado' ? 'success' : ($venda->status == 'recusado' ? 'danger' : 'warning') }} ms-2">
+          {{ ucfirst($venda->status) }}
+      </span>
+  </h1>
+  <div>
+      <form action="{{ route('orcamentos.autorizar', $venda->id) }}" method="POST" class="d-inline">
+          @csrf
+          <button type="submit" class="btn btn-success" {{ $venda->status == 'autorizado' ? 'disabled' : '' }}>
+              <i class="fas fa-check"></i> Autorizar
+          </button>
+      </form>
+      <form action="{{ route('orcamentos.recusar', $venda->id) }}" method="POST" class="d-inline">
+          @csrf
+          <button type="submit" class="btn btn-danger" {{ $venda->status == 'recusado' ? 'disabled' : '' }}>
+              <i class="fas fa-times"></i> Recusar
+          </button>
+      </form>
+  </div>
+</div>
 
 <div class="card mb-4">
     <form action="{{ route('vendas.update', $venda->id) }}" method="POST" id="formEditarVenda">
-      @csrf
-      @method('PUT')
-      <div id="produtosHidden"></div>
+        @csrf
+        @method('PUT')
+        <div id="produtosHidden"></div>
         <div class="card-body">
+            <!-- Status da Venda -->
+            <div class="row mb-3">
+                <div class="col-md-12">
             <!-- Primeira Linha: Cliente e Data -->
             <div class="row mb-3">
                 <div class="col-md-6">
@@ -134,11 +155,9 @@
                 <a href="{{ route('vendas.exportarPdf', $venda->id) }}" class="btn btn-success me-2">
                     <i class="bx bx-download"></i> Exportar PDF
                 </a>
-                    @csrf
-                    <button type="button" class="btn btn-primary me-2" id="abrirModalCobranca">
-                        <i class="bx bx-money"></i> Gerar Cobrança
-                    </button>
-                </form>
+                <button type="button" class="btn btn-primary me-2" id="abrirModalCobranca">
+                    <i class="bx bx-money"></i> Gerar Cobrança
+                </button>
                 <button type="button" class="btn btn-secondary me-2" onclick="window.history.back();">
                     <i class="bx bx-x"></i> Cancelar
                 </button>
@@ -146,7 +165,7 @@
                     <i class="bx bx-check"></i> Salvar Alterações
                 </button>
             </div>
-
+        </div>
     </form>
 </div>
 

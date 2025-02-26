@@ -1,52 +1,13 @@
-<script>
+  <!-- Inclua o jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- Inclua o Select2 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+  <!-- Inclua o Select2 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+  <script>
   let custoCombustivel = 0; // Variável global para armazenar o custo do combustível
-
-  document.addEventListener('DOMContentLoaded', function () {
-    // Seleciona todos os formulários de autorização
-    const formsAutorizar = document.querySelectorAll('.formAutorizar');
-
-    formsAutorizar.forEach(form => {
-        form.addEventListener('submit', function (e) {
-            e.preventDefault(); // Impede o envio do formulário
-            console.log('Formulário interceptado.');
-
-            // Obtém o ID do orçamento do atributo data-orcamento-id
-            const orcamentoId = form.getAttribute('data-orcamento-id');
-
-            // Faz a requisição para verificar o estoque
-            fetch(`/orcamentos/${orcamentoId}/verificar-estoque`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': "{{ csrf_token() }}"
-                }
-            })
-            .then(response => {
-                console.log('Resposta da verificação de estoque:', response);
-                return response.json();
-            })
-            .then(data => {
-                console.log('Dados da verificação de estoque:', data);
-                if (data.estoqueInsuficiente) {
-                    const confirmar = confirm("Um ou mais produtos estão com estoque insuficiente. Deseja prosseguir com a venda mesmo assim?");
-                    if (confirmar) {
-                        console.log('Usuário confirmou. Enviando formulário...');
-                        form.submit();
-                    } else {
-                        console.log('Usuário cancelou.');
-                        alert('Venda cancelada pelo usuário.');
-                    }
-                } else {
-                    console.log('Estoque OK. Enviando formulário...');
-                    form.submit();
-                }
-            })
-            .catch(error => {
-                console.error('Erro ao verificar estoque:', error);
-            });
-        });
-    });
-});
 
   // Formata valores em moeda brasileira
   function formatCurrency(value) {
@@ -134,11 +95,10 @@
             carregandoProdutos = false; // Indica que a requisição foi concluída
         }
     });
-}
+  }
 
   let produtosCarregados = false; // Indica se os produtos já foram carregados
   let carregandoProdutos = false; // Indica se uma requisição está em andamento
-
 
 
   $(document).ready(function () {
@@ -150,7 +110,7 @@
           width: '100%'
       });
 
-     // Carrega os produtos ao carregar a página
+      // Carrega os produtos ao carregar a página
     atualizarProdutos();
 
     $('#produto_id').on('select2:opening', function (e) {
@@ -160,8 +120,8 @@
       }
   });
 
-// Atualiza o valor_unitário e valor_total ao selecionar um produto
-$('#produto_id').on('change', function () {
+  // Atualiza o valor_unitário e valor_total ao selecionar um produto
+  $('#produto_id').on('change', function () {
   const preco = $(this).find(':selected').data('preco'); // Obtém o preço do produto selecionado
   if (preco) {
       $('#valor_unitario').val(formatCurrency(preco));
@@ -171,7 +131,7 @@ $('#produto_id').on('change', function () {
       $('#valor_unitario').val('');
       $('#valor_total').val('');
   }
-});
+  });
 
 
       // Atualiza o valor_total ao alterar a quantidade
@@ -323,15 +283,15 @@ $('#produto_id').on('change', function () {
       $('#tabelaVazia').toggleClass('d-none', linhasProdutos > 0);
   }
 
- // Atualiza o valor total na linha de total
- function atualizarValorTotalTabela() {
+  // Atualiza o valor total na linha de total
+  function atualizarValorTotalTabela() {
   let total = 0;
   $('#tabelaProdutos tbody tr').each(function () {
       const valor = parseFloat($(this).find('.valor-total').text().replace('R$ ', '').replace('.', '').replace(',', '.') || 0);
       total += valor;
   });
   $('#valorTotalTabela').text(formatCurrency(total));
-}
+  }
 
   // Limpa os campos do modal de produtos
   function limparCamposModal() {
@@ -348,4 +308,40 @@ $('#produto_id').on('change', function () {
       atualizarValorTotalTabela();
   };
 
-</script>
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const formAutorizar = document.getElementById('formAutorizar');
+
+    formAutorizar.addEventListener('submit', function (e) {
+        e.preventDefault(); // Impede o envio do formulário
+
+        // Verifica o estoque via AJAX
+        fetch("{{ route('orcamentos.verificarEstoque', $orcamento->id) }}", {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': "{{ csrf_token() }}"
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.estoqueInsuficiente) {
+                // Exibe o popup de confirmação
+                const confirmar = confirm("Um ou mais produtos estão com estoque insuficiente. Deseja prosseguir com a venda mesmo assim?");
+
+                if (confirmar) {
+                    // Se o usuário confirmar, envia o formulário
+                    formAutorizar.submit();
+                } else {
+                    // Se o usuário cancelar, interrompe o processo
+                    alert('Venda cancelada pelo usuário.');
+                }
+            } else {
+                // Se o estoque estiver OK, envia o formulário diretamente
+                formAutorizar.submit();
+            }
+        })
+        .catch(error => console.error('Erro ao verificar estoque:', error));
+    });
+});
+  </script>

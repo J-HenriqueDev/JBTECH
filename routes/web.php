@@ -68,6 +68,9 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
     Route::get('dashboard/orcamentos/search', [OrcamentoController::class, 'search'])->name('orcamentos.search');
     Route::post('/dashboard/orcamentos/obter-coordenadas', [OrcamentoController::class, 'obterCoordenadas'])->name('orcamentos.obterCoordenadas');
     Route::get('/dashboard/orcamentos/{id}/exportar-pdf', [OrcamentoController::class, 'exportarPdf'])->name('orcamentos.exportarPdf');
+    Route::post('/dashboard/orcamentos/{id}/autorizar', [OrcamentoController::class, 'autorizar'])->name('orcamentos.autorizar');
+    Route::post('/dashboard/orcamentos/{id}/recusar', [OrcamentoController::class, 'recusar'])->name('orcamentos.recusar');
+    Route::get('/orcamentos/{id}/verificar-estoque', [OrcamentoController::class, 'verificarEstoque'])->name('orcamentos.verificarEstoque');
 
     // Rota para erro misc
     Route::post('/pages/misc-error', [MiscError::class, 'index'])->name('pages-misc-error');

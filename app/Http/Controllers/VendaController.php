@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Venda;
 use Illuminate\Support\Facades\Auth;
-
 use Illuminate\Http\Request;
 use App\Models\Clientes;
 use App\Models\Produto;
