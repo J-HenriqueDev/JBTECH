@@ -28,24 +28,16 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
   <h1 class="mb-0 text-primary" style="font-size: 2.5rem; font-weight: bold; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);">
-      <i class="fas fa-edit"></i> Editar Orçamento #{{ $venda->id }}
+      <i class="fas fa-edit"></i> Pedido de Venda #{{ $venda->id }}
       <span class="badge bg-{{ $venda->status == 'autorizado' ? 'success' : ($venda->status == 'recusado' ? 'danger' : 'warning') }} ms-2">
           {{ ucfirst($venda->status) }}
       </span>
   </h1>
   <div>
-      <form action="{{ route('orcamentos.autorizar', $venda->id) }}" method="POST" class="d-inline">
-          @csrf
-          <button type="submit" class="btn btn-success" {{ $venda->status == 'autorizado' ? 'disabled' : '' }}>
-              <i class="fas fa-check"></i> Autorizar
-          </button>
-      </form>
-      <form action="{{ route('orcamentos.recusar', $venda->id) }}" method="POST" class="d-inline">
-          @csrf
-          <button type="submit" class="btn btn-danger" {{ $venda->status == 'recusado' ? 'disabled' : '' }}>
-              <i class="fas fa-times"></i> Recusar
-          </button>
-      </form>
+      <!-- Botão para Emitir NF-e -->
+      <a href="https://170771263616851423896000152.emissornfe.sebrae.com.br/index-sebrae.html#/home" target="_blank" class="btn btn-primary">
+          <i class="fas fa-file-invoice"></i> Emitir NF-e
+      </a>
   </div>
 </div>
 
@@ -58,112 +50,114 @@
             <!-- Status da Venda -->
             <div class="row mb-3">
                 <div class="col-md-12">
-            <!-- Primeira Linha: Cliente e Data -->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label for="cliente_id" class="form-label">
-                        <i class="bx bx-id-card"></i> Cliente
-                    </label>
-                    <select id="select2Cliente" class="select2 form-select" name="cliente_id" required>
-                        <option value="" disabled>Selecione um cliente</option>
-                        @foreach ($clientes as $cliente)
-                        <option value="{{ $cliente->id }}" data-email="{{ $cliente->email }}" {{ $venda->cliente_id == $cliente->id ? 'selected' : '' }}>
-                            {{ $cliente->nome }}
-                        </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-6">
-                    <label for="data_venda" class="form-label">
-                        <i class="bx bx-calendar"></i> Data da Venda
-                    </label>
-                    <input type="date" class="form-control" id="data_venda" name="data_venda" value="{{ $venda->data_venda }}" required>
-                </div>
-            </div>
+                    <!-- Primeira Linha: Cliente e Data -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="cliente_id" class="form-label">
+                                <i class="bx bx-id-card"></i> Cliente
+                            </label>
+                            <select id="select2Cliente" class="select2 form-select" name="cliente_id" required>
+                                <option value="" disabled>Selecione um cliente</option>
+                                @foreach ($clientes as $cliente)
+                                <option value="{{ $cliente->id }}" data-email="{{ $cliente->email }}" {{ $venda->cliente_id == $cliente->id ? 'selected' : '' }}>
+                                    {{ $cliente->nome }}
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="data_venda" class="form-label">
+                                <i class="bx bx-calendar"></i> Data da Venda
+                            </label>
+                            <input type="date" class="form-control" id="data_venda" name="data_venda" value="{{ $venda->data_venda }}" required>
+                        </div>
+                    </div>
 
-            <!-- Seção de Produtos -->
-            <div class="divider my-6">
-                <div class="divider-text"><i class="fas fa-briefcase"></i> Produtos</div>
-            </div>
-            <div class="mb-3">
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAdicionarProduto">
-                    <i class="bx bx-plus-circle"></i> Adicionar Produto
-                </button>
-            </div>
-            <div class="table-responsive mb-3">
-                <table class="table table-bordered" id="tabelaProdutos">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nome</th>
-                            <th class="text-center">Quantidade</th>
-                            <th class="text-center">Valor Unitário</th>
-                            <th>Valor Total</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if ($venda->produtos->isEmpty())
-                            <tr id="tabelaVazia">
-                                <td colspan="6" class="text-center">
-                                    <div class="alert alert-info" role="alert">
-                                        Nenhum produto adicionado.
-                                    </div>
-                                </td>
-                            </tr>
-                        @else
-                            @foreach ($venda->produtos as $produto)
-                                <tr data-produto-id="{{ $produto->id }}">
-                                    <td>{{ $produto->id }}</td>
-                                    <td>{{ $produto->nome }}</td>
-                                    <td class="text-center">
-                                        <input type="number" class="form-control quantidade" value="{{ $produto->pivot->quantidade }}" min="1">
-                                    </td>
-                                    <td class="text-center">
-                                        <input type="text" class="form-control valor-unitario" value="R$ {{ number_format($produto->pivot->valor_unitario, 2, ',', '.') }}">
-                                    </td>
-                                    <td class="valor-total">R$ {{ number_format($produto->pivot->valor_total, 2, ',', '.') }}</td>
-                                    <td>
-                                        <button type="button" class="btn btn-danger btn-remover-produto">
-                                            <i class="bx bx-trash"></i> Remover
-                                        </button>
-                                    </td>
+                    <!-- Seção de Produtos -->
+                    <div class="divider my-6">
+                        <div class="divider-text"><i class="fas fa-briefcase"></i> Produtos</div>
+                    </div>
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAdicionarProduto">
+                            <i class="bx bx-plus-circle"></i> Adicionar Produto
+                        </button>
+                    </div>
+                    <div class="table-responsive mb-3">
+                        <table class="table table-bordered" id="tabelaProdutos">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nome</th>
+                                    <th class="text-center">Quantidade</th>
+                                    <th class="text-center">Valor Unitário</th>
+                                    <th>Valor Total</th>
+                                    <th>Ações</th>
                                 </tr>
-                            @endforeach
-                        @endif
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="4" class="text-end fw-bold">Total</td>
-                            <td id="valorTotalTabela" class="text-success fw-bold">R$ {{ number_format($venda->valor_total, 2, ',', '.') }}</td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
+                            </thead>
+                            <tbody>
+                                @if ($venda->produtos->isEmpty())
+                                    <tr id="tabelaVazia">
+                                        <td colspan="6" class="text-center">
+                                            <div class="alert alert-info" role="alert">
+                                                Nenhum produto adicionado.
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @else
+                                    @foreach ($venda->produtos as $produto)
+                                        <tr data-produto-id="{{ $produto->id }}">
+                                            <td>{{ $produto->id }}</td>
+                                            <td>{{ $produto->nome }}</td>
+                                            <td class="text-center">
+                                                <input type="number" class="form-control quantidade" value="{{ $produto->pivot->quantidade }}" min="1">
+                                            </td>
+                                            <td class="text-center">
+                                                <input type="text" class="form-control valor-unitario" value="R$ {{ number_format($produto->pivot->valor_unitario, 2, ',', '.') }}">
+                                            </td>
+                                            <td class="valor-total">R$ {{ number_format($produto->pivot->valor_total, 2, ',', '.') }}</td>
+                                            <td>
+                                                <button type="button" class="btn btn-danger btn-remover-produto">
+                                                    <i class="bx bx-trash"></i> Remover
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                @endif
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="4" class="text-end fw-bold">Total</td>
+                                    <td id="valorTotalTabela" class="text-success fw-bold">R$ {{ number_format($venda->valor_total, 2, ',', '.') }}</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
 
-            <!-- Campo de Observação -->
-            <div class="mb-3">
-                <label for="observacoes" class="form-label">
-                    <i class="bx bx-comment"></i> Observações
-                </label>
-                <textarea class="form-control" id="observacoes" name="observacoes" rows="3" placeholder="Adicione observações sobre a venda...">{{ $venda->observacoes }}</textarea>
-            </div>
+                    <!-- Campo de Observação -->
+                    <div class="mb-3">
+                        <label for="observacoes" class="form-label">
+                            <i class="bx bx-comment"></i> Observações
+                        </label>
+                        <textarea class="form-control" id="observacoes" name="observacoes" rows="3" placeholder="Adicione observações sobre a venda...">{{ $venda->observacoes }}</textarea>
+                    </div>
 
-            <!-- Botões de Ação -->
-            <div class="card-footer d-flex justify-content-end">
-                <a href="{{ route('vendas.exportarPdf', $venda->id) }}" class="btn btn-success me-2">
-                    <i class="bx bx-download"></i> Exportar PDF
-                </a>
-                <button type="button" class="btn btn-primary me-2" id="abrirModalCobranca">
-                    <i class="bx bx-money"></i> Gerar Cobrança
-                </button>
-                <button type="button" class="btn btn-secondary me-2" onclick="window.history.back();">
-                    <i class="bx bx-x"></i> Cancelar
-                </button>
-                <button type="submit" class="btn btn-primary">
-                    <i class="bx bx-check"></i> Salvar Alterações
-                </button>
+                    <!-- Botões de Ação -->
+                    <div class="card-footer d-flex justify-content-end">
+                        <a href="{{ route('vendas.exportarPdf', $venda->id) }}" class="btn btn-success me-2">
+                            <i class="bx bx-download"></i> Exportar PDF
+                        </a>
+                        <button type="button" class="btn btn-primary me-2" id="abrirModalCobranca">
+                            <i class="bx bx-money"></i> Gerar Cobrança
+                        </button>
+                        <button type="button" class="btn btn-secondary me-2" onclick="window.history.back();">
+                            <i class="bx bx-x"></i> Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bx bx-check"></i> Salvar Alterações
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </form>

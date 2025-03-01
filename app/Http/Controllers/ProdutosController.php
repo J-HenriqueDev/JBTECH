@@ -120,96 +120,101 @@ class ProdutosController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-    {
-        $request->validate([
-            'fornecedor_cnpj' => 'nullable|string|max:20',
-            'fornecedor_nome' => 'nullable|string|max:255',
-            'fornecedor_telefone' => 'nullable|string|max:15',
-            'fornecedor_email' => 'nullable|email',
-        ]);
+{
+    $request->validate([
+        'fornecedor_cnpj' => 'nullable|string|max:20',
+        'fornecedor_nome' => 'nullable|string|max:255',
+        'fornecedor_telefone' => 'nullable|string|max:15',
+        'fornecedor_email' => 'nullable|email',
+    ]);
 
-        $produtos = $request->input('produtos');
+    $produtos = $request->input('produtos');
 
-        // Verifique se $produtos é um array
-        if (!is_array($produtos)) {
-            return redirect()->back()->withErrors('Formato de dados inválido. Esperado um array de produtos.');
+    // Verifique se $produtos é um array
+    if (!is_array($produtos)) {
+        return redirect()->back()->withErrors('Formato de dados inválido. Esperado um array de produtos.');
+    }
+
+    foreach ($produtos as $produto) {
+        // Verifique se $produto é um array
+        if (!is_array($produto)) {
+            continue; // Pula para o próximo item se não for um array
         }
 
-        foreach ($produtos as $produto) {
-            // Verifique se $produto é um array
-            if (!is_array($produto)) {
-                continue; // Pula para o próximo item se não for um array
-            }
-
-            // Verifique se os campos existem e são strings antes de processar
-            if (isset($produto['preco_custo']) && is_string($produto['preco_custo'])) {
-                $produto['preco_custo'] = str_replace(',', '.', str_replace('.', '', $produto['preco_custo']));
-            } else {
-                $produto['preco_custo'] = 0.00; // Valor padrão se não for válido
-            }
-
-            if (isset($produto['preco_venda']) && is_string($produto['preco_venda'])) {
-                $produto['preco_venda'] = str_replace(',', '.', str_replace('.', '', $produto['preco_venda']));
-            } else {
-                $produto['preco_venda'] = 0.00; // Valor padrão se não for válido
-            }
-
-            // Define categoria_id como 6 se não for fornecido
-            if (!isset($produto['categoria_id']) || empty($produto['categoria_id'])) {
-                $produto['categoria_id'] = 6;
-            }
-
-            // Adiciona o usuario_id do usuário autenticado
-            $produto['usuario_id'] = Auth::user()->id;
-
-            // Garante que o campo fabricante esteja presente, mesmo que vazio
-            if (!isset($produto['fabricante'])) {
-                $produto['fabricante'] = '';
-            }
-
-            try {
-                $validated = $this->validateProduto($produto);
-
-                $produtoExistente = Produto::where('nome', $validated['nome'])->first();
-
-                if ($produtoExistente) {
-                    $produtoExistente->update(array_merge($validated, [
-                        'fornecedor_cnpj' => $request->fornecedor_cnpj,
-                        'fornecedor_nome' => $request->fornecedor_nome,
-                        'fornecedor_telefone' => $request->fornecedor_telefone,
-                        'fornecedor_email' => $request->fornecedor_email,
-                    ]));
-                } else {
-                    Produto::create(array_merge($validated, [
-                        'fornecedor_cnpj' => $request->fornecedor_cnpj,
-                        'fornecedor_nome' => $request->fornecedor_nome,
-                        'fornecedor_telefone' => $request->fornecedor_telefone,
-                        'fornecedor_email' => $request->fornecedor_email,
-                        'usuario_id' => Auth::user()->id,
-                    ]));
-                }
-            } catch (\Exception $e) {
-                Log::error('Erro ao salvar o produto: ' . $e->getMessage());
-                return redirect()->back()->withErrors('Erro ao salvar o produto: ' . $e->getMessage());
-            }
+        // Define o valor padrão do estoque como 1 se estiver vazio ou null
+        if (!isset($produto['estoque']) || $produto['estoque'] === '' || $produto['estoque'] === null) {
+            $produto['estoque'] = 1;
         }
 
-        return redirect()->route('produtos.index')->with('success', 'Produtos cadastrados com sucesso!');
+        // Verifique se os campos existem e são strings antes de processar
+        if (isset($produto['preco_custo']) && is_string($produto['preco_custo'])) {
+            $produto['preco_custo'] = str_replace(',', '.', str_replace('.', '', $produto['preco_custo']));
+        } else {
+            $produto['preco_custo'] = 0.00; // Valor padrão se não for válido
+        }
+
+        if (isset($produto['preco_venda']) && is_string($produto['preco_venda'])) {
+            $produto['preco_venda'] = str_replace(',', '.', str_replace('.', '', $produto['preco_venda']));
+        } else {
+            $produto['preco_venda'] = 0.00; // Valor padrão se não for válido
+        }
+
+        // Define categoria_id como 6 se não for fornecido
+        if (!isset($produto['categoria_id']) || empty($produto['categoria_id'])) {
+            $produto['categoria_id'] = 6;
+        }
+
+        // Adiciona o usuario_id do usuário autenticado
+        $produto['usuario_id'] = Auth::user()->id;
+
+        // Garante que o campo fabricante esteja presente, mesmo que vazio
+        if (!isset($produto['fabricante'])) {
+            $produto['fabricante'] = '';
+        }
+
+        try {
+            $validated = $this->validateProduto($produto);
+
+            $produtoExistente = Produto::where('nome', $validated['nome'])->first();
+
+            if ($produtoExistente) {
+                $produtoExistente->update(array_merge($validated, [
+                    'fornecedor_cnpj' => $request->fornecedor_cnpj,
+                    'fornecedor_nome' => $request->fornecedor_nome,
+                    'fornecedor_telefone' => $request->fornecedor_telefone,
+                    'fornecedor_email' => $request->fornecedor_email,
+                ]));
+            } else {
+                Produto::create(array_merge($validated, [
+                    'fornecedor_cnpj' => $request->fornecedor_cnpj,
+                    'fornecedor_nome' => $request->fornecedor_nome,
+                    'fornecedor_telefone' => $request->fornecedor_telefone,
+                    'fornecedor_email' => $request->fornecedor_email,
+                    'usuario_id' => Auth::user()->id,
+                ]));
+            }
+        } catch (\Exception $e) {
+            Log::error('Erro ao salvar o produto: ' . $e->getMessage());
+            return redirect()->back()->withErrors('Erro ao salvar o produto: ' . $e->getMessage());
+        }
     }
-    protected function validateProduto($produto)
-    {
-        return validator()->make($produto, [
-            'nome' => 'required|string|max:255',
-            'preco_custo' => 'required|numeric',
-            'preco_venda' => 'required|numeric',
-            'codigo_barras' => 'nullable|string|max:13',
-            'ncm' => 'nullable|string|max:8',
-            'estoque' => 'nullable|integer',
-            'categoria_id' => 'nullable|exists:categorias,id',
-            'fabricante' => 'nullable|string|max:255', // Adicionado o campo fabricante
-            'usuario_id' => 'required|exists:users,id', // Garantir que o usuario_id seja válido
-        ])->validate();
-    }
+
+    return redirect()->route('produtos.index')->with('success', 'Produtos cadastrados com sucesso!');
+}
+protected function validateProduto($produto)
+{
+    return validator()->make($produto, [
+        'nome' => 'required|string|max:255',
+        'preco_custo' => 'required|numeric',
+        'preco_venda' => 'required|numeric',
+        'codigo_barras' => 'nullable|string|max:13',
+        'ncm' => 'nullable|string|max:8',
+        'estoque' => 'nullable|integer', // Mantido como nullable, pois o valor já foi tratado
+        'categoria_id' => 'nullable|exists:categorias,id',
+        'fabricante' => 'nullable|string|max:255',
+        'usuario_id' => 'required|exists:users,id',
+    ])->validate();
+}
 
     /**
      * Display the specified resource.

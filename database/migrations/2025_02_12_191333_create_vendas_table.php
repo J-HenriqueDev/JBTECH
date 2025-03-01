@@ -17,15 +17,13 @@ return new class extends Migration
         $table->foreignId('user_id')->constrained('users')->onDelete('cascade'); // ID do usuário que fez a venda
         $table->date('data_venda');
         $table->text('observacoes')->nullable();
+        $table->string('status')->default('pendente'); // Coluna status com valor padrão
         $table->timestamps();
     });
 }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::dropIfExists('vendas');
-    }
+public function down()
+{
+    Schema::dropIfExists('vendas');
+}
 };

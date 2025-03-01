@@ -3,20 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Models\Venda;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
 use App\Models\Clientes;
 use App\Models\Produto;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
 use PagSeguro\Configuration\Configure;
 use PagSeguro\Domains\Requests\Payment;
 use PagSeguro\Library;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\CobrancaEnviada;
 
 class VendaController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Exibe a lista de vendas.
      */
     public function index()
     {
@@ -28,99 +30,106 @@ class VendaController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Exibe o formulário para criar uma nova venda.
      */
     public function create()
     {
         $clientes = Clientes::all();
         $produtos = Produto::all();
-        return view('content.vendas.criar', compact('clientes','produtos'));
+        return view('content.vendas.criar', compact('clientes', 'produtos'));
     }
 
-
-    public function store(Request $request)
-{
-    Log::info('Método store foi chamado.');
-    Log::info('Dados recebidos no request:', $request->all());
-
-    try {
-        // Validação dos dados
-        $validatedData = $request->validate([
-            'cliente_id' => 'required|exists:clientes,id',
-            'data_venda' => 'required|date',
-            'observacoes' => 'nullable|string',
-            'produtos' => 'required|array',
-            'produtos.*.id' => 'required|exists:produtos,id',
-            'produtos.*.quantidade' => 'required|integer|min:1',
-            'produtos.*.valor_unitario' => 'required|string',
-        ]);
-
-        Log::info('Validação passou com sucesso:', $validatedData);
-
-        // Cria a venda
-        $venda = Venda::create([
-            'cliente_id' => $request->cliente_id,
-            'user_id' => Auth::user()->id,
-            'data_venda' => $request->data_venda,
-            'observacoes' => $request->observacoes,
-            'valor_total' => 0, // Inicializa o valor total como 0
-        ]);
-
-        Log::info('Venda criada:', $venda->toArray());
-
-        // Adiciona os produtos à venda (tabela pivô) e calcula o valor total
-        $valorTotalVenda = 0; // Inicializa o valor total da venda
-
-        foreach ($request->produtos as $produto) {
-            $valorUnitario = str_replace(['R$', '.', ','], ['', '', '.'], $produto['valor_unitario']);
-            $quantidade = $produto['quantidade'];
-            $valorTotal = (float) $valorUnitario * $quantidade; // Calcula o valor total do produto
-
-            $venda->produtos()->attach($produto['id'], [
-                'quantidade' => $quantidade,
-                'valor_unitario' => (float) $valorUnitario,
-                'valor_total' => $valorTotal, // Armazena o valor total do produto
-            ]);
-
-            $valorTotalVenda += $valorTotal; // Soma ao valor total da venda
-
-            Log::info('Produto adicionado à venda:', [
-                'venda_id' => $venda->id,
-                'produto_id' => $produto['id'],
-                'quantidade' => $quantidade,
-                'valor_unitario' => $valorUnitario,
-                'valor_total' => $valorTotal,
-            ]);
-        }
-
-        // Atualiza o valor total da venda
-        $venda->valor_total = $valorTotalVenda;
-        $venda->save();
-
-        Log::info('Valor total da venda atualizado:', ['valor_total' => $venda->valor_total]);
-        Log::info('Todos os produtos foram adicionados à venda.');
-
-        // Recupera o nome do cliente
-        $cliente = Clientes::find($request->cliente_id);
-
-        // Mensagem de sucesso
-        $mensagemSucesso = "Venda #{$venda->id} para o cliente {$cliente->nome} foi processada com sucesso!";
-
-        // Redireciona para a rota de vendas com a mensagem de sucesso
-        return redirect()->route('vendas.index')->with('success', $mensagemSucesso);
-    } catch (\Exception $e) {
-        Log::error('Erro ao processar a venda:', ['error' => $e->getMessage()]);
-        return back()->withErrors('Erro ao processar a venda. Por favor, tente novamente.');
-    }
-}
     /**
-     * Display the specified resource.
+     * Armazena uma nova venda no banco de dados.
+     */
+    public function store(Request $request)
+    {
+        Log::info('Método store foi chamado.');
+        Log::info('Dados recebidos no request:', $request->all());
+
+        try {
+            // Validação dos dados
+            $validatedData = $request->validate([
+                'cliente_id' => 'required|exists:clientes,id',
+                'data_venda' => 'required|date',
+                'observacoes' => 'nullable|string',
+                'produtos' => 'required|array',
+                'produtos.*.id' => 'required|exists:produtos,id',
+                'produtos.*.quantidade' => 'required|integer|min:1',
+                'produtos.*.valor_unitario' => 'required|string',
+            ]);
+
+            Log::info('Validação passou com sucesso:', $validatedData);
+
+            // Cria a venda
+            $venda = Venda::create([
+                'cliente_id' => $request->cliente_id,
+                'user_id' => Auth::user()->id,
+                'data_venda' => $request->data_venda,
+                'observacoes' => $request->observacoes,
+                'valor_total' => 0, // Inicializa o valor total como 0
+            ]);
+
+            Log::info('Venda criada:', $venda->toArray());
+
+            // Adiciona os produtos à venda (tabela pivô) e calcula o valor total
+            $valorTotalVenda = 0; // Inicializa o valor total da venda
+
+            foreach ($request->produtos as $produto) {
+                $valorUnitario = str_replace(['R$', '.', ','], ['', '', '.'], $produto['valor_unitario']);
+                $quantidade = $produto['quantidade'];
+                $valorTotal = (float) $valorUnitario * $quantidade; // Calcula o valor total do produto
+
+                $venda->produtos()->attach($produto['id'], [
+                    'quantidade' => $quantidade,
+                    'valor_unitario' => (float) $valorUnitario,
+                    'valor_total' => $valorTotal, // Armazena o valor total do produto
+                ]);
+
+                $valorTotalVenda += $valorTotal; // Soma ao valor total da venda
+
+                Log::info('Produto adicionado à venda:', [
+                    'venda_id' => $venda->id,
+                    'produto_id' => $produto['id'],
+                    'quantidade' => $quantidade,
+                    'valor_unitario' => $valorUnitario,
+                    'valor_total' => $valorTotal,
+                ]);
+            }
+
+            // Atualiza o valor total da venda
+            $venda->valor_total = $valorTotalVenda;
+            $venda->save();
+
+            Log::info('Valor total da venda atualizado:', ['valor_total' => $venda->valor_total]);
+            Log::info('Todos os produtos foram adicionados à venda.');
+
+            // Recupera o nome do cliente
+            $cliente = Clientes::find($request->cliente_id);
+
+            // Mensagem de sucesso
+            $mensagemSucesso = "Venda #{$venda->id} para o cliente {$cliente->nome} foi processada com sucesso!";
+
+            // Redireciona para a rota de vendas com a mensagem de sucesso
+            return redirect()->route('vendas.index')->with('success', $mensagemSucesso);
+        } catch (\Exception $e) {
+            Log::error('Erro ao processar a venda:', ['error' => $e->getMessage()]);
+            return back()->withErrors('Erro ao processar a venda. Por favor, tente novamente.');
+        }
+    }
+
+    /**
+     * Exibe os detalhes de uma venda específica.
      */
     public function show(Venda $venda)
     {
-        //
+        // Exibe a view de detalhes da venda
+        return view('content.vendas.show', compact('venda'));
     }
 
+    /**
+     * Exibe o formulário para editar uma venda.
+     */
     public function edit($id)
     {
         // Recupera a venda com os relacionamentos de cliente e produtos
@@ -134,6 +143,9 @@ class VendaController extends Controller
         return view('content.vendas.editar', compact('venda', 'clientes', 'produtos'));
     }
 
+    /**
+     * Atualiza uma venda no banco de dados.
+     */
     public function update(Request $request, $id)
     {
         Log::info('Método update foi chamado.');
@@ -202,12 +214,20 @@ class VendaController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove uma venda do banco de dados.
      */
     public function destroy(Venda $venda)
     {
-        //
+        // Exclui a venda
+        $venda->delete();
+
+        // Redireciona com mensagem de sucesso
+        return redirect()->route('vendas.index')->with('success', 'Venda excluída com sucesso!');
     }
+
+    /**
+     * Gera uma cobrança para a venda.
+     */
     public function gerarCobranca($id)
     {
         // Recupera a venda
@@ -268,6 +288,9 @@ class VendaController extends Controller
         }
     }
 
+    /**
+     * Exporta a venda para PDF.
+     */
     public function exportarPdf($id)
     {
         // Busca a venda com os relacionamentos
@@ -282,5 +305,4 @@ class VendaController extends Controller
         // Retorna o PDF para visualização
         return $pdf->stream('venda.pdf');
     }
-
 }
