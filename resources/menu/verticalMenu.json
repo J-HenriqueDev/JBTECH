@@ -53,6 +53,12 @@
       "name": "Vendas",
       "icon": "menu-icon tf-icons fas fa-cash-register text-warning",
       "slug": "vendas"
+    },
+    {
+      "url": "/dashboard/cobrancas",
+      "name": "Cobranças",
+      "icon": "menu-icon tf-icons fas fa-money-check-alt text-primary",
+      "slug": "cobrancas"
     }
   ]
 }

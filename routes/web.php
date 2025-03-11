@@ -13,6 +13,7 @@ use App\Http\Controllers\ProdutosController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\OrcamentoController;
 use App\Http\Controllers\VendaController;
+use App\Http\Controllers\CobrancaController;
 use App\Http\Controllers\PagSeguroController;
 
 // Rota principal "/" - acessível sem autenticação
@@ -34,6 +35,9 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
 
     // Route para produtos
     Route::resource('dashboard/produtos', ProdutosController::class)->except('show');
+
+    // Rota resource para cobranças
+    Route::resource('dashboard/cobrancas', CobrancaController::class);
 
 
     Route::get('/produtos/lista', [ProdutosController::class, 'listar'])->name('produtos.lista');

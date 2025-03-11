@@ -29,7 +29,6 @@ class ProdutosController extends Controller
             if ($produtos->isEmpty()) {
                 return response()->json(['error' => 'Nenhum produto encontrado'], 404);
             }
-            Log::debug('Produtos retornados: ', $produtos->toArray());
             return response()->json($produtos);
 
         } catch (\Exception $e) {
@@ -233,12 +232,90 @@ protected function validateProduto($produto)
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Produto $produto)
-    {
-        $categorias = Categoria::all();
-        return view('content.produtos.editar', compact('produto', 'categorias'));
-    }
+    public function edit($id)
+{
+    try {
+        // Log para indicar que o método foi chamado
 
+        // Busca o produto pelo ID
+        $produto = Produto::findOrFail($id);
+
+        // Log para verificar se o produto foi encontrado
+
+
+        // Busca as categorias para o dropdown
+        $categorias = Categoria::all();
+
+
+
+        // Retorna a view de edição com os dados do produto e categorias
+        return view('content.produtos.editar', compact('produto', 'categorias'));
+    } catch (\Exception $e) {
+        // Log de erro caso algo dê errado
+        Log::error("Erro ao acessar a página de edição do produto ID: {$id}", [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+        ]);
+
+        // Redireciona de volta com uma mensagem de erro
+        return redirect()->route('produtos.index')->with('error', 'Erro ao carregar a página de edição.');
+    }
+}
+
+public function update(Request $request, $id)
+{
+    try {
+
+        // Busca o produto pelo ID
+        $produto = Produto::findOrFail($id);
+
+        // Valida os dados do formulário
+        $request->validate([
+            'nome' => 'required|string|max:255',
+            'preco_custo' => 'required|string', // Alterado para string
+            'preco_venda' => 'required|string', // Alterado para string
+            'codigo_barras' => 'nullable|string|max:13',
+            'ncm' => 'nullable|string|max:8',
+            'estoque' => 'nullable|integer',
+            'categoria_id' => 'nullable|exists:categorias,id',
+            'fabricante' => 'nullable|string|max:255',
+            'fornecedor_cnpj' => 'nullable|string|max:20',
+            'fornecedor_nome' => 'nullable|string|max:255',
+            'fornecedor_telefone' => 'nullable|string|max:15',
+            'fornecedor_email' => 'nullable|email',
+        ]);
+
+        // Converte os valores de preço para o formato numérico
+        $preco_custo = str_replace(['.', ','], ['', '.'], $request->preco_custo);
+        $preco_venda = str_replace(['.', ','], ['', '.'], $request->preco_venda);
+
+        // Atualiza os dados do produto
+        $produto->update([
+            'nome' => $request->nome,
+            'preco_custo' => $preco_custo,
+            'preco_venda' => $preco_venda,
+            'codigo_barras' => $request->codigo_barras,
+            'ncm' => $request->ncm,
+            'estoque' => $request->estoque,
+            'categoria_id' => $request->categoria_id,
+            'fabricante' => $request->fabricante,
+            'fornecedor_cnpj' => $request->fornecedor_cnpj,
+            'fornecedor_nome' => $request->fornecedor_nome,
+            'fornecedor_telefone' => $request->fornecedor_telefone,
+            'fornecedor_email' => $request->fornecedor_email,
+        ]);
+
+
+        return redirect()->route('produtos.index')->with('success', "Produto #{$produto->id} '{$produto->nome}' atualizado com sucesso!");
+    } catch (\Exception $e) {
+        Log::error("Erro ao atualizar o produto ID: {$id}", [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+        ]);
+
+        return redirect()->back()->with('error', 'Erro ao atualizar o produto. Por favor, tente novamente.');
+    }
+}
     /**
      * Remove the specified resource from storage.
      */

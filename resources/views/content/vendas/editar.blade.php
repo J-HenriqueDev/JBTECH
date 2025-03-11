@@ -232,6 +232,15 @@
                         <input type="checkbox" id="enviarEmail"> Enviar cobrança por e-mail
                     </label>
                 </div>
+                <div class="mt-3">
+                    <label>
+                        <input type="checkbox" id="enviarWhatsapp"> Enviar cobrança por WhatsApp
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmarCobranca">Confirmar</button>
             </div>
         </div>
     </div>
