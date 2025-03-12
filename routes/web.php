@@ -15,6 +15,8 @@ use App\Http\Controllers\OrcamentoController;
 use App\Http\Controllers\VendaController;
 use App\Http\Controllers\CobrancaController;
 use App\Http\Controllers\PagSeguroController;
+use App\Http\Controllers\LogController;
+
 
 // Rota principal "/" - acessível sem autenticação
 Route::get('/', [Landing::class, 'index'])->name('front-pages-landing');
@@ -38,6 +40,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
 
     // Rota resource para cobranças
     Route::resource('dashboard/cobrancas', CobrancaController::class);
+
+    Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
 
 
     Route::get('/produtos/lista', [ProdutosController::class, 'listar'])->name('produtos.lista');

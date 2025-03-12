@@ -14,6 +14,7 @@ use PagSeguro\Domains\Requests\Payment;
 use PagSeguro\Library;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\CobrancaEnviada;
+use App\Services\LogService;
 
 class VendaController extends Controller
 {
@@ -24,6 +25,13 @@ class VendaController extends Controller
     {
         // Recupera todas as vendas com o relacionamento de cliente
         $vendas = Venda::with('cliente')->get();
+
+        // Registra um log
+        LogService::registrar(
+            'Venda', // Categoria
+            'Listar', // Ação
+            'Listou todas as vendas' // Detalhes
+        );
 
         // Passa as vendas para a view
         return view('content.vendas.index', compact('vendas'));
@@ -36,6 +44,14 @@ class VendaController extends Controller
     {
         $clientes = Clientes::all();
         $produtos = Produto::all();
+
+        // Registra um log
+        LogService::registrar(
+            'Venda', // Categoria
+            'Criar', // Ação
+            'Acessou o formulário de criação de venda' // Detalhes
+        );
+
         return view('content.vendas.criar', compact('clientes', 'produtos'));
     }
 
@@ -104,6 +120,13 @@ class VendaController extends Controller
             Log::info('Valor total da venda atualizado:', ['valor_total' => $venda->valor_total]);
             Log::info('Todos os produtos foram adicionados à venda.');
 
+            // Registra um log
+            LogService::registrar(
+                'Venda', // Categoria
+                'Criar', // Ação
+                "Venda ID: {$venda->id} criada com sucesso" // Detalhes
+            );
+
             // Recupera o nome do cliente
             $cliente = Clientes::find($request->cliente_id);
 
@@ -114,6 +137,14 @@ class VendaController extends Controller
             return redirect()->route('vendas.index')->with('success', $mensagemSucesso);
         } catch (\Exception $e) {
             Log::error('Erro ao processar a venda:', ['error' => $e->getMessage()]);
+
+            // Registra um log de erro
+            LogService::registrar(
+                'Venda', // Categoria
+                'Erro', // Ação
+                "Erro ao criar venda: {$e->getMessage()}" // Detalhes
+            );
+
             return back()->withErrors('Erro ao processar a venda. Por favor, tente novamente.');
         }
     }
@@ -123,6 +154,13 @@ class VendaController extends Controller
      */
     public function show(Venda $venda)
     {
+        // Registra um log
+        LogService::registrar(
+            'Venda', // Categoria
+            'Visualizar', // Ação
+            "Visualizou a venda ID: {$venda->id}" // Detalhes
+        );
+
         // Exibe a view de detalhes da venda
         return view('content.vendas.show', compact('venda'));
     }
@@ -138,6 +176,13 @@ class VendaController extends Controller
         // Recupera todos os clientes e produtos para os selects
         $clientes = Clientes::all();
         $produtos = Produto::all();
+
+        // Registra um log
+        LogService::registrar(
+            'Venda', // Categoria
+            'Editar', // Ação
+            "Acessou o formulário de edição da venda ID: {$venda->id}" // Detalhes
+        );
 
         // Passa os dados para a view
         return view('content.vendas.editar', compact('venda', 'clientes', 'produtos'));
@@ -205,10 +250,25 @@ class VendaController extends Controller
             Log::info('Valor total da venda atualizado:', ['valor_total' => $venda->valor_total]);
             Log::info('Todos os produtos foram atualizados na venda.');
 
+            // Registra um log
+            LogService::registrar(
+                'Venda', // Categoria
+                'Editar', // Ação
+                "Venda ID: {$venda->id} atualizada com sucesso" // Detalhes
+            );
+
             // Redireciona para a rota de listagem de vendas com mensagem de sucesso
             return redirect()->route('vendas.index')->with('success', 'Venda atualizada com sucesso!');
         } catch (\Exception $e) {
             Log::error('Erro ao atualizar a venda:', ['error' => $e->getMessage()]);
+
+            // Registra um log de erro
+            LogService::registrar(
+                'Venda', // Categoria
+                'Erro', // Ação
+                "Erro ao atualizar venda ID: {$id}: {$e->getMessage()}" // Detalhes
+            );
+
             return back()->withErrors('Erro ao atualizar a venda. Por favor, tente novamente.');
         }
     }
@@ -221,71 +281,15 @@ class VendaController extends Controller
         // Exclui a venda
         $venda->delete();
 
+        // Registra um log
+        LogService::registrar(
+            'Venda', // Categoria
+            'Excluir', // Ação
+            "Venda ID: {$venda->id} excluída com sucesso" // Detalhes
+        );
+
         // Redireciona com mensagem de sucesso
         return redirect()->route('vendas.index')->with('success', 'Venda excluída com sucesso!');
-    }
-
-    /**
-     * Gera uma cobrança para a venda.
-     */
-    public function gerarCobranca($id)
-    {
-        // Recupera a venda
-        $venda = Venda::with(['cliente'])->findOrFail($id);
-
-        // Configura o ambiente do PagSeguro
-        Library::initialize();
-        $env = env('PAGSEGURO_ENV', 'sandbox'); // 'sandbox' ou 'production'
-        Configure::setEnvironment($env);
-        Configure::setAccountCredentials(env('PAGSEGURO_EMAIL'), env('PAGSEGURO_TOKEN'));
-
-        // Cria a cobrança
-        $payment = new Payment();
-        $payment->addItems()->withParameters(
-            '001', // ID do item
-            'Venda #' . $venda->id, // Descrição
-            1, // Quantidade
-            $venda->valor_total // Valor
-        );
-        $payment->setCurrency('BRL');
-        $payment->setReference($venda->id); // Referência da venda
-        $payment->setRedirectUrl(route('vendas.show', $venda->id)); // URL de redirecionamento
-        $payment->setNotificationUrl(route('pagseguro.notification')); // URL de notificação
-
-        // Define os dados do cliente
-        $payment->setSender()->setName($venda->cliente->nome);
-        $payment->setSender()->setEmail($venda->cliente->email);
-
-        // Define o método de pagamento
-        $method = request()->input('metodoPagamento'); // PIX ou Boleto
-        if ($method === 'pix') {
-            $payment->setPaymentMethod('pix');
-        } elseif ($method === 'boleto') {
-            $payment->setPaymentMethod('boleto');
-        }
-
-        try {
-            // Envia a cobrança
-            $response = $payment->register(Configure::getAccountCredentials());
-
-            // Verifica se o e-mail deve ser enviado
-            if (request()->input('enviarEmail')) {
-                // Gera o PDF da venda
-                $pdf = Pdf::loadView('vendas.pdf', compact('venda'));
-
-                // Envia o e-mail com o PDF
-                Mail::to($venda->cliente->email)->send(new CobrancaEnviada($venda, $pdf));
-            }
-
-            // Retorna a URL de redirecionamento
-            return response()->json([
-                'redirectUrl' => $response->getRedirectUrl()
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Erro ao gerar cobrança: ' . $e->getMessage()
-            ], 500);
-        }
     }
 
     /**
@@ -301,6 +305,13 @@ class VendaController extends Controller
 
         // Gera o PDF
         $pdf = PDF::loadView('content.vendas.pdf', compact('venda', 'logoBase64'));
+
+        // Registra um log
+        LogService::registrar(
+            'Venda', // Categoria
+            'Exportar PDF', // Ação
+            "Exportou a venda ID: {$venda->id} para PDF" // Detalhes
+        );
 
         // Retorna o PDF para visualização
         return $pdf->stream('venda.pdf');

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
+use App\Services\LogService;
 
 
 class OrcamentoController extends Controller
@@ -18,6 +19,7 @@ class OrcamentoController extends Controller
   public function index(Request $request)
   {
       $search = $request->input('search');
+      $status = $request->input('status'); // Array de status
 
       $orcamentos = Orcamento::with('cliente')
           ->when($search, function ($query, $search) {
@@ -26,7 +28,11 @@ class OrcamentoController extends Controller
                       $query->where('nome', 'like', "%$search%");
                   });
           })
-          ->paginate(10); // Paginação com 10 itens por página
+          ->when($status, function ($query, $status) {
+              return $query->whereIn('status', $status); // Filtra por múltiplos status
+          })
+          ->where('status', '!=', 'apagado') // Exclui orçamentos com status "Apagado" por padrão
+          ->paginate(10);
 
       return view('content.orcamentos.index', compact('orcamentos'));
   }
@@ -86,12 +92,20 @@ class OrcamentoController extends Controller
             }
 
             // Atualizar o valor total do orçamento após somar produtos
-            $orcamento->update(['valor_total' => $valorTotal]);
+
             Log::info('Valor total do orçamento atualizado', ['valor_total' => $valorTotal]);
 
             // Confirmar a transação
             DB::commit();
             Log::info('Transação concluída com sucesso');
+
+            $request->merge(['log_detalhes' => "Orçamento ID: {$orcamento->id}"]);
+
+            LogService::registrar(
+              'Orçamento', // Categoria
+              'Criar', // Ação
+              "Orçamento ID: {$orcamento->id}" // Detalhes
+          );
             return redirect()->route('orcamentos.index')->with('success', 'Orçamento criado com sucesso!');
         } catch (\Exception $e) {
             // Reverter a transação em caso de erro
@@ -200,7 +214,15 @@ class OrcamentoController extends Controller
         $orcamento->update(['valor_total' => $valorTotal]);
 
         DB::commit();
+        // Registra um log
+        $request->merge(['log_detalhes' => "Orçamento ID: {$orcamento->id}"]);
 
+        // Registra um log
+          LogService::registrar(
+            'Orçamento', // Categoria
+            'Editar', // Ação
+            "Orçamento ID: {$orcamento->id}" // Detalhes
+        );
         return redirect()->route('content.orcamentos.index')->with('success', 'Orçamento atualizado com sucesso!');
     } catch (\Exception $e) {
         DB::rollBack();
@@ -220,6 +242,12 @@ public function gerarPdf($id)
     $pdf = PDF::loadView('content.orcamentos.pdf', compact('orcamento'));
 
     // Retorna o PDF para o navegador
+        // Registra um log
+        LogService::registrar(
+          'Orçamento', // Categoria
+          'Gerar PDF', // Ação
+          "Orçamento ID: {$orcamento->id}" // Detalhes
+      );
     return $pdf->stream($filename);
 }
 
@@ -311,6 +339,13 @@ public function autorizar($id)
         $mensagemSucesso = "Orçamento #{$orcamento->id} autorizado e transformado em venda #{$venda->id} para o cliente {$cliente->nome}.";
         Log::info('Orçamento autorizado com sucesso:', ['mensagem' => $mensagemSucesso]);
 
+              // Registra um log
+          LogService::registrar(
+            'Orçamento', // Categoria
+            'Autorizar', // Ação
+            "Orçamento ID: {$orcamento->id}" // Detalhes
+        );
+
         return redirect()->route('orcamentos.index')->with('success', $mensagemSucesso);
     } catch (\Exception $e) {
         DB::rollBack();
@@ -345,7 +380,12 @@ public function recusar($id)
         Log::info('Orçamento recusado:', ['orcamento_id' => $orcamento->id]);
 
         DB::commit();
-
+            // Registra um log
+        LogService::registrar(
+          'Orçamento', // Categoria
+          'Recusar', // Ação
+          "Orçamento ID: {$orcamento->id}" // Detalhes
+      );
         return redirect()->back()->with('success', 'Orçamento recusado e venda associada excluída com sucesso!');
     } catch (\Exception $e) {
         DB::rollBack();
@@ -369,6 +409,25 @@ public function recusar($id)
         return response()->json([
             'estoqueInsuficiente' => $estoqueInsuficiente,
         ]);
+    }
+
+    public function destroy($id)
+    {
+        // Encontra o orçamento pelo ID
+        $orcamento = Orcamento::findOrFail($id);
+
+        // Atualiza o status para "Apagado"
+        $orcamento->update(['status' => 'apagado']);
+
+          // Registra um log
+        LogService::registrar(
+          'Orçamento', // Categoria
+          'Excluir', // Ação
+          "Orçamento ID: {$orcamento->id}" // Detalhes
+      );
+
+        // Redireciona de volta com uma mensagem de sucesso
+        return redirect()->route('orcamentos.index')->with('success', 'Orçamento marcado como Apagado com sucesso!');
     }
 
 }
