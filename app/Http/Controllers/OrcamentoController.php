@@ -17,26 +17,40 @@ use App\Services\LogService;
 class OrcamentoController extends Controller
 {
   public function index(Request $request)
-  {
-      $search = $request->input('search');
-      $status = $request->input('status'); // Array de status
+{
+    $search = $request->input('search');
+    $status = $request->input('status'); // Array de status
 
-      $orcamentos = Orcamento::with('cliente')
-          ->when($search, function ($query, $search) {
-              return $query->where('id', 'like', "%$search%")
-                  ->orWhereHas('cliente', function ($query) use ($search) {
-                      $query->where('nome', 'like', "%$search%");
-                  });
-          })
-          ->when($status, function ($query, $status) {
-              return $query->whereIn('status', $status); // Filtra por múltiplos status
-          })
-          ->where('status', '!=', 'apagado') // Exclui orçamentos com status "Apagado" por padrão
-          ->paginate(10);
+    // Ordenação padrão pelos mais recentes primeiro
+    $ordenacao = $request->input('ordenacao', 'recentes');
 
-      return view('content.orcamentos.index', compact('orcamentos'));
-  }
+    $orcamentos = Orcamento::with('cliente')
+        ->when($search, function ($query, $search) {
+            return $query->where('id', 'like', "%$search%")
+                ->orWhereHas('cliente', function ($query) use ($search) {
+                    $query->where('nome', 'like', "%$search%");
+                });
+        })
+        ->when($status, function ($query, $status) {
+            return $query->whereIn('status', $status); // Filtra por múltiplos status
+        })
+        ->where('status', '!=', 'apagado') // Exclui orçamentos com status "Apagado" por padrão
+        ->when($ordenacao, function ($query, $ordenacao) {
+            // Aplica a ordenação
+            if ($ordenacao === 'recentes') {
+                return $query->orderBy('updated_at', 'desc');
+            } elseif ($ordenacao === 'antigos') {
+                return $query->orderBy('updated_at', 'asc');
+            } elseif ($ordenacao === 'maior_valor') {
+                return $query->orderBy('valor_total', 'desc');
+            } elseif ($ordenacao === 'menor_valor') {
+                return $query->orderBy('valor_total', 'asc');
+            }
+        })
+        ->paginate(10);
 
+    return view('content.orcamentos.index', compact('orcamentos'));
+}
 
     public function create()
     {
@@ -46,77 +60,76 @@ class OrcamentoController extends Controller
     }
 
     public function store(Request $request)
-    {
-        // Logar todos os dados recebidos para verificar
-        Log::info('Dados recebidos do request:', $request->all());
+{
+    // Logar todos os dados recebidos para verificar
+    Log::info('Dados recebidos do request:', $request->all());
 
-        // Validação dos campos
-        $validated = $request->validate([
-            'cliente_id' => 'required|exists:clientes,id',
-            'data' => 'required|date',
-            'validade' => 'required|date|after_or_equal:data',
-            'observacoes' => 'nullable|string',
-            'produtos' => 'required|array',
-            'produtos.*.quantidade' => 'required|numeric|min:1|max:10000', // Limitar a quantidade
-            'produtos.*.valor_unitario' => 'required|string',
-        ]);
+    // Validação dos campos
+    $validated = $request->validate([
+        'cliente_id' => 'required|exists:clientes,id',
+        'data' => 'required|date',
+        'validade' => 'required|date|after_or_equal:data',
+        'observacoes' => 'nullable|string',
+        'produtos' => 'required|array',
+        'produtos.*.quantidade' => 'required|numeric|min:1|max:10000', // Limitar a quantidade
+        'produtos.*.valor_unitario' => 'required|string',
+    ]);
 
-        // Iniciar a transação com DB facade
-        DB::beginTransaction();
-        try {
-            // Criar o orçamento sem o valor do serviço inicialmente
-            $orcamento = Orcamento::create($request->only(['cliente_id', 'data', 'validade', 'observacoes']));
-            Log::info('Orçamento criado', ['orcamento' => $orcamento]);
+    // Iniciar a transação com DB facade
+    DB::beginTransaction();
+    try {
+        // Criar o orçamento sem o valor do serviço inicialmente
+        $orcamento = Orcamento::create($request->only(['cliente_id', 'data', 'validade', 'observacoes']));
+        Log::info('Orçamento criado', ['orcamento' => $orcamento]);
 
-            // Inicializar valor total do orçamento
-            $valorTotal = 0;
+        // Inicializar valor total do orçamento
+        $valorTotal = 0;
 
-            // Processar produtos e calcular o valor total
-            foreach ($request->produtos as $id => $produto) {
-                // Tratamento do valor_unitario para garantir que está no formato correto
-                $valorUnitario = str_replace(['R$', '.', ','], ['', '', '.'], $produto['valor_unitario']);
-                $valorUnitario = floatval($valorUnitario);
+        // Processar produtos e calcular o valor total
+        foreach ($request->produtos as $id => $produto) {
+            // Tratamento do valor_unitario para garantir que está no formato correto
+            $valorUnitario = str_replace(['R$', '.', ','], ['', '', '.'], $produto['valor_unitario']);
+            $valorUnitario = floatval($valorUnitario);
 
-                // Calcular valor total para o produto atual
-                $quantidade = intval($produto['quantidade']);
-                $valorTotalProduto = $quantidade * $valorUnitario;
+            // Calcular valor total para o produto atual
+            $quantidade = intval($produto['quantidade']);
+            $valorTotalProduto = $quantidade * $valorUnitario;
 
-                // Associar produto ao orçamento
-                $orcamento->produtos()->attach($id, [
-                    'quantidade' => $quantidade,
-                    'valor_unitario' => $valorUnitario,
-                ]);
+            // Associar produto ao orçamento
+            $orcamento->produtos()->attach($id, [
+                'quantidade' => $quantidade,
+                'valor_unitario' => $valorUnitario,
+                'valor_total' => $valorTotalProduto, // Adiciona o valor_total aqui
+            ]);
 
-                // Somar o valor do produto ao valor total do orçamento
-                $valorTotal += $valorTotalProduto;
-            }
-
-            // Atualizar o valor total do orçamento após somar produtos
-
-            Log::info('Valor total do orçamento atualizado', ['valor_total' => $valorTotal]);
-
-            // Confirmar a transação
-            DB::commit();
-            Log::info('Transação concluída com sucesso');
-
-            $request->merge(['log_detalhes' => "Orçamento ID: {$orcamento->id}"]);
-
-            LogService::registrar(
-              'Orçamento', // Categoria
-              'Criar', // Ação
-              "Orçamento ID: {$orcamento->id}" // Detalhes
-          );
-            return redirect()->route('orcamentos.index')->with('success', 'Orçamento criado com sucesso!');
-        } catch (\Exception $e) {
-            // Reverter a transação em caso de erro
-            DB::rollBack();
-            Log::error('Erro ao criar orçamento', ['message' => $e->getMessage(), 'stack' => $e->getTraceAsString()]);
-            return redirect()->back()->withErrors('Erro ao criar orçamento. Tente novamente mais tarde.');
+            // Somar o valor do produto ao valor total do orçamento
+            $valorTotal += $valorTotalProduto;
         }
+
+        // Atualizar o valor total do orçamento após somar produtos
+        $orcamento->update(['valor_total' => $valorTotal]);
+
+        Log::info('Valor total do orçamento atualizado', ['valor_total' => $valorTotal]);
+
+        // Confirmar a transação
+        DB::commit();
+        Log::info('Transação concluída com sucesso');
+
+        $request->merge(['log_detalhes' => "Orçamento ID: {$orcamento->id}"]);
+
+        LogService::registrar(
+            'Orçamento', // Categoria
+            'Criar', // Ação
+            "Orçamento ID: {$orcamento->id}" // Detalhes
+        );
+        return redirect()->route('orcamentos.index')->with('success', 'Orçamento criado com sucesso!');
+    } catch (\Exception $e) {
+        // Reverter a transação em caso de erro
+        DB::rollBack();
+        Log::error('Erro ao criar orçamento', ['message' => $e->getMessage(), 'stack' => $e->getTraceAsString()]);
+        return redirect()->back()->withErrors('Erro ao criar orçamento. Tente novamente mais tarde.');
     }
-
-
-
+}
 
     public function obterCoordenadas(Request $request)
     {

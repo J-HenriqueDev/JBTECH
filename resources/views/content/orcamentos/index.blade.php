@@ -58,7 +58,7 @@
                                 <li>
                                     <div class="dropdown-item">
                                         <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="ordenacao" id="ordenacaoRecentes" value="recentes" {{ request('ordenacao') == 'recentes' ? 'checked' : 'checked' }} onchange="aplicarFiltros()">
+                                            <input class="form-check-input" type="radio" name="ordenacao" id="ordenacaoRecentes" value="recentes" {{ request('ordenacao', 'recentes') == 'recentes' ? 'checked' : '' }} onchange="aplicarFiltros()">
                                             <label class="form-check-label" for="ordenacaoRecentes">Mais recentes primeiro</label>
                                         </div>
                                     </div>
@@ -147,7 +147,9 @@
 </div>
 
 <!-- Links de Paginação -->
-{{ $orcamentos->appends(request()->query())->links() }}
+<div class="d-flex justify-content-center">
+    {{ $orcamentos->appends(request()->query())->links() }}
+</div>
 
 <!-- Script para Aplicar Filtros -->
 <script>

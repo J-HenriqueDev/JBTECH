@@ -84,12 +84,12 @@
                         <div class="card-header bg-primary text-white">
                             <h5 class="card-title text-white"><i class="fas fa-user-plus"></i> Clientes Recentes</h5>
                             <a href="{{ route('clientes.create') }}" class="btn btn-light btn-sm shadow-sm">
-                              <i class="fas fa-plus"></i> Novo Cliente
-                          </a>
+                                <i class="fas fa-plus"></i> Novo Cliente
+                            </a>
                         </div>
                         <div class="card-body text-dark">
                             <ul class="list-group">
-                                @foreach($clientesRecentes as $cliente)
+                                @foreach($clientesRecentes->take(5) as $cliente) <!-- Limita a 5 itens -->
                                 <li class="list-group-item">
                                     <a href="{{ route('clientes.edit', $cliente->id) }}" class="text-decoration-none text-dark">
                                         <strong>#{{ $cliente->id }}</strong> - {{ $cliente->nome }}
@@ -98,54 +98,13 @@
                                 </li>
                                 @endforeach
                             </ul>
-                            <!-- Paginação personalizada -->
-                            @if ($clientesRecentes->hasPages())
-                            <nav aria-label="Page navigation">
-                                <ul class="pagination">
-                                    {{-- Botão "Anterior" --}}
-                                    @if ($clientesRecentes->onFirstPage())
-                                        <li class="page-item disabled">
-                                            <span class="page-link" aria-label="Previous">
-                                                <span aria-hidden="true">&laquo;</span>
-                                                <span class="sr-only">Previous</span>
-                                            </span>
-                                        </li>
-                                    @else
-                                        <li class="page-item">
-                                            <a class="page-link" href="{{ $clientesRecentes->previousPageUrl() }}" aria-label="Previous">
-                                                <span aria-hidden="true">&laquo;</span>
-                                                <span class="sr-only">Previous</span>
-                                            </a>
-                                        </li>
-                                    @endif
-
-                                    {{-- Links das Páginas --}}
-                                    @foreach ($clientesRecentes->getUrlRange(1, $clientesRecentes->lastPage()) as $page => $url)
-                                        @if ($page == $clientesRecentes->currentPage())
-                                            <li class="page-item active"><span class="page-link">{{ $page }}</span></li>
-                                        @else
-                                            <li class="page-item"><a class="page-link" href="{{ $url }}">{{ $page }}</a></li>
-                                        @endif
-                                    @endforeach
-
-                                    {{-- Botão "Próxima" --}}
-                                    @if ($clientesRecentes->hasMorePages())
-                                        <li class="page-item">
-                                            <a class="page-link" href="{{ $clientesRecentes->nextPageUrl() }}" aria-label="Next">
-                                                <span aria-hidden="true">&raquo;</span>
-                                                <span class="sr-only">Next</span>
-                                            </a>
-                                        </li>
-                                    @else
-                                        <li class="page-item disabled">
-                                            <span class="page-link" aria-label="Next">
-                                                <span aria-hidden="true">&raquo;</span>
-                                                <span class="sr-only">Next</span>
-                                            </span>
-                                        </li>
-                                    @endif
-                                </ul>
-                            </nav>
+                            <!-- Botão "Ver Todos" -->
+                            @if ($clientesRecentes->count() > 5)
+                            <div class="mt-3 text-center">
+                                <a href="{{ route('clientes.index') }}" class="btn btn-primary btn-sm">
+                                    Ver Todos os Clientes
+                                </a>
+                            </div>
                             @endif
                         </div>
                     </div>
@@ -157,68 +116,27 @@
                         <div class="card-header bg-warning text-white">
                             <h5 class="card-title text-white"><i class="fas fa-file-alt"></i> Orçamentos Recentes</h5>
                             <a href="{{ route('orcamentos.create') }}" class="btn btn-light btn-sm shadow-sm">
-                              <i class="fas fa-plus"></i>  Novo Orçamento
-                          </a>
+                                <i class="fas fa-plus"></i> Novo Orçamento
+                            </a>
                         </div>
                         <div class="card-body text-dark">
                             <ul class="list-group">
-                                @foreach($orcamentosRecentes as $orcamento)
+                                @foreach($orcamentosRecentes->take(5) as $orcamento) <!-- Limita a 5 itens -->
                                 <li class="list-group-item">
                                     <a href="{{ route('orcamentos.edit', $orcamento->id) }}" class="text-decoration-none text-dark">
                                         <strong>#{{ $orcamento->id }}</strong> - {{ $orcamento->cliente->nome }}
-                                        <span class="badge bg-warning float-end"> {{ \DateTime::createFromFormat('Y-m-d', $orcamento->data)->format('d/m/Y') }}</span>
+                                        <span class="badge bg-warning float-end">{{ \DateTime::createFromFormat('Y-m-d', $orcamento->data)->format('d/m/Y') }}</span>
                                     </a>
                                 </li>
                                 @endforeach
                             </ul>
-                            <!-- Paginação personalizada -->
-                            @if ($orcamentosRecentes->hasPages())
-                            <nav aria-label="Page navigation">
-                                <ul class="pagination">
-                                    {{-- Botão "Anterior" --}}
-                                    @if ($orcamentosRecentes->onFirstPage())
-                                        <li class="page-item disabled">
-                                            <span class="page-link" aria-label="Previous">
-                                                <span aria-hidden="true">&laquo;</span>
-                                                <span class="sr-only">Previous</span>
-                                            </span>
-                                        </li>
-                                    @else
-                                        <li class="page-item">
-                                            <a class="page-link" href="{{ $orcamentosRecentes->previousPageUrl() }}" aria-label="Previous">
-                                                <span aria-hidden="true">&laquo;</span>
-                                                <span class="sr-only">Previous</span>
-                                            </a>
-                                        </li>
-                                    @endif
-
-                                    {{-- Links das Páginas --}}
-                                    @foreach ($orcamentosRecentes->getUrlRange(1, $orcamentosRecentes->lastPage()) as $page => $url)
-                                        @if ($page == $orcamentosRecentes->currentPage())
-                                            <li class="page-item active"><span class="page-link">{{ $page }}</span></li>
-                                        @else
-                                            <li class="page-item"><a class="page-link" href="{{ $url }}">{{ $page }}</a></li>
-                                        @endif
-                                    @endforeach
-
-                                    {{-- Botão "Próxima" --}}
-                                    @if ($orcamentosRecentes->hasMorePages())
-                                        <li class="page-item">
-                                            <a class="page-link" href="{{ $orcamentosRecentes->nextPageUrl() }}" aria-label="Next">
-                                                <span aria-hidden="true">&raquo;</span>
-                                                <span class="sr-only">Next</span>
-                                            </a>
-                                        </li>
-                                    @else
-                                        <li class="page-item disabled">
-                                            <span class="page-link" aria-label="Next">
-                                                <span aria-hidden="true">&raquo;</span>
-                                                <span class="sr-only">Next</span>
-                                            </span>
-                                        </li>
-                                    @endif
-                                </ul>
-                            </nav>
+                            <!-- Botão "Ver Todos" -->
+                            @if ($orcamentosRecentes->count() > 5)
+                            <div class="mt-3 text-center">
+                                <a href="{{ route('orcamentos.index') }}" class="btn btn-warning btn-sm">
+                                    Ver Todos os Orçamentos
+                                </a>
+                            </div>
                             @endif
                         </div>
                     </div>
@@ -230,12 +148,12 @@
                         <div class="card-header bg-secondary text-white">
                             <h5 class="card-title text-white"><i class="fas fa-tasks"></i> OS Recentes</h5>
                             <a href="{{ route('os.create') }}" class="btn btn-light btn-sm shadow-sm">
-                              <i class="fas fa-plus"></i> Nova OS
-                          </a>
+                                <i class="fas fa-plus"></i> Nova OS
+                            </a>
                         </div>
                         <div class="card-body text-dark">
                             <ul class="list-group">
-                                @foreach($ordensRecentes as $ordem)
+                                @foreach($ordensRecentes->take(5) as $ordem) <!-- Limita a 5 itens -->
                                 <li class="list-group-item">
                                     <a href="{{ route('os.edit', $ordem->id) }}" class="text-decoration-none text-dark">
                                         <strong>#{{ $ordem->id }}</strong> - {{ $ordem->cliente->nome }}
@@ -244,54 +162,13 @@
                                 </li>
                                 @endforeach
                             </ul>
-                            <!-- Paginação personalizada -->
-                            @if ($ordensRecentes->hasPages())
-                            <nav aria-label="Page navigation">
-                                <ul class="pagination">
-                                    {{-- Botão "Anterior" --}}
-                                    @if ($ordensRecentes->onFirstPage())
-                                        <li class="page-item disabled">
-                                            <span class="page-link" aria-label="Previous">
-                                                <span aria-hidden="true">&laquo;</span>
-                                                <span class="sr-only">Previous</span>
-                                            </span>
-                                        </li>
-                                    @else
-                                        <li class="page-item">
-                                            <a class="page-link" href="{{ $ordensRecentes->previousPageUrl() }}" aria-label="Previous">
-                                                <span aria-hidden="true">&laquo;</span>
-                                                <span class="sr-only">Previous</span>
-                                            </a>
-                                        </li>
-                                    @endif
-
-                                    {{-- Links das Páginas --}}
-                                    @foreach ($ordensRecentes->getUrlRange(1, $ordensRecentes->lastPage()) as $page => $url)
-                                        @if ($page == $ordensRecentes->currentPage())
-                                            <li class="page-item active"><span class="page-link">{{ $page }}</span></li>
-                                        @else
-                                            <li class="page-item"><a class="page-link" href="{{ $url }}">{{ $page }}</a></li>
-                                        @endif
-                                    @endforeach
-
-                                    {{-- Botão "Próxima" --}}
-                                    @if ($ordensRecentes->hasMorePages())
-                                        <li class="page-item">
-                                            <a class="page-link" href="{{ $ordensRecentes->nextPageUrl() }}" aria-label="Next">
-                                                <span aria-hidden="true">&raquo;</span>
-                                                <span class="sr-only">Next</span>
-                                            </a>
-                                        </li>
-                                    @else
-                                        <li class="page-item disabled">
-                                            <span class="page-link" aria-label="Next">
-                                                <span aria-hidden="true">&raquo;</span>
-                                                <span class="sr-only">Next</span>
-                                            </span>
-                                        </li>
-                                    @endif
-                                </ul>
-                            </nav>
+                            <!-- Botão "Ver Todos" -->
+                            @if ($ordensRecentes->count() > 5)
+                            <div class="mt-3 text-center">
+                                <a href="{{ route('os.index') }}" class="btn btn-secondary btn-sm">
+                                    Ver Todas as OS
+                                </a>
+                            </div>
                             @endif
                         </div>
                     </div>
@@ -303,74 +180,33 @@
                         <div class="card-header bg-danger text-white">
                             <h5 class="card-title text-white"><i class="fas fa-tasks"></i> Vendas Recentes</h5>
                             <a href="{{ route('vendas.create') }}" class="btn btn-light btn-sm shadow-sm">
-                              <i class="fas fa-plus"></i> Nova Venda
-                          </a>
+                                <i class="fas fa-plus"></i> Nova Venda
+                            </a>
                         </div>
                         <div class="card-body text-dark">
                             <ul class="list-group">
-                                @foreach($vendasRecentes as $venda)
+                                @foreach($vendasRecentes->take(5) as $venda) <!-- Limita a 5 itens -->
                                 <li class="list-group-item">
                                     <a href="{{ route('vendas.edit', $venda->id) }}" class="text-decoration-none text-dark">
                                         <strong>#{{ $venda->id }}</strong> - {{ $venda->cliente->nome }}
-                                        <span class="badge bg-danger float-end"> {{ \DateTime::createFromFormat('Y-m-d', $venda->data_venda)->format('d/m/Y') }}</span>
-
+                                        <span class="badge bg-danger float-end">{{ \DateTime::createFromFormat('Y-m-d', $venda->data_venda)->format('d/m/Y') }}</span>
                                     </a>
                                 </li>
                                 @endforeach
                             </ul>
-                            <!-- Paginação personalizada -->
-                            @if ($vendasRecentes->hasPages())
-                            <nav aria-label="Page navigation">
-                                <ul class="pagination">
-                                    {{-- Botão "Anterior" --}}
-                                    @if ($vendasRecentes->onFirstPage())
-                                        <li class="page-item disabled">
-                                            <span class="page-link" aria-label="Previous">
-                                                <span aria-hidden="true">&laquo;</span>
-                                                <span class="sr-only">Previous</span>
-                                            </span>
-                                        </li>
-                                    @else
-                                        <li class="page-item">
-                                            <a class="page-link" href="{{ $vendasRecentes->previousPageUrl() }}" aria-label="Previous">
-                                                <span aria-hidden="true">&laquo;</span>
-                                                <span class="sr-only">Previous</span>
-                                            </a>
-                                        </li>
-                                    @endif
-
-                                    {{-- Links das Páginas --}}
-                                    @foreach ($vendasRecentes->getUrlRange(1, $vendasRecentes->lastPage()) as $page => $url)
-                                        @if ($page == $vendasRecentes->currentPage())
-                                            <li class="page-item active"><span class="page-link">{{ $page }}</span></li>
-                                        @else
-                                            <li class="page-item"><a class="page-link" href="{{ $url }}">{{ $page }}</a></li>
-                                        @endif
-                                    @endforeach
-
-                                    {{-- Botão "Próxima" --}}
-                                    @if ($vendasRecentes->hasMorePages())
-                                        <li class="page-item">
-                                            <a class="page-link" href="{{ $vendasRecentes->nextPageUrl() }}" aria-label="Next">
-                                                <span aria-hidden="true">&raquo;</span>
-                                                <span class="sr-only">Next</span>
-                                            </a>
-                                        </li>
-                                    @else
-                                        <li class="page-item disabled">
-                                            <span class="page-link" aria-label="Next">
-                                                <span aria-hidden="true">&raquo;</span>
-                                                <span class="sr-only">Next</span>
-                                            </span>
-                                        </li>
-                                    @endif
-                                </ul>
-                            </nav>
+                            <!-- Botão "Ver Todos" -->
+                            @if ($vendasRecentes->count() > 5)
+                            <div class="mt-3 text-center">
+                                <a href="{{ route('vendas.index') }}" class="btn btn-danger btn-sm">
+                                    Ver Todas as Vendas
+                                </a>
+                            </div>
                             @endif
                         </div>
                     </div>
                 </div>
             </div>
+
             <!-- Quarta Linha: Links Rápidos -->
             <div class="row">
                 <div class="col-md-12">
@@ -395,8 +231,6 @@
 <!-- Scripts para Gráficos (ApexCharts) -->
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
-
-
     // Gráfico de Vendas Mensais
     const vendasMensaisChart = new ApexCharts(document.querySelector("#vendasMensaisChart"), {
         chart: {
@@ -459,10 +293,10 @@
         font-family: 'Poppins', sans-serif;
     }
     .btn-light:hover {
-    background-color: #f8f9fa;
-    transform: translateY(-1px);
-    transition: all 0.2s ease-in-out;
-}
+        background-color: #f8f9fa;
+        transform: translateY(-1px);
+        transition: all 0.2s ease-in-out;
+    }
     .bg-gradient-primary {
         background: linear-gradient(45deg, #ffffff, #1d4ed8);
     }
