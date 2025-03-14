@@ -8,9 +8,10 @@ class AddValorTotalToOrcamentoProdutoTable extends Migration
 {
     public function up()
     {
-        Schema::table('orcamento_produto', function (Blueprint $table) {
-            $table->decimal('valor_total', 10, 2)->after('valor_unitario'); // Adiciona a coluna valor_total
-        });
+      Schema::table('orcamento_produto', function (Blueprint $table) {
+        $table->decimal('valor_total', 10, 2)->default(0)->after('valor_unitario');
+    });
+
     }
 
     public function down()

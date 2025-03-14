@@ -52,7 +52,7 @@ class VendaSeeder extends Seeder
 
             foreach ($produtosVenda as $produto) {
                 $quantidade = rand(1, 10); // Quantidade aleatória entre 1 e 10
-                $valorUnitario = $produto->preco; // Usa o preço do produto
+                $valorUnitario = $produto->preco ?? 0; // Usa o preço do produto ou 0 se for null
                 $valorTotalProduto = $quantidade * $valorUnitario;
 
                 // Adiciona o produto à venda na tabela pivô
