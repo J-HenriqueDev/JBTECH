@@ -9,20 +9,42 @@
   <script>
   let custoCombustivel = 0; // Variável global para armazenar o custo do combustível
 
-  // Formata valores em moeda brasileira
+  // Formata valores em moeda brasileira (usa função global se disponível)
   function formatCurrency(value) {
-      if (isNaN(value) || value === null) return 'R$ 0,00';
-      value = Math.abs(parseFloat(value)).toFixed(2);
-      return `R$ ${value.replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
+      // Trata valores undefined, null ou vazios
+      if (value === undefined || value === null || value === '') {
+          return 'R$ 0,00';
+      }
+      
+      if (typeof window.formatCurrency === 'function') {
+          // Se a função global existir, usa ela
+          const input = document.createElement('input');
+          input.value = value;
+          window.formatCurrency(input);
+          return input.value;
+      }
+      // Fallback local
+      const numValue = parseFloat(value);
+      if (isNaN(numValue)) return 'R$ 0,00';
+      const formatted = Math.abs(numValue).toFixed(2);
+      return `R$ ${formatted.replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
   }
 
   // Remove a formatação de moeda e retorna um número
   function parseCurrency(value) {
-      return parseFloat(value.replace('R$', '').replace(/\./g, '').replace(',', '.').trim());
+      if (!value || value === undefined || value === null) return 0;
+      if (typeof value !== 'string') return parseFloat(value) || 0;
+      const cleaned = value.replace('R$', '').replace(/\./g, '').replace(',', '.').trim();
+      return parseFloat(cleaned) || 0;
   }
 
-  // Formata o valor do campo de serviço
+  // Formata o valor do campo de serviço (usa função global se disponível)
   function formatCurrencyService(input) {
+      if (typeof window.formatCurrency === 'function') {
+          window.formatCurrency(input);
+          return;
+      }
+      // Fallback local
       let value = input.value.replace(/\D/g, ''); // Remove caracteres não numéricos
       if (value === '') {
           input.value = 'R$ 0,00';
@@ -71,13 +93,14 @@
             // Adiciona as novas opções ao select2
             produtos.forEach(function (produto) {
                 const option = new Option(
-                    `${produto.nome} - R$ ${parseFloat(produto.preco_venda).toFixed(2).replace('.', ',')}`,
+                    `${produto.nome} - R$ ${parseFloat(produto.preco_venda).toFixed(2).replace('.', ',')}${produto.estoque !== undefined ? ' (Estoque: ' + produto.estoque + ')' : ''}`,
                     produto.id,
                     false,
                     false
                 );
-                // Adiciona o preço como um atributo de dados
-                $(option).data('preco', produto.preco_venda);
+                // Adiciona o preço e estoque como atributos de dados (garante que seja número)
+                $(option).data('preco', parseFloat(produto.preco_venda) || 0);
+                $(option).data('estoque', produto.estoque ?? 0);
                 $('#produto_id').append(option);
             });
 
@@ -102,35 +125,71 @@
 
 
   $(document).ready(function () {
+      // Inicializa o Select2 para o campo de clientes
+      $('#select2Basic').select2({
+          tags: false,
+          placeholder: 'Selecione um cliente',
+          width: '100%',
+          allowClear: true
+      });
+
+      // Atualiza o endereço do cliente ao selecionar
+      $('#select2Basic').on('change', function () {
+          const enderecoCliente = $(this).find(':selected').data('endereco');
+          $('#endereco_cliente').val(enderecoCliente || '');
+      });
+
+      // Preencher automaticamente o endereço ao carregar a página
+      const selectedEndereco = $('#select2Basic').find(':selected').data('endereco');
+      if (selectedEndereco) {
+          $('#endereco_cliente').val(selectedEndereco);
+      }
+
       // Inicializa o Select2 para o campo de produtos
       $('#produto_id').select2({
-          tags: false, // Permite adicionar valores não listados
+          tags: false,
           dropdownParent: $('#modalAdicionarProduto'),
-          placeholder: 'Selecione um produto ou digite um novo',
-          width: '100%'
+          placeholder: 'Selecione um produto',
+          width: '100%',
+          allowClear: true
       });
 
       // Carrega os produtos ao carregar a página
-    atualizarProdutos();
+      atualizarProdutos();
 
-    $('#produto_id').on('select2:opening', function (e) {
-      if (!produtosCarregados && !carregandoProdutos) {
-          e.preventDefault(); // Impede a abertura automática do dropdown
-          atualizarProdutos(); // Atualiza os produtos
-      }
-  });
+      $('#produto_id').on('select2:opening', function (e) {
+          if (!produtosCarregados && !carregandoProdutos) {
+              e.preventDefault(); // Impede a abertura automática do dropdown
+              atualizarProdutos(); // Atualiza os produtos
+          }
+      });
 
   // Atualiza o valor_unitário e valor_total ao selecionar um produto
   $('#produto_id').on('change', function () {
-  const preco = $(this).find(':selected').data('preco'); // Obtém o preço do produto selecionado
-  if (preco) {
-      $('#valor_unitario').val(formatCurrency(preco));
-      const quantidade = parseInt($('#quantidade').val() || 1);
-      $('#valor_total').val(formatCurrency(preco * quantidade));
-  } else {
-      $('#valor_unitario').val('');
-      $('#valor_total').val('');
-  }
+      const selectedId = $(this).val();
+      
+      // Ignora se nenhum produto foi selecionado ou se é o placeholder
+      if (!selectedId || selectedId === '') {
+          $('#valor_unitario').val('');
+          $('#valor_total').val('');
+          return;
+      }
+      
+      const selectedOption = $(this).find('option[value="' + selectedId + '"]');
+      const preco = parseFloat(selectedOption.data('preco')) || 0;
+      
+      if (preco && preco > 0) {
+          // Preenche o campo Valor do Produto
+          $('#valor_unitario').val(formatCurrency(preco));
+          
+          // Calcula e preenche o Valor Total (preço × quantidade)
+          const quantidade = parseInt($('#quantidade').val() || 1);
+          const valorTotal = preco * quantidade;
+          $('#valor_total').val(formatCurrency(valorTotal));
+      } else {
+          $('#valor_unitario').val('');
+          $('#valor_total').val('');
+      }
   });
 
 
@@ -139,12 +198,25 @@
           const preco = parseCurrency($('#valor_unitario').val());
           const quantidade = parseInt($(this).val() || 1);
           $('#valor_total').val(formatCurrency(preco * quantidade));
+          
+          // Atualiza informação de estoque
+          const estoque = $('#produto_id').find(':selected').data('estoque');
+          if (estoque !== undefined) {
+              if (estoque < quantidade) {
+                  $('#estoqueInfo').html('<span class="text-danger">⚠ Estoque disponível: ' + estoque + ' unidades</span>');
+              } else if (estoque <= 10) {
+                  $('#estoqueInfo').html('<span class="text-warning">⚠ Estoque baixo: ' + estoque + ' unidades</span>');
+              } else {
+                  $('#estoqueInfo').html('<span class="text-success">✓ Estoque disponível: ' + estoque + ' unidades</span>');
+              }
+          }
       });
 
       // Adiciona o produto na tabela
       $('#adicionarProduto').on('click', function () {
         const produtoId = $('#produto_id').val();
-        const produtoNome = $('#produto_id option:selected').text().split(' - ')[0];
+        const produtoTexto = $('#produto_id option:selected').text();
+        const produtoNome = produtoTexto.split(' - ')[0];
         const precoUnitario = parseCurrency($('#valor_unitario').val());
         const quantidade = parseInt($('#quantidade').val() || 1);
         const valorTotal = precoUnitario * quantidade;
@@ -154,20 +226,35 @@
             return;
         }
 
+        // Verifica se o produto já existe na tabela
+        let produtoExiste = false;
+        $('#tabelaProdutos tbody tr').each(function() {
+            const idExistente = $(this).find('input[type="hidden"]').val();
+            if (idExistente == produtoId) {
+                produtoExiste = true;
+                return false; // break
+            }
+        });
+
+        if (produtoExiste) {
+            alert('Este produto já foi adicionado à tabela. Remova-o primeiro se desejar alterar.');
+            return;
+        }
+
         // Adiciona uma linha à tabela com os campos `name` necessários
         $('#tabelaProdutos tbody').append(`
             <tr>
                 <td>
                     <input type="hidden" name="produtos[${produtoId}][id]" value="${produtoId}">${produtoId}
                 </td>
-                <td>${produtoNome}</td>
+                <td><strong>${produtoNome}</strong></td>
                 <td>
-                    <input type="number" class="form-control" name="produtos[${produtoId}][quantidade]" value="${quantidade}" min="1">
+                    <input type="number" class="form-control" name="produtos[${produtoId}][quantidade]" value="${quantidade}" min="1" onchange="atualizarValorTotalTabela()">
                 </td>
                 <td>
-                    <input type="text" class="form-control" name="produtos[${produtoId}][valor_unitario]" value="${formatCurrency(precoUnitario)}">
+                    <input type="text" class="form-control" name="produtos[${produtoId}][valor_unitario]" value="${formatCurrency(precoUnitario)}" oninput="formatCurrencyService(this); atualizarValorTotalTabela()">
                 </td>
-                <td class="valor-total">${formatCurrency(valorTotal)}</td>
+                <td class="valor-total" data-valor="${valorTotal}"><strong>${formatCurrency(valorTotal)}</strong></td>
                 <td>
                     <button type="button" class="btn btn-danger btn-sm" onclick="removerProduto(this)">Remover</button>
                 </td>
@@ -181,74 +268,93 @@
         atualizarValorTotalTabela();
     });
 
-      // Inicializa o Select2 para o campo de clientes
-      $('#select2Basic').select2({
-        tags: true, // Permite adicionar valores não listados
-        placeholder: 'Selecione um cliente',
-        width: '100%'
-    });
 
-      // Atualiza o endereço do cliente ao selecionar
-      $('#select2Basic').on('change', function () {
-          const enderecoCliente = $(this).find(':selected').data('endereco');
-          $('#endereco_cliente').val(enderecoCliente || '');
-      });
+      // Verifica se existe campo de serviço na página
+      if ($('#valor_servico').length && $('#adicionarServico').length) {
+          $('#adicionarServico').on('click', function () {
+              if (!validarValorServico()) return;
 
-      $('#adicionarServico').on('click', function () {
-        if (!validarValorServico()) return;
+              const valorServico = parseCurrency($('#valor_servico').val());
 
-        const valorServico = parseCurrency($('#valor_servico').val());
+              // Verifica se o serviço já existe na tabela
+              let servicoExiste = false;
+              $('#tabelaProdutos tbody tr').each(function() {
+                  const idExistente = $(this).find('td:first').text().trim();
+                  if (idExistente == '1') {
+                      servicoExiste = true;
+                      return false; // break
+                  }
+              });
 
-        // Simula o produto "Serviço" com ID 1 e insere na tabela
-        $('#tabelaProdutos tbody').append(`
-            <tr>
-                <td>1</td> <!-- ID do produto Serviço -->
-                <td>Serviço</td>
-                <td>
-                    <input type="number" class="form-control" name="produtos[1][quantidade]" value="1" readonly>
-                </td>
-                <td>
-                    <input type="text" class="form-control" name="produtos[1][valor_unitario]" value="${formatCurrency(valorServico)}" readonly>
-                </td>
-                <td class="valor-total">${formatCurrency(valorServico)}</td>
-                <td>
-                    <button type="button" class="btn btn-danger btn-sm" onclick="removerProduto(this)">Remover</button>
-                </td>
-            </tr>
-        `);
+              if (servicoExiste) {
+                  alert('O serviço já foi adicionado à tabela. Remova-o primeiro se desejar alterar.');
+                  return;
+              }
 
-        atualizarMensagemTabela();
-        atualizarValorTotalTabela();
-    });
+              // Simula o produto "Serviço" com ID 1 e insere na tabela
+              $('#tabelaProdutos tbody').append(`
+                  <tr>
+                      <td>1</td> <!-- ID do produto Serviço -->
+                      <td><strong>Serviço</strong></td>
+                      <td>
+                          <input type="number" class="form-control" name="produtos[1][quantidade]" value="1" readonly>
+                      </td>
+                      <td>
+                          <input type="text" class="form-control" name="produtos[1][valor_unitario]" value="${formatCurrency(valorServico)}" readonly>
+                      </td>
+                      <td class="valor-total" data-valor="${valorServico}"><strong>${formatCurrency(valorServico)}</strong></td>
+                      <td>
+                          <button type="button" class="btn btn-danger btn-sm" onclick="removerProduto(this)">Remover</button>
+                      </td>
+                  </tr>
+              `);
+
+              atualizarMensagemTabela();
+              atualizarValorTotalTabela();
+              
+              // Limpa o campo de serviço
+              $('#valor_servico').val('');
+          });
+      }
 
 
       // Calcula distância do cliente e custo de combustível
-      $('#calcularDistancia').on('click', function () {
-          const enderecoCliente = $('#endereco_cliente').val();
+      if ($('#calcularDistancia').length) {
+          $('#calcularDistancia').on('click', function () {
+              const enderecoCliente = $('#endereco_cliente').val();
 
-          if (!enderecoCliente) {
-              alert('Por favor, selecione um cliente para calcular a distância.');
+              if (!enderecoCliente) {
+                  alert('Por favor, selecione um cliente para calcular a distância.');
+                  return;
+              }
+
+              $.ajax({
+                  url: '{{ route("orcamentos.obterCoordenadas") }}',
+                  method: 'POST',
+                  data: {
+                      endereco_cliente: enderecoCliente,
+                      _token: '{{ csrf_token() }}',
+                  },
+                  success: function (response) {
+                      if (response.error) {
+                          alert('Erro: ' + response.error);
+                      } else {
+                          calcularDistanciaDaLoja(response.lat, response.lng);
+                      }
+                  },
+                  error: function() {
+                      alert('Erro ao calcular distância. Verifique sua conexão e tente novamente.');
+                  }
+              });
+          });
+      }
+
+      function calcularDistanciaDaLoja(lat, lng) {
+          if (typeof google === 'undefined' || !google.maps || !google.maps.geometry) {
+              alert('Google Maps não está carregado. Verifique sua conexão e tente novamente.');
               return;
           }
 
-          $.ajax({
-              url: '{{ route("orcamentos.obterCoordenadas") }}',
-              method: 'POST',
-              data: {
-                  endereco_cliente: enderecoCliente,
-                  _token: '{{ csrf_token() }}',
-              },
-              success: function (response) {
-                  if (response.error) {
-                      alert('Erro: ' + response.error);
-                  } else {
-                      calcularDistanciaDaLoja(response.lat, response.lng);
-                  }
-              },
-          });
-      });
-
-      function calcularDistanciaDaLoja(lat, lng) {
           const lojaLat = -22.4807496;
           const lojaLng = -44.5047416;
 
@@ -266,15 +372,18 @@
 
           custoCombustivel = custoCombustivelCalculado;
 
-          $('#alertCustoCombustivel').removeClass('d-none').html(`
-              <strong>Custo estimado de combustível: ${formatCurrency(custoCombustivelCalculado)}</strong>
-              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-          `);
-          $('#valorCombustivelAlert').text(formatCurrency(custoCombustivel));
-          $('#alertCustoCombustivel').removeClass('d-none'); // Mostra o alerta
+          if ($('#alertCustoCombustivel').length) {
+              $('#alertCustoCombustivel').removeClass('d-none').html(`
+                  <strong>Custo estimado de combustível: ${formatCurrency(custoCombustivelCalculado)}</strong>
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              `);
+              if ($('#valorCombustivelAlert').length) {
+                  $('#valorCombustivelAlert').text(formatCurrency(custoCombustivel));
+              }
+          }
 
           alert(`Distância até o cliente (ida e volta): ${distanciaKm} km\nCusto estimado de combustível: ${formatCurrency(custoCombustivel)}`);
-              }
+      }
   });
 
   // Atualiza a mensagem "Nenhum produto adicionado" na tabela
@@ -283,15 +392,39 @@
       $('#tabelaVazia').toggleClass('d-none', linhasProdutos > 0);
   }
 
-  // Atualiza o valor total na linha de total
+  // Atualiza o valor total na linha de total e recalcula valores das linhas
   function atualizarValorTotalTabela() {
-  let total = 0;
-  $('#tabelaProdutos tbody tr').each(function () {
-      const valor = parseFloat($(this).find('.valor-total').text().replace('R$ ', '').replace('.', '').replace(',', '.') || 0);
-      total += valor;
-  });
-  $('#valorTotalTabela').text(formatCurrency(total));
+      let total = 0;
+      $('#tabelaProdutos tbody tr').each(function () {
+          // Ignora a linha vazia
+          if ($(this).attr('id') === 'tabelaVazia') {
+              return;
+          }
+          
+          const quantidade = parseFloat($(this).find('input[name*="[quantidade]"]').val() || 0) || 0;
+          const valorUnitarioStr = $(this).find('input[name*="[valor_unitario]"]').val() || 'R$ 0,00';
+          const valorUnitario = parseCurrency(valorUnitarioStr) || 0;
+          const valorTotal = (quantidade * valorUnitario) || 0;
+          
+          // Atualiza o valor total da linha (garante que seja um número válido)
+          if (!isNaN(valorTotal) && valorTotal >= 0) {
+              $(this).find('.valor-total').html('<strong>' + formatCurrency(valorTotal) + '</strong>');
+              $(this).find('.valor-total').attr('data-valor', valorTotal);
+              total += valorTotal;
+          }
+      });
+      $('#valorTotalTabela').text(formatCurrency(total || 0));
   }
+  
+  // Atualiza valores ao carregar a página e quando campos mudam
+  $(document).ready(function() {
+      atualizarValorTotalTabela();
+      
+      // Atualiza quando quantidade ou valor unitário mudam
+      $(document).on('input change', 'input[name*="[quantidade]"], input[name*="[valor_unitario]"]', function() {
+          atualizarValorTotalTabela();
+      });
+  });
 
   // Limpa os campos do modal de produtos
   function limparCamposModal() {
@@ -299,6 +432,7 @@
       $('#valor_unitario').val('');
       $('#quantidade').val(1);
       $('#valor_total').val('R$ 0,00');
+      $('#estoqueInfo').html('');
   }
 
   // Remove uma linha da tabela
@@ -307,41 +441,4 @@
       atualizarMensagemTabela();
       atualizarValorTotalTabela();
   };
-
-
-  document.addEventListener('DOMContentLoaded', function () {
-    const formAutorizar = document.getElementById('formAutorizar');
-
-    formAutorizar.addEventListener('submit', function (e) {
-        e.preventDefault(); // Impede o envio do formulário
-
-        // Verifica o estoque via AJAX
-        fetch("{{ route('orcamentos.verificarEstoque', $orcamento->id) }}", {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': "{{ csrf_token() }}"
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.estoqueInsuficiente) {
-                // Exibe o popup de confirmação
-                const confirmar = confirm("Um ou mais produtos estão com estoque insuficiente. Deseja prosseguir com a venda mesmo assim?");
-
-                if (confirmar) {
-                    // Se o usuário confirmar, envia o formulário
-                    formAutorizar.submit();
-                } else {
-                    // Se o usuário cancelar, interrompe o processo
-                    alert('Venda cancelada pelo usuário.');
-                }
-            } else {
-                // Se o estoque estiver OK, envia o formulário diretamente
-                formAutorizar.submit();
-            }
-        })
-        .catch(error => console.error('Erro ao verificar estoque:', error));
-    });
-});
   </script>

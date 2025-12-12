@@ -40,8 +40,8 @@
     "files": [
         "app/Helpers/formatacao.php",
         "app/Helpers/Helpers.php",
-        "app/Helpers/saudacao.php"
-
+        "app/Helpers/saudacao.php",
+        "app/Helpers/PDVHelper.php"
     ]
 },
   "autoload-dev": {

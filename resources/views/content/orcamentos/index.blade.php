@@ -23,6 +23,46 @@
     </a>
 </div>
 
+<!-- Estatísticas -->
+@if(isset($stats))
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h6 class="card-title">Total de Orçamentos</h6>
+                <h3>{{ $stats['total'] }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <h6 class="card-title">Pendentes</h6>
+                <h3>{{ $stats['pendentes'] }}</h3>
+                <small class="d-block mt-1">R$ {{ number_format($stats['valor_total_pendente'], 2, ',', '.') }}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h6 class="card-title">Autorizados</h6>
+                <h3>{{ $stats['autorizados'] }}</h3>
+                <small class="d-block mt-1">R$ {{ number_format($stats['valor_total_autorizado'], 2, ',', '.') }}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h6 class="card-title">Vencidos</h6>
+                <h3>{{ $stats['vencidos'] }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
 <div class="row">
     <div class="col-md-12">
         <div class="card mb-4">
@@ -36,24 +76,6 @@
                                 <i class="fas fa-filter"></i> Filtrar/Ordenar
                             </button>
                             <ul class="dropdown-menu" aria-labelledby="dropdownFiltros">
-                                <!-- Checkboxes de Filtro -->
-                                <li>
-                                    <div class="dropdown-item">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="filtroRecusado" value="recusado" {{ in_array('recusado', request('status', [])) ? 'checked' : '' }} onchange="aplicarFiltros()">
-                                            <label class="form-check-label" for="filtroRecusado">Recusado</label>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="dropdown-item">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="filtroApagado" value="apagado" {{ in_array('apagado', request('status', [])) ? 'checked' : '' }} onchange="aplicarFiltros()">
-                                            <label class="form-check-label" for="filtroApagado">Apagado</label>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
                                 <!-- Opções de Ordenação -->
                                 <li>
                                     <div class="dropdown-item">
@@ -94,9 +116,96 @@
             </div>
 
             <div class="card-body">
-                <div class="mb-4">
-                    <!-- Barra de Pesquisa -->
-                    <input type="text" id="search" class="form-control" placeholder="Pesquisar orçamentos..." value="{{ request('search') }}" onkeyup="aplicarFiltros()">
+                <!-- Seção de Filtros -->
+                <div class="card border mb-3" style="background-color: #f8f9fa;">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-filter text-primary me-2"></i>
+                            <h6 class="mb-0 fw-bold">Filtros de Busca</h6>
+                        </div>
+                        <form method="GET" action="{{ route('orcamentos.index') }}" id="filtrosForm">
+                            <div class="row g-3">
+                                <!-- Campo de Pesquisa -->
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">
+                                        <i class="fas fa-search text-muted me-1"></i> Pesquisar
+                                    </label>
+                                    <input type="text" name="search" id="search" class="form-control" placeholder="ID, Cliente ou CPF/CNPJ" value="{{ request('search') }}">
+                                </div>
+                                
+                                <!-- Status -->
+                                <div class="col-md-3">
+                                    <label class="form-label fw-semibold">
+                                        <i class="fas fa-tag text-muted me-1"></i> Status
+                                    </label>
+                                    <select name="status[]" class="form-select" multiple size="4">
+                                        <option value="pendente" {{ in_array('pendente', request('status', [])) ? 'selected' : '' }}>Pendente</option>
+                                        <option value="autorizado" {{ in_array('autorizado', request('status', [])) ? 'selected' : '' }}>Autorizado</option>
+                                        <option value="recusado" {{ in_array('recusado', request('status', [])) ? 'selected' : '' }}>Recusado</option>
+                                        <option value="apagado" {{ in_array('apagado', request('status', [])) ? 'selected' : '' }}>Apagado</option>
+                                    </select>
+                                    <small class="text-muted">Segure Ctrl para múltipla seleção</small>
+                                </div>
+                                
+                                <!-- Data Início -->
+                                <div class="col-md-2">
+                                    <label class="form-label fw-semibold">
+                                        <i class="fas fa-calendar-alt text-muted me-1"></i> Data Início
+                                    </label>
+                                    <input type="date" name="data_inicio" class="form-control" value="{{ request('data_inicio') }}">
+                                </div>
+                                
+                                <!-- Data Fim -->
+                                <div class="col-md-2">
+                                    <label class="form-label fw-semibold">
+                                        <i class="fas fa-calendar-check text-muted me-1"></i> Data Fim
+                                    </label>
+                                    <input type="date" name="data_fim" class="form-control" value="{{ request('data_fim') }}">
+                                </div>
+                                
+                                <!-- Botões -->
+                                <div class="col-md-1 d-flex flex-column justify-content-end">
+                                    <button type="submit" class="btn btn-primary mb-2" title="Aplicar Filtros">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                    <a href="{{ route('orcamentos.index') }}" class="btn btn-outline-secondary" title="Limpar Filtros">
+                                        <i class="fas fa-times"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <!-- Status Selecionados (Badges) -->
+                            @php
+                                $statusSelecionados = request('status', []);
+                            @endphp
+                            @if(!empty($statusSelecionados))
+                            <div class="mt-3 pt-3 border-top">
+                                <small class="text-muted d-block mb-2">
+                                    <i class="fas fa-check-circle me-1"></i> Status selecionados:
+                                </small>
+                                <div class="d-flex flex-wrap gap-2">
+                                    @foreach($statusSelecionados as $status)
+                                    @php
+                                        $statusArray = $statusSelecionados;
+                                        $key = array_search($status, $statusArray);
+                                        unset($statusArray[$key]);
+                                        $novoRequest = request()->except(['status']);
+                                        if (!empty($statusArray)) {
+                                            $novoRequest['status'] = array_values($statusArray);
+                                        }
+                                    @endphp
+                                    <span class="badge bg-{{ $status == 'autorizado' ? 'success' : ($status == 'recusado' ? 'danger' : ($status == 'apagado' ? 'secondary' : 'warning')) }} d-inline-flex align-items-center">
+                                        {{ ucfirst($status) }}
+                                        <a href="{{ route('orcamentos.index', $novoRequest) }}" class="text-white ms-2" style="text-decoration: none; font-size: 1.1em; line-height: 1;" title="Remover filtro">×</a>
+                                    </span>
+                                    @endforeach
+                                </div>
+                            </div>
+                            @endif
+                            
+                            <input type="hidden" name="ordenacao" value="{{ request('ordenacao', 'recentes') }}">
+                        </form>
+                    </div>
                 </div>
                 <div class="table-responsive text-nowrap">
                     <table class="table table-striped" id="orcamentosTable">
@@ -108,18 +217,24 @@
                                 <th>Validade</th>
                                 <th>Valor Total</th>
                                 <th>Status</th>
+                                <th>Criado por</th>
                                 <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($orcamentos as $orcamento)
                                 <tr>
-                                    <td>{{ $orcamento->id }}</td>
+                                    <td><strong>#{{ $orcamento->id }}</strong></td>
                                     <td class="orcamento-cliente">
                                         <strong>{{ \Illuminate\Support\Str::limit($orcamento->cliente->nome ?? 'Cliente não encontrado', 40, '...') }}</strong>
                                     </td>
                                     <td class="orcamento-data">{{ \Carbon\Carbon::parse($orcamento->data)->format('d/m/Y') }}</td>
-                                    <td class="orcamento-validade">{{ \Carbon\Carbon::parse($orcamento->validade)->format('d/m/Y') }}</td>
+                                    <td class="orcamento-validade">
+                                        {{ \Carbon\Carbon::parse($orcamento->validade)->format('d/m/Y') }}
+                                        @if($orcamento->validade < now() && $orcamento->status == 'pendente')
+                                        <span class="badge bg-danger ms-1">Vencido</span>
+                                        @endif
+                                    </td>
                                     <td class="orcamento-valor"><strong>R$ {{ number_format($orcamento->valor_total, 2, ',', '.') }}</strong></td>
                                     <td class="orcamento-status">
                                         <span class="badge bg-{{ $orcamento->status == 'autorizado' ? 'success' : ($orcamento->status == 'recusado' ? 'danger' : ($orcamento->status == 'apagado' ? 'secondary' : 'warning')) }}">
@@ -127,14 +242,33 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <a href="{{ route('orcamentos.edit', $orcamento->id) }}" class="btn btn-info">
-                                            <i class="fas fa-eye"></i> Ver / Editar
-                                        </a>
-                                        <form action="{{ route('orcamentos.destroy', $orcamento->id) }}" method="POST" style="display:inline;">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger">Excluir</button>
-                                        </form>
+                                        <small class="text-muted">{{ $orcamento->usuario->name ?? 'N/A' }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="dropdown">
+                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                                <i class="bx bx-dots-vertical-rounded"></i>
+                                            </button>
+                                            <div class="dropdown-menu">
+                                                <a class="dropdown-item" href="{{ route('orcamentos.show', $orcamento->id) }}">
+                                                    <i class="bx bx-show me-1"></i> Ver Detalhes
+                                                </a>
+                                                <a class="dropdown-item" href="{{ route('orcamentos.edit', $orcamento->id) }}">
+                                                    <i class="bx bx-edit-alt me-1"></i> Editar
+                                                </a>
+                                                <a class="dropdown-item" href="{{ route('orcamentos.gerarPdf', $orcamento->id) }}" target="_blank">
+                                                    <i class="bx bx-file me-1"></i> Gerar PDF
+                                                </a>
+                                                <div class="dropdown-divider"></div>
+                                                <form action="{{ route('orcamentos.destroy', $orcamento->id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir este orçamento?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="dropdown-item text-danger">
+                                                        <i class="bx bx-trash me-1"></i> Excluir
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -154,23 +288,7 @@
 <!-- Script para Aplicar Filtros -->
 <script>
     function aplicarFiltros() {
-        const search = document.getElementById('search').value;
-        const filtroRecusado = document.getElementById('filtroRecusado').checked;
-        const filtroApagado = document.getElementById('filtroApagado').checked;
-        const ordenacao = document.querySelector('input[name="ordenacao"]:checked')?.value;
-
-        // Monta a URL com os parâmetros de filtro
-        let url = '{{ route("orcamentos.index") }}?';
-        if (search) url += `search=${search}&`;
-        if (filtroRecusado) url += `status[]=recusado&`;
-        if (filtroApagado) url += `status[]=apagado&`;
-        if (ordenacao) url += `ordenacao=${ordenacao}&`;
-
-        // Remove o último "&" se houver
-        if (url.endsWith('&')) url = url.slice(0, -1);
-
-        // Redireciona para a URL com os filtros aplicados
-        window.location.href = url;
+        document.getElementById('filtrosForm').submit();
     }
 </script>
 

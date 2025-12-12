@@ -21,11 +21,15 @@ class OS extends Model
         'problema_item',
         'acessorios',
         'senha_do_dispositivo',
-        'modelo_do_dispositivo', // Novo campo
-        'sn',                    // Novo campo
+        'modelo_do_dispositivo',
+        'sn',
         'avarias',
         'fotos',
-        'usuario_id'
+        'usuario_id',
+        'status',
+        'observacoes',
+        'valor_servico',
+        'data_conclusao'
     ];
 
     protected $casts = [
@@ -42,6 +46,16 @@ class OS extends Model
         'IMPRESSORA_TERMICA' => 'Impressora Térmica',
         'MACBOOK' => 'MacBook',
         'OUTROS' => 'Outros',
+    ];
+    
+    // Definindo os status disponíveis
+    public const STATUS = [
+        'pendente' => 'Pendente',
+        'em_andamento' => 'Em Andamento',
+        'aguardando_peca' => 'Aguardando Peça',
+        'concluida' => 'Concluída',
+        'entregue' => 'Entregue',
+        'cancelada' => 'Cancelada',
     ];
 
     public function cliente()

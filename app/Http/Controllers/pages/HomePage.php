@@ -21,6 +21,25 @@ class HomePage extends Controller
       $totalProdutos = Produto::count();
       $totalOrcamentos = Orcamento::count();
       $totalVendas = Venda::count();
+      
+      // Estatísticas financeiras
+      $totalVendasMes = Venda::whereMonth('created_at', now()->month)
+          ->whereYear('created_at', now()->year)
+          ->sum('valor_total');
+      
+      $totalCobrancasPendentes = \App\Models\Cobranca::where('status', 'pendente')->sum('valor');
+      
+      // Produtos em estoque baixo
+      $produtosEstoqueBaixo = Produto::where('estoque', '<=', 10)->count();
+      
+      // Vendas do mês anterior para comparação
+      $totalVendasMesAnterior = Venda::whereMonth('created_at', now()->subMonth()->month)
+          ->whereYear('created_at', now()->subMonth()->year)
+          ->sum('valor_total');
+      
+      $crescimentoVendas = $totalVendasMesAnterior > 0 
+          ? (($totalVendasMes - $totalVendasMesAnterior) / $totalVendasMesAnterior) * 100 
+          : 0;
 
       // Ordens de serviço recentes (com paginação)
       $ordensRecentes = OS::with('cliente') // Carrega o relacionamento com cliente
@@ -52,6 +71,25 @@ class HomePage extends Controller
       $clientesRecentes = Clientes::orderBy('created_at', 'desc')
           ->paginate(4, ['*'], 'clientes_page'); // Paginação com 5 itens por página
 
+      // Top 5 produtos em estoque baixo
+      $produtosEstoqueBaixoLista = Produto::where('estoque', '<=', 10)
+          ->orderBy('estoque', 'asc')
+          ->limit(5)
+          ->get();
+      
+      // Cobranças pendentes recentes
+      $cobrancasPendentes = \App\Models\Cobranca::where('status', 'pendente')
+          ->with('venda.cliente')
+          ->orderBy('data_vencimento', 'asc')
+          ->limit(5)
+          ->get();
+      
+      // Vendas por método de pagamento
+      $vendasPorMetodo = \App\Models\Cobranca::selectRaw('metodo_pagamento, COUNT(*) as total, SUM(valor) as valor_total')
+          ->where('status', 'pago')
+          ->groupBy('metodo_pagamento')
+          ->get();
+
       // Passa os dados para a view
       return view('content.pages.pages-home', compact(
           'totalClientes',
@@ -64,7 +102,14 @@ class HomePage extends Controller
           'clientesRecentes',
           'orcamentosProximosValidade',
           'vendasMensais',
-          'produtosMaisVendidos'
+          'produtosMaisVendidos',
+          'totalVendasMes',
+          'totalCobrancasPendentes',
+          'produtosEstoqueBaixo',
+          'crescimentoVendas',
+          'produtosEstoqueBaixoLista',
+          'cobrancasPendentes',
+          'vendasPorMetodo'
       ));
   }
   function saudacao()

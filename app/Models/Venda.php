@@ -12,12 +12,27 @@ class Venda extends Model
     protected $fillable = [
       'cliente_id',
       'user_id',
+      'caixa_id',
       'data_venda',
       'observacoes',
       'valor_total',
-      // 'reference', // Referência da venda no PagSeguro
-      // 'status' // Status do pagamento
+      'forma_pagamento',
+      'valor_recebido',
+      'troco',
+      'numero_cupom',
+      'sincronizado',
+      'data_sincronizacao',
+      'status',
   ];
+
+    protected $casts = [
+        'data_venda' => 'date',
+        'valor_total' => 'decimal:2',
+        'valor_recebido' => 'decimal:2',
+        'troco' => 'decimal:2',
+        'sincronizado' => 'boolean',
+        'data_sincronizacao' => 'datetime',
+    ];
 
     // Relacionamento com o cliente
     public function cliente()
@@ -37,5 +52,23 @@ class Venda extends Model
         return $this->belongsToMany(Produto::class, 'produto_venda')
                     ->withPivot('quantidade', 'valor_unitario', 'valor_total')
                     ->withTimestamps();
+    }
+
+    // Relacionamento com notas fiscais
+    public function notasFiscais()
+    {
+        return $this->hasMany(NotaFiscal::class);
+    }
+
+    // Relacionamento com cobranças
+    public function cobrancas()
+    {
+        return $this->hasMany(Cobranca::class);
+    }
+
+    // Relacionamento com caixa
+    public function caixa()
+    {
+        return $this->belongsTo(Caixa::class);
     }
 }

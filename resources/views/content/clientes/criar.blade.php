@@ -19,7 +19,7 @@
                                 <label for="cpf">
                                     <i class="fas fa-id-card"></i> CPF/CNPJ
                                 </label>
-                                <input type="text" class="form-control" id="cpf" name="cpf" placeholder="123.456.789-10" required>
+                                <input type="text" class="form-control" id="cpf" name="cpf" placeholder="123.456.789-10" oninput="formatCPFCNPJ(this)" required>
                                 @error('cpf')
                                 <span class="text-danger">{{ $message }}</span>
                                 @enderror
@@ -68,7 +68,7 @@
                                 <label for="telefone">
                                     <i class="fas fa-phone"></i> Telefone
                                 </label>
-                                <input type="text" class="form-control" id="telefone" name="telefone" x-mask="(99) 99999-9999" placeholder="(24) 12345-6789" required>
+                                <input type="text" class="form-control" id="telefone" name="telefone" placeholder="(00) 00000-0000" oninput="formatPhone(this)" required>
                                 @error('telefone')
                                 <span class="text-danger">{{ $message }}</span>
                                 @enderror
@@ -100,15 +100,13 @@
                                     <i class="fas fa-map-marker-alt"></i> CEP
                                 </label>
                                 <div class="input-group">
-                                    <input type="text" name="cep" id="cep" class="form-control" data-mask="00.000-000" placeholder="27520-000" required>
+                                    <input type="text" name="cep" id="cep" class="form-control" placeholder="00000-000" oninput="formatCEP(this)" required>
                                     @error('cep')
                                     <span class="text-danger">{{ $message }}</span>
                                     @enderror
-                                    <div class="input-group-append">
-                                        <button id="cep-search" class="btn btn-outline-secondary" type="button" style="height: 38px;">
-                                            <i class="fas fa-search"></i>
-                                        </button>
-                                    </div>
+                                    <button id="cep-search" class="btn btn-outline-secondary" type="button" onclick="buscarCEP('cep', 'endereco', 'bairro', 'cidade', 'estado', 'numero')">
+                                        <i class="fas fa-search"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -212,94 +210,23 @@
     </div>
 </div>
 
-{{--  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>  --}}
-  <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.js" integrity="sha512-0XDfGxFliYJPFrideYOoxdgNIvrwGTLnmK20xZbCAvPfLGQMzHUsaqZK8ZoH+luXGRxTrS46+Aq400nCnAT0/w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.js"></script>
 <script>
     $(document).ready(function() {
-
-     // Máscara dinâmica para CPF/CNPJ
-// Máscara dinâmica para CPF/CNPJ
-        $('#cpf').on('input', function(e) {
-          var value = e.target.value.replace(/\D/g, ''); // Remove caracteres não numéricos
-
-          if (value.length <= 11) {
-              // Aplica a máscara de CPF (até 11 dígitos)
-              value = value.replace(/(\d{3})(\d)/, '$1.$2');
-              value = value.replace(/(\d{3})(\d)/, '$1.$2');
-              value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-          } else if (value.length <= 14) {
-              // Aplica a máscara de CNPJ (até 14 dígitos)
-              value = value.replace(/^(\d{2})(\d)/, '$1.$2');
-              value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
-              value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
-              value = value.replace(/(\d{4})(\d{1,2})$/, '$1-$2');
-          }
-
-          e.target.value = value;
-        });
-
-
-
-        $('#cpf').blur(function() {
+        // Mostra/esconde campos baseado no CPF/CNPJ
+        $('#cpf').on('blur', function() {
             var cpfCnpj = $(this).val().replace(/\D/g, '');
             if (cpfCnpj.length === 11) {
-              $('#data_nascimento_container').show();
-              // CPF
-                $.ajax({
-                    url: 'https://www.receitaws.com.br/v1/cpf/' + cpfCnpj,
-                    type: 'GET',
-                    dataType: 'jsonp',
-                    success: function(data) {
-                        if (data.status === 'OK') {
-                            $('#nome').val(data.nome);
-                            $('#data_nascimento').val(data.data_nascimento);
-                            $('#inscricao_estadual_container').hide();
-                        } else {
-                            alert('CPF não encontrado.');
-                        }
-                    },
-                    error: function() {
-                        console.log('Erro ao consultar CPF.');
-                    }
-                });
-            } else if (cpfCnpj.length === 14) { // CNPJ
-              $.ajax({
-                url: 'https://www.receitaws.com.br/v1/cnpj/' + cpfCnpj,
-                type: 'GET',
-                dataType: 'jsonp',
-                success: function(data) {
-                    if (data.status === 'OK') {
-                        // Verificar se há nome fantasia
-                        var nomeExibido = data.fantasia
-                            ? '(' + data.fantasia + ') ' + data.nome
-                            : data.nome;
-
-                        // Atribuir o valor ao campo de nome
-                        $('#nome').val(nomeExibido);
-                        $('#inscricao_estadual').val(data.inscricao_estadual);
-                        $('#inscricao_estadual_container').show();
-                        $('#data_nascimento_container').hide();
-                        $('#cep').val(data.cep);
-                        $('#endereco').val(data.logradouro);
-                        $('#numero').val(data.numero);
-                        $('#bairro').val(data.bairro);
-                        $('#cidade').val(data.municipio);
-                        $('#estado').val(data.uf);
-                        $('#telefone').val(data.telefone);
-                        $('#email').val(data.email);
-                    } else {
-                        alert('CNPJ não encontrado.');
-                    }
-                },
-                error: function() {
-                    alert('Erro ao consultar CNPJ.');
-                }
-            });
-
+                $('#data_nascimento_container').show();
+                $('#inscricao_estadual_container').hide();
+            } else if (cpfCnpj.length === 14) {
+                $('#data_nascimento_container').hide();
+                $('#inscricao_estadual_container').show();
             }
         });
-
+        
+        // Auto-busca CEP ao sair do campo
+        autoBuscarCEP('cep', 'endereco', 'bairro', 'cidade', 'estado', 'numero');
     });
 </script>
 @endsection

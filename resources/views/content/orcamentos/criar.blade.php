@@ -41,7 +41,21 @@
                   <select id="select2Basic" class="select2 form-select" name="cliente_id" required>
                       <option value="" disabled selected>Selecione um cliente</option>
                       @foreach ($clientes as $cliente)
-                      <option value="{{ $cliente->id }}" data-endereco="{{ $cliente->endereco->endereco }}, {{ $cliente->endereco->numero }}, {{ $cliente->endereco->bairro }}, {{ $cliente->endereco->cidade }}, {{ $cliente->endereco->estado }}, CEP: {{ $cliente->endereco->cep }}">{{ $cliente->nome }}</option>
+                      @php
+                          $endereco = '';
+                          if ($cliente->endereco) {
+                              $cepFormatado = $cliente->endereco->cep ? 
+                                  (\Illuminate\Support\Str::substr($cliente->endereco->cep, 0, 5) . '-' . \Illuminate\Support\Str::substr($cliente->endereco->cep, 5)) : 
+                                  '';
+                              $endereco = ($cliente->endereco->endereco ?? '') . ', ' . 
+                                         ($cliente->endereco->numero ?? '') . ', ' . 
+                                         ($cliente->endereco->bairro ?? '') . ', ' . 
+                                         ($cliente->endereco->cidade ?? '') . ', ' . 
+                                         ($cliente->endereco->estado ?? '') . 
+                                         ($cepFormatado ? ', CEP: ' . $cepFormatado : '');
+                          }
+                      @endphp
+                      <option value="{{ $cliente->id }}" data-endereco="{{ $endereco }}">{{ $cliente->nome }}</option>
                       @endforeach
                   </select>
                   @error('cliente_id')
@@ -210,6 +224,7 @@
                 <div class="mb-3">
                     <label for="quantidade" class="form-label">Quantidade</label>
                     <input type="number" class="form-control" id="quantidade" value="1" min="1" required>
+                    <small class="text-muted" id="estoqueInfo"></small>
                 </div>
                 <div class="mb-3">
                     <label for="valor_total" class="form-label">Valor Total</label>
@@ -217,10 +232,6 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary me-2" onclick="window.history.back();">
-                  <i class="bx bx-x"></i> Cancelar
-                </button>
-
                 <button type="button" class="btn btn-primary" id="adicionarProduto">Adicionar Produto</button>
             </div>
         </div>

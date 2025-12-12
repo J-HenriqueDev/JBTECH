@@ -15,14 +15,52 @@
 @endif
 
 
-<div class="d-flex justify-content-between align-items-center">
+<div class="d-flex justify-content-between align-items-center mb-4">
   <h1 class="text-primary" style="font-size: 2.5rem; font-weight: bold; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);">
-    <i class="fas fa-plus-circle"></i> Clientes
+    <i class="fas fa-users"></i> Clientes
   </h1>
     <a href="{{ route('clientes.create') }}" class="btn btn-primary">
         <i class="fas fa-plus-circle me-1"></i> Novo Cliente
     </a>
 </div>
+
+<!-- Estatísticas -->
+@if(isset($stats))
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h6 class="card-title">Total de Clientes</h6>
+                <h3>{{ $stats['total'] }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-secondary text-white">
+            <div class="card-body">
+                <h6 class="card-title">Particulares</h6>
+                <h3>{{ $stats['particulares'] }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h6 class="card-title">Empresariais</h6>
+                <h3>{{ $stats['empresariais'] }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h6 class="card-title">Total em Vendas</h6>
+                <h3>R$ {{ number_format($stats['total_vendas'], 2, ',', '.') }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
 
 
 <div class="row">
@@ -33,10 +71,27 @@
             </div>
 
             <div class="card-body">
-              <!-- Formulário de pesquisa -->
+              <!-- Formulário de pesquisa e filtros -->
                 <form method="GET" class="mb-4">
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="search-input" placeholder="Pesquisar por Nome ou CPF/CNPJ" aria-label="Pesquisar">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <input type="text" name="search" class="form-control" id="search-input" placeholder="Pesquisar por Nome, CPF/CNPJ, Email ou Telefone" value="{{ request('search') }}">
+                        </div>
+                        <div class="col-md-3">
+                            <select name="tipo_cliente" class="form-select">
+                                <option value="">Todos os Tipos</option>
+                                <option value="0" {{ request('tipo_cliente') == '0' ? 'selected' : '' }}>Particular</option>
+                                <option value="1" {{ request('tipo_cliente') == '1' ? 'selected' : '' }}>Empresarial</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" name="cidade" class="form-control" placeholder="Filtrar por Cidade" value="{{ request('cidade') }}">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search"></i> Filtrar
+                            </button>
+                        </div>
                     </div>
                 </form>
                 <div class="table-responsive text-nowrap">
@@ -51,13 +106,18 @@
                             </tr>
                         </thead>
                         <tbody id="clientes-table" class="table-border-bottom-0">
-                            <!-- Os clientes serão inseridos aqui via JavaScript -->
-                            @foreach($clientes as $cliente)
+                            @forelse($clientes as $cliente)
                                 <tr>
-                                    <td><strong>{{ formatarCpfCnpj($cliente->cpf_cnpj) }}</td>
-                                    {{--  <td><strong>{{ $cliente->nome }}</td>  --}}
-                                    <td><strong>{{\Illuminate\Support\Str::limit($cliente->nome, 40, '...') }}</strong></td>
-
+                                    <td><strong>{{ formatarCpfCnpj($cliente->cpf_cnpj) }}</strong></td>
+                                    <td>
+                                        <strong>{{\Illuminate\Support\Str::limit($cliente->nome, 40, '...') }}</strong>
+                                        <br>
+                                        <small class="text-muted">
+                                            <span class="badge bg-{{ $cliente->tipo_cliente == 1 ? 'info' : 'secondary' }}">
+                                                {{ $cliente->tipo_cliente == 1 ? 'Empresarial' : 'Particular' }}
+                                            </span>
+                                        </small>
+                                    </td>
                                     <td>{{ $cliente->email }}</td>
                                     <td>{{ $cliente->telefone }}</td>
                                     <td>
@@ -66,6 +126,9 @@
                                                 <i class="bx bx-dots-vertical-rounded"></i>
                                             </button>
                                             <div class="dropdown-menu">
+                                                <a class="dropdown-item" href="{{ route('clientes.show', $cliente->id) }}">
+                                                    <i class="bx bx-show me-1"></i> Ver Detalhes
+                                                </a>
                                                 <a class="dropdown-item" href="{{ route('clientes.edit', $cliente->id) }}">
                                                     <i class="bx bx-edit-alt me-1"></i> Editar
                                                 </a>
@@ -76,9 +139,18 @@
                                         </div>
                                     </td>
                                 </tr>
-                            @endforeach
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="text-center">Nenhum cliente encontrado.</td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
+                </div>
+                
+                <!-- Paginação -->
+                <div class="mt-4">
+                    {{ $clientes->links() }}
                 </div>
             </div>
         </div>

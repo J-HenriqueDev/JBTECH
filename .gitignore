@@ -1,23 +1,72 @@
-/vendor/
-node_modules/
+# Laravel
+/node_modules
+/public/hot
+/public/storage
+/storage/*.key
+/vendor
+.env
+.env.backup
+.env.production
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+auth.json
 npm-debug.log
 yarn-error.log
+/.fleet
+/.idea
+/.vscode
 
-# Laravel 4 specific
-bootstrap/compiled.php
-app/storage/
+# PDV Desktop C# - Build Files
+pdv-desktop/bin/
+pdv-desktop/obj/
+pdv-desktop/*.user
+pdv-desktop/*.suo
+pdv-desktop/*.cache
+pdv-desktop/.vs/
+pdv-desktop/config.ini
 
-# Laravel 5 & Lumen specific
-public/storage
-public/hot
+# PDV Configurador - Build Files
+pdv-desktop-configurador/bin/
+pdv-desktop-configurador/obj/
+pdv-desktop-configurador/*.user
+pdv-desktop-configurador/*.suo
+pdv-desktop-configurador/.vs/
 
-# Laravel 5 & Lumen specific with changed public path
-public_html/storage
-public_html/hot
+# Instalador - Output
+pdv-desktop-instalador/dist/
 
-storage/*.key
-.env
-Homestead.yaml
-Homestead.json
-/.vagrant
-.phpunit.result.cache
+# Arquivos temporários
+*.log
+*.tmp
+*.cache
+.DS_Store
+Thumbs.db
+
+# Build executables (mantenha apenas no dist do instalador)
+*.dll
+*.exe
+*.pdb
+
+# Node (não usado, mas mantido)
+node_modules/
+package-lock.json
+yarn.lock
+
+# IDEs
+.idea/
+.vs/
+*.swp
+*.swo
+*~
+
+# Electron/Tauri (removidos, mas mantido por segurança)
+pdv-desktop/dist/
+pdv-desktop/node_modules/
+pdv-desktop/src/
+pdv-desktop/src-tauri/
+pdv-desktop/tauri.conf.json
+pdv-desktop/index.html
+pdv-desktop/vite.config.js
+pdv-desktop/package.json
+pdv-desktop/package-lock.json

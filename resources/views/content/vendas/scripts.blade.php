@@ -28,8 +28,8 @@ function atualizarProdutos() {
                   false,
                   false
               );
-              // Adiciona o preço como um atributo de dados
-              $(option).data('preco', produto.preco_venda);
+              // Adiciona o preço como um atributo de dados (garante que seja número)
+              $(option).data('preco', parseFloat(produto.preco_venda) || 0);
               $('#produto_id').append(option);
           });
 
@@ -54,9 +54,14 @@ let carregandoProdutos = false; // Indica se uma requisição está em andamento
 
 
 function formatCurrency(value) {
-  if (isNaN(value) || value === null) return 'R$ 0,00';
-  value = Math.abs(parseFloat(value)).toFixed(2);
-  return `R$ ${value.replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
+  // Trata valores undefined, null ou vazios
+  if (value === undefined || value === null || value === '') {
+      return 'R$ 0,00';
+  }
+  const numValue = parseFloat(value);
+  if (isNaN(numValue)) return 'R$ 0,00';
+  const formatted = Math.abs(numValue).toFixed(2);
+  return `R$ ${formatted.replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
 }
 
 // Remove a formatação de moeda e retorna um número
@@ -94,9 +99,23 @@ window.removerProduto = function (button) {
     $(button).closest('tr').remove();
     atualizarMensagemTabela();
     atualizarValorTotalTabela();
+    reindexarProdutos();
 };
 
 $(document).ready(function () {
+    // Aplica configurações padrão de venda
+    @if(isset($formaPagamentoPadrao))
+    var formaPagamentoPadrao = '{{ $formaPagamentoPadrao }}';
+    @else
+    var formaPagamentoPadrao = 'dinheiro';
+    @endif
+    
+    @if(isset($descontoMaximo))
+    var descontoMaximo = {{ $descontoMaximo }};
+    @else
+    var descontoMaximo = 10;
+    @endif
+    
     // Configura o idioma do Select2
     $.fn.select2.defaults.set('language', 'pt-BR');
 
@@ -120,22 +139,45 @@ $(document).ready(function () {
    });
 
     $('#produto_id').on('change', function () {
-      const preco = $(this).find(':selected').data('preco'); // Obtém o preço do produto selecionado
-      if (preco) {
-          $('#valor_unitario').val(formatCurrency(preco)); // Formata o valor e preenche o campo
-          const quantidade = parseInt($('#quantidade').val() || 1);
-          $('#valor_total').val(formatCurrency(preco * quantidade)); // Calcula o valor total
-      } else {
-          $('#valor_unitario').val('');
-          $('#valor_total').val('');
-      }
-  });
+        const selectedId = $(this).val();
+        
+        // Ignora se nenhum produto foi selecionado ou se é o placeholder
+        if (!selectedId || selectedId === '') {
+            $('#valor_unitario').val('');
+            $('#valor_total').val('');
+            return;
+        }
+        
+        const selectedOption = $(this).find('option[value="' + selectedId + '"]');
+        const preco = parseFloat(selectedOption.data('preco')) || 0;
+        
+        if (preco && preco > 0) {
+            // Preenche o campo Valor do Produto
+            $('#valor_unitario').val(formatCurrency(preco));
+            
+            // Calcula e preenche o Valor Total (preço × quantidade)
+            const quantidade = parseInt($('#quantidade').val() || 1);
+            const valorTotal = preco * quantidade;
+            $('#valor_total').val(formatCurrency(valorTotal));
+        } else {
+            $('#valor_unitario').val('');
+            $('#valor_total').val('');
+        }
+    });
 
     // Atualiza o valor_total ao alterar a quantidade
     $('#quantidade').on('input', function () {
         const preco = parseCurrency($('#valor_unitario').val());
         const quantidade = parseInt($(this).val() || 1);
-        $('#valor_total').val(formatCurrency(preco * quantidade));
+        let valorTotal = preco * quantidade;
+        
+        // Aplica desconto máximo se configurado (será implementado quando houver campo de desconto)
+        // if (descontoMaximo > 0) {
+        //     const desconto = Math.min(descontoMaximo, (valorTotal * descontoMaximo / 100));
+        //     valorTotal -= desconto;
+        // }
+        
+        $('#valor_total').val(formatCurrency(valorTotal));
     });
 
     // Adiciona o produto na tabela
@@ -151,18 +193,31 @@ $(document).ready(function () {
             return;
         }
 
+        // Verifica se o produto já foi adicionado
+        const produtoJaExiste = $('#tabelaProdutos tbody tr').filter(function() {
+            return $(this).find('input[type="hidden"][name*="[id]"]').val() == produtoId;
+        }).length > 0;
+
+        if (produtoJaExiste) {
+            alert('Este produto já foi adicionado à venda. Remova-o primeiro se desejar alterar a quantidade.');
+            return;
+        }
+
+        // Conta quantos produtos já existem para usar como índice
+        const indiceProduto = $('#tabelaProdutos tbody tr').not('#tabelaVazia').length;
+
         // Adiciona uma linha à tabela com os campos `name` necessários
         $('#tabelaProdutos tbody').append(`
-            <tr>
+            <tr data-produto-id="${produtoId}">
                 <td>
-                    <input type="hidden" name="produtos[${produtoId}][id]" value="${produtoId}">${produtoId}
+                    <input type="hidden" name="produtos[${indiceProduto}][id]" value="${produtoId}">${produtoId}
                 </td>
                 <td>${produtoNome}</td>
                 <td>
-                    <input type="number" class="form-control" name="produtos[${produtoId}][quantidade]" value="${quantidade}" min="1" readonly>
+                    <input type="number" class="form-control" name="produtos[${indiceProduto}][quantidade]" value="${quantidade}" min="1" readonly>
                 </td>
                 <td>
-                    <input type="text" class="form-control" name="produtos[${produtoId}][valor_unitario]" value="${formatCurrency(precoUnitario)}" readonly>
+                    <input type="text" class="form-control" name="produtos[${indiceProduto}][valor_unitario]" value="${formatCurrency(precoUnitario)}" readonly>
                 </td>
                 <td class="valor-total">${formatCurrency(valorTotal)}</td>
                 <td>
@@ -176,7 +231,19 @@ $(document).ready(function () {
         limparCamposModal();
         atualizarMensagemTabela();
         atualizarValorTotalTabela();
+        
+        // Reindexa os produtos após adicionar
+        reindexarProdutos();
     });
+
+    // Função para reindexar os produtos na tabela
+    function reindexarProdutos() {
+        $('#tabelaProdutos tbody tr').not('#tabelaVazia').each(function(index) {
+            $(this).find('input[name*="[id]"]').attr('name', `produtos[${index}][id]`);
+            $(this).find('input[name*="[quantidade]"]').attr('name', `produtos[${index}][quantidade]`);
+            $(this).find('input[name*="[valor_unitario]"]').attr('name', `produtos[${index}][valor_unitario]`);
+        });
+    }
 
     // Inicializa o Select2 para o campo de clientes
     $('#select2Cliente').select2({

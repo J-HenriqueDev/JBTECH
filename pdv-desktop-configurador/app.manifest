@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v1">
+  <assemblyIdentity version="1.0.0.0" name="PdvConfigurador.app"/>
+  <trustInfo xmlns="urn:schemas-microsoft-com:asm.v2">
+    <security>
+      <requestedPrivileges xmlns="urn:schemas-microsoft-com:asm.v3">
+        <!-- UAC Manifest Options
+             Se você quiser alterar o comportamento do Windows User Account Control,
+             substitua o requestedExecutionLevel node por um dos seguintes:
+
+        <requestedExecutionLevel  level="asInvoker" uiAccess="false" />
+        <requestedExecutionLevel  level="requireAdministrator" uiAccess="false" />
+        <requestedExecutionLevel  level="highestAvailable" uiAccess="false" />
+
+             Especificar o elemento requestedExecutionLevel desabilita o file and registry virtualization.
+             Remova este elemento se o seu aplicativo precisar dessa virtualização para compatibilidade com versões anteriores.
+        -->
+        <requestedExecutionLevel level="requireAdministrator" uiAccess="false" />
+      </requestedPrivileges>
+    </security>
+  </trustInfo>
+
+  <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
+    <application>
+      <!-- Uma lista dos identificadores de versão do Windows que este aplicativo foi projetado para funcionar.
+           Os identificadores de versão do Windows são declarados como GUIDs. -->
+
+      <!-- Windows 10 -->
+      <supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}" />
+    </application>
+  </compatibility>
+
+  <!-- Indica que o aplicativo está ciente dos temas de alto DPI do Windows Vista e versões posteriores. -->
+  <!-- Desabilitar isso fará com que o aplicativo seja redimensionado de forma estranha em monitores de alta DPI. -->
+  <application xmlns="urn:schemas-microsoft-com:asm.v3">
+    <windowsSettings>
+      <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">true</dpiAware>
+    </windowsSettings>
+  </application>
+
+</assembly>
+
+

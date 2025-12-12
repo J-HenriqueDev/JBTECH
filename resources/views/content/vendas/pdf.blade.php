@@ -136,10 +136,10 @@
 
         <!-- Informações do Cliente -->
         <div class="info-section">
-            <p><strong>Cliente:</strong> {{ $venda->cliente->nome }}</p>
-            <p><strong>CPF/CNPJ:</strong> {{ formatarCpfCnpj($venda->cliente->cpf_cnpj) }}</p>
-            <p><strong>Data de Venda:</strong> {{ Carbon\Carbon::parse($venda->data)->translatedFormat('d \d\e F \d\e Y') }}</p>
-            <p><strong>Forma de Pagamento:</strong> {{ $venda->forma_pagamento ?? 'Não informado' }}</p>
+            <p><strong>Cliente:</strong> {{ $venda->cliente->nome ?? 'N/A' }}</p>
+            <p><strong>CPF/CNPJ:</strong> {{ $venda->cliente->cpf_cnpj ?? 'N/A' }}</p>
+            <p><strong>Data de Venda:</strong> {{ \Carbon\Carbon::parse($venda->data_venda)->format('d/m/Y') }}</p>
+            <p><strong>Vendedor:</strong> {{ $venda->user->name ?? 'N/A' }}</p>
         </div>
 
         <!-- Produtos -->

@@ -66,23 +66,33 @@
                                     </td>
                                     <td class="venda-data">{{ \Carbon\Carbon::parse($venda->data_venda)->format('d/m/Y') }}</td>
                                     <td class="venda-valor"><strong>R$ {{ number_format($venda->valor_total, 2, ',', '.') }}</strong></td>
-                                    <td class="venda-itens">{{ $venda->produtos->sum('pivot.quantidade') }} itens</td>
+                                    <td class="venda-itens">{{ $venda->produtos->sum('pivot.quantidade') ?? 0 }} itens</td>
                                     <td class="venda-status">
-                                        <span class="badge bg-{{ $venda->status == 'pago' ? 'success' : ($venda->status == 'desabilitado' ? 'danger' : 'warning') }}">
-                                            {{ ucfirst(str_replace('_', ' ', $venda->status)) }}
+                                        <span class="badge bg-success">
+                                            <i class="bx bx-check-circle"></i> Ativa
                                         </span>
                                     </td>
                                     <!-- Coluna oculta para updated_at -->
                                     <td class="venda-updated-at" style="display: none;">{{ $venda->updated_at }}</td>
                                     <td>
-                                        <a href="{{ route('vendas.edit', $venda->id) }}" class="btn btn-info">
-                                            <i class="fas fa-eye"></i> Ver / Editar
-                                        </a>
-                                        <form action="{{ route('vendas.destroy', $venda->id) }}" method="POST" style="display:inline;">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger">Excluir</button>
-                                        </form>
+                                        <div class="d-flex gap-2">
+                                            <a href="{{ route('vendas.edit', $venda->id) }}" class="btn btn-info btn-sm">
+                                                <i class="bx bx-edit"></i> Ver/Editar
+                                            </a>
+                                            <a href="{{ route('vendas.exportarPdf', $venda->id) }}" class="btn btn-success btn-sm" target="_blank">
+                                                <i class="bx bx-download"></i> PDF
+                                            </a>
+                                            <a href="{{ route('nfe.create', ['venda_id' => $venda->id]) }}" class="btn btn-primary btn-sm" title="Emitir NF-e">
+                                                <i class="bx bx-receipt"></i> NF-e
+                                            </a>
+                                            <form action="{{ route('vendas.destroy', $venda->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja excluir esta venda?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger btn-sm">
+                                                    <i class="bx bx-trash"></i> Excluir
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach

@@ -24,6 +24,12 @@ class Cobranca extends Model
         'enviar_whatsapp',
     ];
 
+    protected $casts = [
+        'data_vencimento' => 'date',
+        'proxima_cobranca' => 'datetime',
+        'valor' => 'decimal:2',
+    ];
+
     // Relacionamento com a venda
     public function venda()
     {

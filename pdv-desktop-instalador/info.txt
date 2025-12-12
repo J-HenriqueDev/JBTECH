@@ -1,0 +1,14 @@
+PDV Desktop - Sistema de Ponto de Venda
+
+Versão: 1.0.0
+
+Este instalador irá instalar o PDV Desktop e o Configurador PDV.
+
+Após a instalação, execute o Configurador PDV para configurar:
+- URL da API
+- Impressora
+- Balança
+
+Para mais informações, consulte a documentação.
+
+

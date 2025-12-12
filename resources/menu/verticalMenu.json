@@ -59,6 +59,24 @@
       "name": "Cobranças",
       "icon": "menu-icon tf-icons fas fa-money-check-alt text-primary",
       "slug": "cobrancas"
+    },
+    {
+      "url": "/dashboard/nfe",
+      "name": "Notas Fiscais",
+      "icon": "menu-icon tf-icons bx bx-receipt text-info",
+      "slug": "nfe"
+    },
+    {
+      "url": "/logs",
+      "name": "Logs do Sistema",
+      "icon": "menu-icon tf-icons bx bx-list-ul text-secondary",
+      "slug": "logs"
+    },
+    {
+      "url": "/dashboard/configuracoes",
+      "name": "Configurações",
+      "icon": "menu-icon tf-icons bx bx-cog text-warning",
+      "slug": "configuracoes"
     }
   ]
 }

@@ -1,0 +1,147 @@
+<UserControl x:Class="PdvDesktop.Views.Pages.CheckoutPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Área de Produtos -->
+        <Border Grid.Column="0" 
+               Background="White" 
+               CornerRadius="5" 
+               Padding="20"
+               Margin="0,0,10,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Busca -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
+                    <TextBox x:Name="txtBusca" 
+                            Width="400" 
+                            Height="40" 
+                            FontSize="16"
+                            Padding="10"
+                            KeyDown="TxtBusca_KeyDown"/>
+                    <Button Content="⚖️ Pesar" 
+                           Width="100" 
+                           Height="40" 
+                           Margin="10,0,0,0"
+                           Click="BtnPesar_Click"/>
+                </StackPanel>
+
+                <!-- Carrinho -->
+                <DataGrid x:Name="dgCarrinho" 
+                         Grid.Row="1" 
+                         AutoGenerateColumns="False"
+                         IsReadOnly="True"
+                         HeadersVisibility="Column"
+                         GridLinesVisibility="None"
+                         RowHeaderWidth="0">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Produto" Binding="{Binding Nome}" Width="*"/>
+                        <DataGridTextColumn Header="Qtd" Binding="{Binding Quantidade}" Width="80"/>
+                        <DataGridTextColumn Header="Valor Unit." Binding="{Binding ValorUnitario, StringFormat=C2}" Width="120"/>
+                        <DataGridTextColumn Header="Total" Binding="{Binding ValorTotal, StringFormat=C2}" Width="120"/>
+                        <DataGridTemplateColumn Width="100">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="Remover" 
+                                           Click="BtnRemover_Click"
+                                           Tag="{Binding}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <!-- Total -->
+                <Border Grid.Row="2" 
+                       Background="#f8f9fa" 
+                       Padding="15"
+                       Margin="0,15,0,0">
+                    <TextBlock x:Name="lblTotal" 
+                              Text="Total: R$ 0,00" 
+                              FontSize="24" 
+                              FontWeight="Bold"
+                              HorizontalAlignment="Right"/>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Área de Pagamento -->
+        <Border Grid.Column="1" 
+               Background="White" 
+               CornerRadius="5" 
+               Padding="20">
+            <StackPanel>
+                <TextBlock Text="Pagamento" 
+                          FontSize="20" 
+                          FontWeight="Bold" 
+                          Margin="0,0,0,20"/>
+
+                <!-- Formas de Pagamento -->
+                <TextBlock Text="Forma de Pagamento" 
+                          FontWeight="SemiBold" 
+                          Margin="0,0,0,10"/>
+                <ComboBox x:Name="cmbFormaPagamento" 
+                         Height="40" 
+                         FontSize="16"
+                         SelectionChanged="CmbFormaPagamento_SelectionChanged">
+                    <ComboBoxItem Content="💰 Dinheiro" Tag="dinheiro" IsSelected="True"/>
+                    <ComboBoxItem Content="💳 Débito" Tag="cartao_debito"/>
+                    <ComboBoxItem Content="💳 Crédito" Tag="cartao_credito"/>
+                    <ComboBoxItem Content="📱 PIX" Tag="pix"/>
+                </ComboBox>
+
+                <!-- Valor Recebido -->
+                <TextBlock x:Name="lblValorRecebido" 
+                          Text="Valor Recebido" 
+                          FontWeight="SemiBold" 
+                          Margin="0,20,0,10"/>
+                <TextBox x:Name="txtValorRecebido" 
+                        Height="40" 
+                        FontSize="18"
+                        Padding="10"
+                        TextChanged="TxtValorRecebido_TextChanged"/>
+
+                <!-- Troco -->
+                <Border Background="#e3f2fd" 
+                       Padding="15" 
+                       CornerRadius="5"
+                       Margin="0,15,0,0">
+                    <TextBlock x:Name="lblTroco" 
+                              Text="Troco: R$ 0,00" 
+                              FontSize="18" 
+                              FontWeight="Bold"/>
+                </Border>
+
+                <!-- Botões -->
+                <Button x:Name="btnFinalizar" 
+                       Content="Finalizar Venda" 
+                       Height="50" 
+                       FontSize="18"
+                       FontWeight="SemiBold"
+                       Background="#28a745"
+                       Foreground="White"
+                       BorderThickness="0"
+                       Margin="0,30,0,10"
+                       Click="BtnFinalizar_Click"/>
+                
+                <Button Content="Limpar Carrinho" 
+                       Height="40" 
+                       Background="#dc3545"
+                       Foreground="White"
+                       BorderThickness="0"
+                       Click="BtnLimpar_Click"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>
+
+

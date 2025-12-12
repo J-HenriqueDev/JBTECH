@@ -27,10 +27,33 @@
     <div class="col-md-12">
         <div class="card mb-4">
             <div class="card-header">
-                <h5 class="card-title">Produtos Cadastrados</h5>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-2">
+                        <h5 class="card-title mb-0">Produtos Cadastrados</h5>
+                        @if($edicaoInline)
+                        <span class="badge bg-success d-flex align-items-center gap-1" style="font-size: 0.75rem;">
+                            <i class="fas fa-edit"></i> Modo Edição Ativo
+                        </span>
+                        @endif
+                    </div>
+                    <div class="d-flex gap-2">
+                        <select id="filterCategoria" class="form-select form-select-sm" style="width: auto;" onchange="filterProducts()">
+                            <option value="">Todas as categorias</option>
+                            @foreach($categorias as $categoria)
+                            <option value="{{ $categoria->id }}">{{ $categoria->nome }}</option>
+                            @endforeach
+                        </select>
+                        <select id="filterEstoque" class="form-select form-select-sm" style="width: auto;" onchange="filterProducts()">
+                            <option value="">Todos</option>
+                            <option value="baixo">Estoque baixo (≤ 10)</option>
+                            <option value="medio">Estoque médio (11-50)</option>
+                            <option value="alto">Estoque alto (> 50)</option>
+                        </select>
+                    </div>
+                </div>
                 <!-- Barra de Pesquisa -->
-                <div class="mb-4">
-                    <input type="text" id="search" class="form-control" placeholder="Pesquisar produtos..." onkeyup="filterProducts()">
+                <div class="mt-3">
+                    <input type="text" id="search" class="form-control" placeholder="Pesquisar por nome, código de barras ou NCM..." onkeyup="filterProducts()">
                 </div>
             </div>
             <div class="card-body">
@@ -38,27 +61,128 @@
                     <table class="table table-striped" id="productsTable">
                         <thead>
                             <tr>
-                                <th>ID</th> <!-- Nova coluna para ID -->
+                                <th>ID</th>
                                 <th>Nome do Produto</th>
-                                <th>Quantidade em Estoque</th>
-                                <th>Preço de Venda</th>
+                                <th>Categoria</th>
+                                <th>Estoque</th>
+                                <th>Preço Custo</th>
+                                <th>Preço Venda</th>
+                                <th>Lucro</th>
                                 <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($produtos as $produto)
-                                <tr>
-                                    <td>{{ $produto->id }}</td> <!-- Exibe o ID do produto -->
-                                    <td class="product-name">{{ $produto->nome }}</td>
-                                    <td class="product-quantity">{{ $produto->estoque }}</td>
-                                    <td class="product-price">{{ number_format($produto->preco_venda, 2, ',', '.') }}</td>
+                                @php
+                                    $lucro = $produto->preco_venda - $produto->preco_custo;
+                                    $lucroPercentual = $produto->preco_custo > 0 ? (($lucro / $produto->preco_custo) * 100) : 0;
+                                    $estoqueMinimo = \App\Models\Configuracao::get('produtos_estoque_minimo', '10');
+                                    $estoqueBaixo = $produto->estoque <= $estoqueMinimo;
+                                @endphp
+                                <tr data-categoria="{{ $produto->categoria_id }}" data-estoque="{{ $produto->estoque }}" data-produto-id="{{ $produto->id }}">
+                                    <td>{{ $produto->id }}</td>
+                                    <td class="product-name">
+                                        @if($edicaoInline)
+                                            <div class="d-flex align-items-center gap-2">
+                                                <input type="text" class="form-control form-control-sm editable-field" 
+                                                       data-field="nome" 
+                                                       data-produto-id="{{ $produto->id }}"
+                                                       value="{{ $produto->nome }}"
+                                                       placeholder="Nome do produto"
+                                                       style="min-width: 200px; flex: 1;">
+                                                <i class="fas fa-edit text-muted" style="font-size: 0.75rem;" title="Campo editável"></i>
+                                            </div>
+                                        @else
+                                            <strong>{{ $produto->nome }}</strong>
+                                        @endif
+                                        @if($produto->codigo_barras)
+                                        <br><small class="text-muted">Código: {{ $produto->codigo_barras }}</small>
+                                        @endif
+                                    </td>
+                                    <td class="product-categoria">
+                                        @if($edicaoInline)
+                                            <select class="form-select form-select-sm editable-field" 
+                                                    data-field="categoria_id" 
+                                                    data-produto-id="{{ $produto->id }}"
+                                                    style="min-width: 150px;">
+                                                @foreach($categorias as $categoria)
+                                                    <option value="{{ $categoria->id }}" {{ $produto->categoria_id == $categoria->id ? 'selected' : '' }}>
+                                                        {{ $categoria->nome }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        @else
+                                            <span class="badge bg-info">{{ $produto->categoria->nome ?? 'Sem categoria' }}</span>
+                                        @endif
+                                    </td>
+                                    <td class="product-quantity">
+                                        @if($edicaoInline)
+                                            <div class="d-flex align-items-center gap-1">
+                                                <input type="number" class="form-control form-control-sm editable-field text-center" 
+                                                       data-field="estoque" 
+                                                       data-produto-id="{{ $produto->id }}"
+                                                       value="{{ $produto->estoque ?? 0 }}"
+                                                       min="0"
+                                                       style="width: 90px;">
+                                                <i class="fas fa-box text-muted" style="font-size: 0.75rem;" title="Estoque"></i>
+                                            </div>
+                                        @else
+                                            <span class="badge bg-{{ $estoqueBaixo ? 'danger' : ($produto->estoque <= 50 ? 'warning' : 'success') }}">
+                                                {{ $produto->estoque ?? 0 }}
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td class="product-price-custo">
+                                        @if($edicaoInline)
+                                            <div class="d-flex align-items-center gap-1">
+                                                <span class="text-muted" style="font-size: 0.75rem;">R$</span>
+                                                <input type="text" class="form-control form-control-sm editable-field money-input text-end" 
+                                                       data-field="preco_custo" 
+                                                       data-produto-id="{{ $produto->id }}"
+                                                       value="{{ number_format($produto->preco_custo, 2, ',', '.') }}"
+                                                       placeholder="0,00"
+                                                       style="width: 110px;">
+                                            </div>
+                                        @else
+                                            R$ {{ number_format($produto->preco_custo, 2, ',', '.') }}
+                                        @endif
+                                    </td>
+                                    <td class="product-price">
+                                        @if($edicaoInline)
+                                            <div class="d-flex align-items-center gap-1">
+                                                <span class="text-muted" style="font-size: 0.75rem;">R$</span>
+                                                <input type="text" class="form-control form-control-sm editable-field money-input text-end" 
+                                                       data-field="preco_venda" 
+                                                       data-produto-id="{{ $produto->id }}"
+                                                       value="{{ number_format($produto->preco_venda, 2, ',', '.') }}"
+                                                       placeholder="0,00"
+                                                       style="width: 110px;">
+                                            </div>
+                                        @else
+                                            <strong>R$ {{ number_format($produto->preco_venda, 2, ',', '.') }}</strong>
+                                        @endif
+                                    </td>
                                     <td>
-                                        <a href="{{ route('produtos.edit', $produto->id) }}" class="btn btn-warning">Editar</a>
-                                        <form action="{{ route('produtos.destroy', $produto->id) }}" method="POST" style="display:inline;">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger">Excluir</button>
-                                        </form>
+                                        <span class="badge bg-{{ $lucro >= 0 ? 'success' : 'danger' }}">
+                                            {{ number_format($lucroPercentual, 2, ',', '.') }}%
+                                        </span>
+                                        <br><small>R$ {{ number_format($lucro, 2, ',', '.') }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            @if(!$edicaoInline)
+                                            <a href="{{ route('produtos.edit', $produto->id) }}" class="btn btn-sm btn-warning" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            @endif
+                                            <form action="{{ route('produtos.destroy', $produto->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja excluir este produto?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-danger" title="Excluir">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -74,32 +198,219 @@
     function filterProducts() {
         const input = document.getElementById('search');
         const filter = input.value.toLowerCase();
+        const filterCategoria = document.getElementById('filterCategoria').value;
+        const filterEstoque = document.getElementById('filterEstoque').value;
         const table = document.getElementById('productsTable');
         const tr = table.getElementsByTagName('tr');
 
-        for (let i = 1; i < tr.length; i++) { // Começa em 1 para ignorar o cabeçalho
-            const tdName = tr[i].getElementsByClassName("product-name")[0];
-            const tdQuantity = tr[i].getElementsByClassName("product-quantity")[0];
-            const tdPrice = tr[i].getElementsByClassName("product-price")[0];
-            const tdId = tr[i].getElementsByTagName("td")[0]; // Obtém a coluna ID
+        for (let i = 1; i < tr.length; i++) {
+            const row = tr[i];
+            const tdName = row.getElementsByClassName("product-name")[0];
+            const tdId = row.getElementsByTagName("td")[0];
+            
+            if (!tdName) continue;
 
-            if (tdName) {
-                const txtValue = tdName.textContent || tdName.innerText;
-                const quantityValue = tdQuantity.textContent || tdQuantity.innerText;
-                const priceValue = tdPrice.textContent || tdPrice.innerText;
-                const idValue = tdId.textContent || tdId.innerText; // Obtém o valor do ID
-
-                if (txtValue.toLowerCase().indexOf(filter) > -1 ||
-                    quantityValue.toLowerCase().indexOf(filter) > -1 ||
-                    priceValue.toLowerCase().indexOf(filter) > -1 ||
-                    idValue.indexOf(filter) > -1) { // Verifica se o ID contém o filtro
-                    tr[i].style.display = ""; // Exibe a linha
-                } else {
-                    tr[i].style.display = "none"; // Oculta a linha
+            const categoriaId = row.getAttribute('data-categoria');
+            const estoque = parseInt(row.getAttribute('data-estoque')) || 0;
+            
+            // Filtro de categoria
+            if (filterCategoria && categoriaId !== filterCategoria) {
+                row.style.display = "none";
+                continue;
+            }
+            
+            // Filtro de estoque
+            if (filterEstoque) {
+                if (filterEstoque === 'baixo' && estoque > 10) {
+                    row.style.display = "none";
+                    continue;
+                } else if (filterEstoque === 'medio' && (estoque <= 10 || estoque > 50)) {
+                    row.style.display = "none";
+                    continue;
+                } else if (filterEstoque === 'alto' && estoque <= 50) {
+                    row.style.display = "none";
+                    continue;
                 }
+            }
+            
+            // Filtro de texto
+            const txtValue = tdName.textContent || tdName.innerText;
+            const idValue = tdId.textContent || tdId.innerText;
+            
+            if (filter && txtValue.toLowerCase().indexOf(filter) === -1 && idValue.indexOf(filter) === -1) {
+                row.style.display = "none";
+            } else {
+                row.style.display = "";
             }
         }
     }
+
+    @if($edicaoInline)
+    // Edição Inline de Produtos
+    document.addEventListener('DOMContentLoaded', function() {
+        // Formatação de valores monetários
+        function formatMoney(value) {
+            value = value.replace(/\D/g, '');
+            value = (value / 100).toFixed(2) + '';
+            value = value.replace('.', ',');
+            value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            return value;
+        }
+
+        function parseMoney(value) {
+            return value.replace(/\./g, '').replace(',', '.');
+        }
+
+        // Aplica máscara de dinheiro nos inputs
+        document.querySelectorAll('.money-input').forEach(input => {
+            input.addEventListener('blur', function() {
+                if (this.value) {
+                    this.value = formatMoney(this.value);
+                }
+            });
+        });
+
+        // Salva alterações quando o campo perde o foco
+        document.querySelectorAll('.editable-field').forEach(field => {
+            let originalValue = field.value;
+            
+            field.addEventListener('focus', function() {
+                originalValue = this.value;
+                if (this.classList.contains('money-input')) {
+                    this.value = parseMoney(this.value);
+                }
+            });
+
+            field.addEventListener('blur', function() {
+                const produtoId = this.getAttribute('data-produto-id');
+                const campo = this.getAttribute('data-field');
+                let valor = this.value;
+
+                // Formata valor monetário antes de enviar
+                if (this.classList.contains('money-input')) {
+                    valor = parseMoney(valor);
+                }
+
+                // Só atualiza se o valor mudou
+                if (valor !== originalValue && valor !== '') {
+                    updateProduto(produtoId, campo, valor, this);
+                } else {
+                    // Restaura valor original se não mudou
+                    if (this.classList.contains('money-input') && originalValue) {
+                        this.value = formatMoney(originalValue);
+                    } else {
+                        this.value = originalValue;
+                    }
+                }
+            });
+
+            // Salva ao pressionar Enter
+            field.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    this.blur();
+                }
+            });
+        });
+
+        function updateProduto(produtoId, campo, valor, element) {
+            const originalValue = element.value;
+            element.disabled = true;
+            element.classList.add('saving');
+
+            fetch(`{{ url('dashboard/produtos') }}/${produtoId}/update-inline`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    campo: campo,
+                    valor: valor
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                element.disabled = false;
+                element.classList.remove('saving');
+
+                if (data.success) {
+                    // Atualiza valores calculados (lucro)
+                    if (campo === 'preco_custo' || campo === 'preco_venda') {
+                        updateLucro(produtoId);
+                    }
+
+                    // Formata valor monetário de volta
+                    if (element.classList.contains('money-input')) {
+                        element.value = formatMoney(valor);
+                    }
+
+                    // Feedback visual de sucesso
+                    element.classList.add('saved');
+                    setTimeout(() => {
+                        element.classList.remove('saved');
+                    }, 1500);
+
+                    // Notificação toast (opcional)
+                    showNotification('Produto atualizado com sucesso!', 'success');
+                } else {
+                    element.value = originalValue;
+                    showNotification('Erro ao atualizar: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                element.disabled = false;
+                element.classList.remove('saving');
+                element.value = originalValue;
+                console.error('Erro:', error);
+                showNotification('Erro ao atualizar produto. Tente novamente.', 'error');
+            });
+        }
+
+        function showNotification(message, type) {
+            // Remove notificações anteriores
+            const existing = document.querySelector('.inline-notification');
+            if (existing) existing.remove();
+
+            const notification = document.createElement('div');
+            notification.className = `inline-notification alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
+            notification.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);';
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        function updateLucro(produtoId) {
+            const row = document.querySelector(`tr[data-produto-id="${produtoId}"]`);
+            if (!row) return;
+
+            const precoCustoInput = row.querySelector('[data-field="preco_custo"]');
+            const precoVendaInput = row.querySelector('[data-field="preco_venda"]');
+            const lucroCell = row.querySelector('td:nth-child(7)');
+
+            if (precoCustoInput && precoVendaInput && lucroCell) {
+                const precoCusto = parseFloat(parseMoney(precoCustoInput.value)) || 0;
+                const precoVenda = parseFloat(parseMoney(precoVendaInput.value)) || 0;
+                const lucro = precoVenda - precoCusto;
+                const lucroPercentual = precoCusto > 0 ? ((lucro / precoCusto) * 100) : 0;
+
+                lucroCell.innerHTML = `
+                    <span class="badge bg-${lucro >= 0 ? 'success' : 'danger'}">
+                        ${lucroPercentual.toFixed(2).replace('.', ',')}%
+                    </span>
+                    <br><small>R$ ${lucro.toFixed(2).replace('.', ',')}</small>
+                `;
+            }
+        }
+    });
+    @endif
 </script>
 
 @endsection

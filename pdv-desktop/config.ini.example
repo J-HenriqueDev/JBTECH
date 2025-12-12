@@ -1,0 +1,12 @@
+[API]
+Url=https://api.seusite.com
+
+[Impressora]
+Porta=COM1
+Tipo=epson
+
+[Balança]
+Porta=COM3
+BaudRate=9600
+
+

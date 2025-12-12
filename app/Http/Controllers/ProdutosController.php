@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Produto;
 use App\Models\Categoria;
+use App\Models\Configuracao;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -16,8 +17,11 @@ class ProdutosController extends Controller
      */
     public function index()
     {
-        $produtos = Produto::all(); // Obtém todos os produtos
+        $produtos = Produto::with('categoria')->get(); // Obtém todos os produtos com categoria
         $categorias = Categoria::all(); // Obtém todas as categorias
+        
+        // Busca a configuração do usuário autenticado (o método get() já trata isso automaticamente)
+        $edicaoInline = \App\Models\Configuracao::get('produtos_edicao_inline', '0') == '1';
 
         // Registra um log
         LogService::registrar(
@@ -26,7 +30,7 @@ class ProdutosController extends Controller
             'Listou todos os produtos' // Detalhes
         );
 
-        return view('content.produtos.listar', compact('produtos', 'categorias')); // Passa produtos e categorias para a view
+        return view('content.produtos.listar', compact('produtos', 'categorias', 'edicaoInline')); // Passa produtos e categorias para a view
     }
 
     public function listar()
@@ -46,6 +50,16 @@ class ProdutosController extends Controller
                 return response()->json(['error' => 'Nenhum produto encontrado'], 404);
             }
 
+            // Formata os produtos para incluir estoque
+            $produtosFormatados = $produtos->map(function($produto) {
+                return [
+                    'id' => $produto->id,
+                    'nome' => $produto->nome,
+                    'preco_venda' => $produto->preco_venda,
+                    'estoque' => $produto->estoque ?? 0,
+                ];
+            });
+
             // Registra um log
             LogService::registrar(
                 'Produto', // Categoria
@@ -53,7 +67,7 @@ class ProdutosController extends Controller
                 'Listou todos os produtos via API' // Detalhes
             );
 
-            return response()->json($produtos);
+            return response()->json($produtosFormatados);
 
         } catch (\Exception $e) {
             // Registra um log de erro
@@ -246,6 +260,14 @@ class ProdutosController extends Controller
                 $produto['fabricante'] = '';
             }
 
+            // Gera código de barras automaticamente se configurado
+            if (Configuracao::get('produtos_gerar_codigo_barras', '1') == '1') {
+                if (empty($produto['codigo_barras']) || !isset($produto['codigo_barras'])) {
+                    // Gera um código de barras único baseado no timestamp e ID do usuário
+                    $produto['codigo_barras'] = str_pad(time() . Auth::user()->id . rand(100, 999), 13, '0', STR_PAD_LEFT);
+                }
+            }
+
             try {
                 $validated = $this->validateProduto($produto);
 
@@ -413,12 +435,18 @@ class ProdutosController extends Controller
             $preco_custo = str_replace(['.', ','], ['', '.'], $request->preco_custo);
             $preco_venda = str_replace(['.', ','], ['', '.'], $request->preco_venda);
 
+            // Gera código de barras automaticamente se configurado e não informado
+            $codigoBarras = $request->codigo_barras;
+            if (Configuracao::get('produtos_gerar_codigo_barras', '1') == '1' && empty($codigoBarras)) {
+                $codigoBarras = str_pad(time() . Auth::user()->id . rand(100, 999), 13, '0', STR_PAD_LEFT);
+            }
+
             // Atualiza os dados do produto
             $produto->update([
                 'nome' => $request->nome,
                 'preco_custo' => $preco_custo,
                 'preco_venda' => $preco_venda,
-                'codigo_barras' => $request->codigo_barras,
+                'codigo_barras' => $codigoBarras,
                 'ncm' => $request->ncm,
                 'estoque' => $request->estoque,
                 'categoria_id' => $request->categoria_id,
@@ -469,5 +497,59 @@ class ProdutosController extends Controller
         );
 
         return redirect()->route('produtos.index')->with('success', 'Produto removido com sucesso!');
+    }
+
+    /**
+     * Atualiza um produto via AJAX (edição inline)
+     */
+    public function updateInline(Request $request, $id)
+    {
+        try {
+            $produto = Produto::findOrFail($id);
+
+            $request->validate([
+                'campo' => 'required|string|in:nome,preco_custo,preco_venda,estoque,categoria_id',
+                'valor' => 'required',
+            ]);
+
+            $campo = $request->campo;
+            $valor = $request->valor;
+
+            // Converte valores numéricos
+            if (in_array($campo, ['preco_custo', 'preco_venda'])) {
+                $valor = str_replace(['.', ','], ['', '.'], $valor);
+                $valor = (float) $valor;
+            } elseif ($campo === 'estoque') {
+                $valor = (int) $valor;
+            } elseif ($campo === 'categoria_id') {
+                $valor = (int) $valor;
+            }
+
+            $produto->update([$campo => $valor]);
+
+            // Registra um log
+            LogService::registrar(
+                'Produto',
+                'Atualizar',
+                "Produto ID: {$produto->id} - Campo {$campo} atualizado inline"
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Produto atualizado com sucesso!',
+                'produto' => $produto->fresh(['categoria'])
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Erro ao atualizar produto inline ID: {$id}", [
+                'error' => $e->getMessage(),
+                'campo' => $request->campo,
+                'valor' => $request->valor,
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao atualizar produto: ' . $e->getMessage()
+            ], 400);
+        }
     }
 }

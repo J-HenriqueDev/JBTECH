@@ -38,10 +38,12 @@
                     <label for="venda_id" class="form-label">
                         <i class="bx bx-cart"></i> Venda
                     </label>
-                    <select id="venda_id" class="select2 form-select" name="venda_id" required>
+                    <select id="venda_id" class="select2 form-select" name="venda_id" required onchange="carregarDadosVenda()">
                         <option value="" disabled selected>Selecione uma venda</option>
                         @foreach ($vendas as $venda)
-                        <option value="{{ $venda->id }}">Venda #{{ $venda->id }}</option>
+                        <option value="{{ $venda->id }}" data-valor="{{ $venda->valor_total }}" data-cliente="{{ $venda->cliente->nome ?? 'N/A' }}">
+                            Venda #{{ $venda->id }} - {{ $venda->cliente->nome ?? 'N/A' }} - R$ {{ number_format($venda->valor_total, 2, ',', '.') }}
+                        </option>
                         @endforeach
                     </select>
                     @error('venda_id')
@@ -54,12 +56,38 @@
                     <label for="metodo_pagamento" class="form-label">
                         <i class="bx bx-credit-card"></i> Método de Pagamento
                     </label>
-                    <select name="metodo_pagamento" id="metodo_pagamento" class="form-select" required>
+                    <select name="metodo_pagamento" id="metodo_pagamento" class="form-select" required onchange="atualizarDataVencimento()">
                         <option value="pix">PIX</option>
                         <option value="boleto">Boleto</option>
                         <option value="cartao_credito">Cartão de Crédito</option>
                     </select>
                     @error('metodo_pagamento')
+                    <small class="text-danger fw-bold">{{ $message }}</small>
+                    @enderror
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <!-- Campo Valor -->
+                <div class="col-md-6">
+                    <label for="valor" class="form-label">
+                        <i class="bx bx-money"></i> Valor
+                    </label>
+                    <input type="text" class="form-control" name="valor" id="valor" placeholder="0,00" oninput="formatCurrency(this)">
+                    <small class="text-muted">Deixe em branco para usar o valor total da venda</small>
+                    @error('valor')
+                    <small class="text-danger fw-bold">{{ $message }}</small>
+                    @enderror
+                </div>
+
+                <!-- Campo Data de Vencimento -->
+                <div class="col-md-6">
+                    <label for="data_vencimento" class="form-label">
+                        <i class="bx bx-calendar"></i> Data de Vencimento
+                    </label>
+                    <input type="date" class="form-control" name="data_vencimento" id="data_vencimento">
+                    <small class="text-muted">Deixe em branco para usar data padrão (7 dias para boleto)</small>
+                    @error('data_vencimento')
                     <small class="text-danger fw-bold">{{ $message }}</small>
                     @enderror
                 </div>
@@ -133,6 +161,37 @@
     $(document).ready(function() {
         $('.select2').select2();
     });
+
+    function formatCurrency(input) {
+        let value = input.value.replace(/\D/g, '');
+        value = (value / 100).toFixed(2) + '';
+        value = value.replace('.', ',');
+        value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        input.value = value;
+    }
+
+    function carregarDadosVenda() {
+        const select = document.getElementById('venda_id');
+        const selectedOption = select.options[select.selectedIndex];
+        
+        if (selectedOption.value) {
+            const valor = selectedOption.getAttribute('data-valor');
+            const valorFormatado = parseFloat(valor).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('valor').value = valorFormatado.replace('.', ',');
+        }
+    }
+
+    function atualizarDataVencimento() {
+        const metodo = document.getElementById('metodo_pagamento').value;
+        const dataVencimento = document.getElementById('data_vencimento');
+        
+        if (metodo === 'boleto' && !dataVencimento.value) {
+            const hoje = new Date();
+            hoje.setDate(hoje.getDate() + 7);
+            const dataFormatada = hoje.toISOString().split('T')[0];
+            dataVencimento.value = dataFormatada;
+        }
+    }
 </script>
 
 @endsection

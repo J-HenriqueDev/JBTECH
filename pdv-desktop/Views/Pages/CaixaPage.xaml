@@ -1,0 +1,51 @@
+<UserControl x:Class="PdvDesktop.Views.Pages.CaixaPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Border Background="White" CornerRadius="5" Padding="20">
+            <StackPanel>
+                <TextBlock Text="Gestão de Caixa" 
+                          FontSize="24" 
+                          FontWeight="Bold" 
+                          Margin="0,0,0,20"/>
+
+                <TextBlock x:Name="lblStatusCaixa" 
+                          FontSize="18" 
+                          Margin="0,0,0,20"/>
+
+                <Button x:Name="btnAbrirCaixa" 
+                       Content="Abrir Caixa" 
+                       Width="150" 
+                       Height="40"
+                       Background="#28a745"
+                       Foreground="White"
+                       Click="BtnAbrirCaixa_Click"
+                       Margin="0,0,0,10"/>
+
+                <Button x:Name="btnFecharCaixa" 
+                       Content="Fechar Caixa" 
+                       Width="150" 
+                       Height="40"
+                       Background="#dc3545"
+                       Foreground="White"
+                       Click="BtnFecharCaixa_Click"
+                       Visibility="Collapsed"/>
+
+                <Button Content="Sangria" 
+                       Width="150" 
+                       Height="40"
+                       Background="#ffc107"
+                       Foreground="Black"
+                       Margin="0,10,0,10"/>
+
+                <Button Content="Suprimento" 
+                       Width="150" 
+                       Height="40"
+                       Background="#17a2b8"
+                       Foreground="White"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>
+
+

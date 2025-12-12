@@ -29,22 +29,59 @@
       <span class="badge bg-{{ $orcamento->status == 'autorizado' ? 'success' : ($orcamento->status == 'recusado' ? 'danger' : 'warning') }} ms-2">
           {{ ucfirst($orcamento->status) }}
       </span>
+      @if($orcamento->validade < now() && $orcamento->status == 'pendente')
+      <span class="badge bg-danger ms-2">Vencido</span>
+      @endif
   </h1>
-  <div>
-      <form action="{{ route('orcamentos.autorizar', $orcamento->id) }}" method="POST" class="d-inline">
-          @csrf
-          <button type="submit" class="btn btn-success" {{ $orcamento->status == 'autorizado' ? 'disabled' : '' }}>
-              <i class="fas fa-check"></i> Autorizar
-          </button>
-      </form>
-      <form action="{{ route('orcamentos.recusar', $orcamento->id) }}" method="POST" class="d-inline">
-          @csrf
-          <button type="submit" class="btn btn-danger" {{ $orcamento->status == 'recusado' ? 'disabled' : '' }}>
-              <i class="fas fa-times"></i> Recusar
-          </button>
-      </form>
+  <div class="btn-group">
+      <a href="{{ route('orcamentos.show', $orcamento->id) }}" class="btn btn-info">
+          <i class="fas fa-eye"></i> Ver Detalhes
+      </a>
+      <a href="{{ route('orcamentos.gerarPdf', $orcamento->id) }}" class="btn btn-danger" target="_blank">
+          <i class="fas fa-file-pdf"></i> PDF
+      </a>
+      <a href="{{ route('orcamentos.index') }}" class="btn btn-secondary">
+          <i class="fas fa-arrow-left"></i> Voltar
+      </a>
   </div>
 </div>
+
+<!-- Alerta de Estoque Insuficiente -->
+@php
+    $podeAutorizar = true;
+    $produtosSemEstoque = [];
+    foreach($orcamento->produtos as $produto) {
+        if ($produto->estoque < $produto->pivot->quantidade) {
+            $podeAutorizar = false;
+            $produtosSemEstoque[] = [
+                'produto' => $produto,
+                'estoque_disponivel' => $produto->estoque,
+                'quantidade_solicitada' => $produto->pivot->quantidade,
+                'faltam' => $produto->pivot->quantidade - $produto->estoque,
+            ];
+        }
+    }
+@endphp
+
+@if(!$podeAutorizar && $orcamento->status == 'pendente')
+<div class="alert alert-warning alert-dismissible fade show" role="alert">
+    <h6 class="alert-heading d-flex align-items-center fw-bold mb-1">
+        <i class="fas fa-exclamation-triangle me-2"></i> Atenção: Estoque Insuficiente
+    </h6>
+    <p class="mb-2">Alguns produtos não possuem estoque suficiente para autorizar este orçamento:</p>
+    <ul class="mb-0">
+        @foreach($produtosSemEstoque as $item)
+        <li>
+            <strong>{{ $item['produto']->nome }}</strong> - 
+            Estoque: {{ $item['estoque_disponivel'] }} | 
+            Solicitado: {{ $item['quantidade_solicitada'] }} | 
+            Faltam: {{ $item['faltam'] }}
+        </li>
+        @endforeach
+    </ul>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
 
 <div class="card mb-4">
     <form action="{{ route('orcamentos.update', $orcamento->id) }}" method="POST">
@@ -61,8 +98,22 @@
                     <select id="select2Basic" class="select2 form-select" name="cliente_id" required>
                       <option value="" disabled>Selecione um cliente</option>
                       @foreach ($clientes as $cliente)
+                      @php
+                          $endereco = '';
+                          if ($cliente->endereco) {
+                              $cepFormatado = $cliente->endereco->cep ? 
+                                  (\Illuminate\Support\Str::substr($cliente->endereco->cep, 0, 5) . '-' . \Illuminate\Support\Str::substr($cliente->endereco->cep, 5)) : 
+                                  '';
+                              $endereco = ($cliente->endereco->endereco ?? '') . ', ' . 
+                                         ($cliente->endereco->numero ?? '') . ', ' . 
+                                         ($cliente->endereco->bairro ?? '') . ', ' . 
+                                         ($cliente->endereco->cidade ?? '') . ', ' . 
+                                         ($cliente->endereco->estado ?? '') . 
+                                         ($cepFormatado ? ', CEP: ' . $cepFormatado : '');
+                          }
+                      @endphp
                           <option value="{{ $cliente->id }}"
-                                  data-endereco="{{ $cliente->endereco->endereco }}, {{ $cliente->endereco->numero }}, {{ $cliente->endereco->bairro }}, {{ $cliente->endereco->cidade }}, {{ $cliente->endereco->estado }}, CEP: {{ $cliente->endereco->cep }}"
+                                  data-endereco="{{ $endereco }}"
                                   {{ $orcamento->cliente_id == $cliente->id ? 'selected' : '' }}>
                               {{ $cliente->nome }}
                           </option>
@@ -100,7 +151,21 @@
             <div class="row mb-3 align-items-end">
                 <div class="col-md-8">
                     <label for="endereco_cliente" class="form-label">Endereço do Cliente</label>
-                    <input type="text" class="form-control" name="endereco_cliente" id="endereco_cliente" value="{{ $orcamento->endereco_cliente }}" readonly>
+                    @php
+                        $enderecoCliente = '';
+                        if ($orcamento->cliente && $orcamento->cliente->endereco) {
+                            $cepFormatado = $orcamento->cliente->endereco->cep ? 
+                                (\Illuminate\Support\Str::substr($orcamento->cliente->endereco->cep, 0, 5) . '-' . \Illuminate\Support\Str::substr($orcamento->cliente->endereco->cep, 5)) : 
+                                '';
+                            $enderecoCliente = ($orcamento->cliente->endereco->endereco ?? '') . ', ' . 
+                                              ($orcamento->cliente->endereco->numero ?? '') . ', ' . 
+                                              ($orcamento->cliente->endereco->bairro ?? '') . ', ' . 
+                                              ($orcamento->cliente->endereco->cidade ?? '') . ', ' . 
+                                              ($orcamento->cliente->endereco->estado ?? '') . 
+                                              ($cepFormatado ? ', CEP: ' . $cepFormatado : '');
+                        }
+                    @endphp
+                    <input type="text" class="form-control" name="endereco_cliente" id="endereco_cliente" value="{{ $enderecoCliente }}" readonly>
                 </div>
 
                 <div class="col-md-4">
@@ -135,16 +200,25 @@
                     </thead>
                     <tbody>
                         @foreach ($orcamento->produtos as $produto)
-                            <tr>
+                            <tr class="{{ $produto->estoque < $produto->pivot->quantidade ? 'table-warning' : '' }}">
                                 <td>{{ $produto->id }}</td>
-                                <td>{{ $produto->nome }}</td>
                                 <td>
-                                    <input type="number" class="form-control" name="produtos[{{ $produto->id }}][quantidade]" value="{{ $produto->pivot->quantidade }}" min="1">
+                                    <strong>{{ $produto->nome }}</strong>
+                                    @if($produto->estoque < $produto->pivot->quantidade)
+                                    <br><small class="text-danger">⚠ Estoque: {{ $produto->estoque }} (Solicitado: {{ $produto->pivot->quantidade }})</small>
+                                    @else
+                                    <br><small class="text-muted">Estoque: {{ $produto->estoque }}</small>
+                                    @endif
                                 </td>
                                 <td>
-                                    <input type="text" class="form-control" name="produtos[{{ $produto->id }}][valor_unitario]" value="{{ number_format($produto->pivot->valor_unitario, 2, ',', '.') }}">
+                                    <input type="number" class="form-control" name="produtos[{{ $produto->id }}][quantidade]" value="{{ $produto->pivot->quantidade }}" min="1" onchange="atualizarValorTotalTabela()">
                                 </td>
-                                <td class="valor-total">{{ number_format($produto->pivot->quantidade * $produto->pivot->valor_unitario, 2, ',', '.') }}</td>
+                                <td>
+                                    <input type="text" class="form-control" name="produtos[{{ $produto->id }}][valor_unitario]" value="R$ {{ number_format($produto->pivot->valor_unitario, 2, ',', '.') }}" oninput="formatCurrencyService(this); atualizarValorTotalTabela()">
+                                </td>
+                                <td class="valor-total" data-valor="{{ $produto->pivot->valor_total ?? ($produto->pivot->valor_unitario * $produto->pivot->quantidade) }}">
+                                    <strong>R$ {{ number_format($produto->pivot->valor_total ?? ($produto->pivot->valor_unitario * $produto->pivot->quantidade), 2, ',', '.') }}</strong>
+                                </td>
                                 <td>
                                     <button type="button" class="btn btn-danger btn-sm" onclick="removerProduto(this)">Remover</button>
                                 </td>
@@ -161,7 +235,26 @@
                 </table>
             </div>
 
+            <!-- Dismissible Alert para Custo de Combustível -->
+            <div id="alertCustoCombustivel" class="alert alert-warning alert-dismissible fade show d-none" role="alert">
+                <strong>Custo estimado de combustível: </strong><span id="valorCombustivelAlert">R$ 0,00</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
 
+            <!-- Campo Valor do Serviço -->
+            <div class="mb-3">
+              <label for="valor_servico" class="form-label">
+                  <i class="bx bx-dollar-circle"></i> Valor do Serviço
+              </label>
+              <div class="input-group">
+                  <input type="text" class="form-control" name="valor_servico" id="valor_servico" placeholder="R$ 0,00" oninput="formatCurrencyService(this); validarValorServico()">
+                  <button type="button" class="btn btn-primary" id="adicionarServico">Adicionar</button>
+              </div>
+              <small id="erro_valor_servico" class="text-danger fw-bold d-none">O valor do serviço deve ser maior ou igual ao custo de combustível.</small>
+              @error('valor_servico')
+              <small class="text-danger fw-bold">{{ $message }}</small>
+              @enderror
+          </div>
 
             <!-- Observações -->
             <div class="mb-3">
@@ -202,11 +295,6 @@
                         <label for="produto_id" class="form-label">Selecionar Produto</label>
                         <select id="produto_id" class="select2 form-select" required>
                             <option value="" disabled selected>Selecione um produto</option>
-                            @foreach ($produtos as $produto)
-                            <option value="{{ $produto->id }}" data-preco="{{ $produto->preco_venda }}">
-                                {{ $produto->nome }} - R$ {{ number_format($produto->preco_venda, 2, ',', '.') }}
-                            </option>
-                            @endforeach
                         </select>
                     </div>
                     <div class="col-md-4">
@@ -217,6 +305,7 @@
                 <div class="mb-3">
                     <label for="quantidade" class="form-label">Quantidade</label>
                     <input type="number" class="form-control" id="quantidade" value="1" min="1" required>
+                    <small class="text-muted" id="estoqueInfo"></small>
                 </div>
                 <div class="mb-3">
                     <label for="valor_total" class="form-label">Valor Total</label>
@@ -253,163 +342,6 @@
 {{--  @include('content.orcamentos.partials.modal_produto')  --}}
 {{--  @include('content.orcamentos.criar.partials.modal_produto')  --}}
 @include('content.orcamentos.scripts-edit')
-
-
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-      const clienteSelect = document.getElementById('select2Basic');
-      const enderecoInput = document.getElementById('endereco_cliente');
-
-      // Atualizar o endereço do cliente automaticamente ao selecionar um cliente
-      clienteSelect.addEventListener('change', function () {
-          const endereco = clienteSelect.options[clienteSelect.selectedIndex]?.getAttribute('data-endereco');
-          enderecoInput.value = endereco || ''; // Define o endereço ou deixa o campo vazio
-      });
-
-      // Preencher automaticamente o endereço ao carregar a página
-      const selectedEndereco = clienteSelect.options[clienteSelect.selectedIndex]?.getAttribute('data-endereco');
-      if (selectedEndereco) {
-          enderecoInput.value = selectedEndereco;
-      }
-
-      // Inicializar Select2 para o modal de produtos
-      $('#produto_id').select2({
-          dropdownParent: $('#modalAdicionarProduto'),
-          placeholder: 'Selecione um produto',
-          width: '100%'
-      });
-
-      // Atualizar o valor_unitário e valor_total ao selecionar um produto
-      $('#produto_id').on('change', function () {
-          const preco = $(this).find(':selected').data('preco');
-          if (preco) {
-              $('#valor_unitario').val(preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }));
-              const quantidade = parseInt($('#quantidade').val() || 1);
-              $('#valor_total').val((preco * quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }));
-          } else {
-              $('#valor_unitario').val('');
-              $('#valor_total').val('');
-          }
-      });
-
-      // Atualizar o valor_total ao alterar a quantidade
-      $('#quantidade').on('input', function () {
-          const preco = parseCurrency($('#valor_unitario').val());
-          const quantidade = parseInt($(this).val() || 1);
-          $('#valor_total').val(formatCurrency(preco * quantidade));
-      });
-
-      // Adicionar produto à tabela
-      $('#adicionarProduto').on('click', function () {
-          const produtoId = $('#produto_id').val();
-          const produtoNome = $('#produto_id option:selected').text().split(' - ')[0];
-          const precoUnitario = parseCurrency($('#valor_unitario').val());
-          const quantidade = parseInt($('#quantidade').val() || 1);
-          const valorTotal = precoUnitario * quantidade;
-
-          if (!produtoId || precoUnitario <= 0 || quantidade <= 0) {
-              alert('Por favor, preencha todos os campos corretamente antes de adicionar um produto.');
-              return;
-          }
-
-          // Adiciona uma linha à tabela
-          $('#tabelaProdutos tbody').append(`
-              <tr>
-                  <td>${produtoId}</td>
-                  <td>${produtoNome}</td>
-                  <td>
-                      <input type="number" class="form-control" name="produtos[${produtoId}][quantidade]" value="${quantidade}" min="1">
-                  </td>
-                  <td>
-                      <input type="text" class="form-control" name="produtos[${produtoId}][valor_unitario]" value="${formatCurrency(precoUnitario)}">
-                  </td>
-                  <td class="valor-total">${formatCurrency(valorTotal)}</td>
-                  <td>
-                      <button type="button" class="btn btn-danger btn-sm" onclick="removerProduto(this)">Remover</button>
-                  </td>
-              </tr>
-          `);
-
-          $('#modalAdicionarProduto').modal('hide');
-          limparCamposModal();
-          atualizarMensagemTabela();
-          atualizarValorTotalTabela();
-      });
-
-      // Limpar campos do modal
-      function limparCamposModal() {
-          $('#produto_id').val(null).trigger('change');
-          $('#valor_unitario').val('');
-          $('#quantidade').val(1);
-          $('#valor_total').val('');
-      }
-
-      // Atualizar a mensagem "Nenhum produto adicionado"
-      function atualizarMensagemTabela() {
-          const linhasProdutos = $('#tabelaProdutos tbody tr').length;
-          $('#tabelaVazia').toggleClass('d-none', linhasProdutos > 0);
-      }
-
-      function atualizarValorTotalTabela() {
-        let total = 0;
-        $('#tabelaProdutos tbody tr').each(function () {
-            const valor = parseFloat($(this).find('.valor-total').text().replace('R$ ', '').replace('.', '').replace(',', '.') || 0);
-            total += valor;
-        });
-        $('#valorTotalTabela').text(formatCurrency(total));
-      }
-
-      // Remover produto da tabela
-      window.removerProduto = function (button) {
-          $(button).closest('tr').remove();
-          atualizarMensagemTabela();
-          atualizarValorTotalTabela();
-      };
-
-      // Formatar valores como moeda brasileira
-      function formatCurrency(value) {
-          if (isNaN(value) || value === null) return 'R$ 0,00';
-          value = Math.abs(parseFloat(value)).toFixed(2);
-          return `R$ ${value.replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
-      }
-
-      // Remover formatação de moeda e retornar número
-      function parseCurrency(value) {
-          return parseFloat(value.replace('R$', '').replace(/\./g, '').replace(',', '.').trim());
-      }
-
-      // Validar o valor do serviço
-      $('#adicionarServico').on('click', function () {
-          const valorServico = parseCurrency($('#valor_servico').val());
-
-          if (!valorServico || valorServico <= 0) {
-              alert('Por favor, insira um valor válido para o serviço.');
-              return;
-          }
-
-          // Adicionar serviço à tabela
-          $('#tabelaProdutos tbody').append(`
-              <tr>
-                  <td>1</td>
-                  <td>Serviço</td>
-                  <td>
-                      <input type="number" class="form-control" name="produtos[1][quantidade]" value="1" readonly>
-                  </td>
-                  <td>
-                      <input type="text" class="form-control" name="produtos[1][valor_unitario]" value="${formatCurrency(valorServico)}" readonly>
-                  </td>
-                  <td class="valor-total">${formatCurrency(valorServico)}</td>
-                  <td>
-                      <button type="button" class="btn btn-danger btn-sm" onclick="removerProduto(this)">Remover</button>
-                  </td>
-              </tr>
-          `);
-
-          atualizarMensagemTabela();
-          atualizarValorTotalTabela();
-      });
-  });
-</script>
 
 
 @endsection

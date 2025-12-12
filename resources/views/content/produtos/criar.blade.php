@@ -21,6 +21,11 @@
 @endsection
 
 @section('content')
+@php
+    use App\Models\Configuracao;
+    $gerarCodigoBarras = Configuracao::get('produtos_gerar_codigo_barras', '1') == '1';
+    $exigirImagem = Configuracao::get('produtos_exigir_imagem', '0') == '1';
+@endphp
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
 <div class="d-flex justify-content-between align-items-center">
   <h1 class="mb-4 text-primary" style="font-size: 2.5rem; font-weight: bold; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);">
@@ -140,8 +145,13 @@
                 <div class="form-group">
                   <label for="codigo_barras_0" class="form-label">
                     <i class="fas fa-barcode"></i> Código de Barras
+                    @if($gerarCodigoBarras)
+                    <small class="text-muted">(será gerado automaticamente se deixado em branco)</small>
+                    @endif
                   </label>
-                  <input type="text" class="form-control" name="produtos[0][codigo_barras]" id="codigo_barras_0" placeholder="Digite o código de barras">
+                  <input type="text" class="form-control" name="produtos[0][codigo_barras]" id="codigo_barras_0" 
+                         placeholder="{{ $gerarCodigoBarras ? 'Deixe em branco para gerar automaticamente' : 'Digite o código de barras' }}"
+                         {{ $gerarCodigoBarras ? '' : '' }}>
                   <div class="valid-feedback">Ok!!</div>
                   <div class="invalid-feedback">Por favor, insira o código de barras.</div>
                   @error('produtos.0.codigo_barras')

@@ -28,15 +28,15 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
   <h1 class="mb-0 text-primary" style="font-size: 2.5rem; font-weight: bold; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);">
-      <i class="fas fa-edit"></i> Pedido de Venda #{{ $venda->id }}
-      <span class="badge bg-{{ $venda->status == 'autorizado' ? 'success' : ($venda->status == 'recusado' ? 'danger' : 'warning') }} ms-2">
-          {{ ucfirst($venda->status) }}
+      <i class="bx bx-edit"></i> Pedido de Venda #{{ $venda->id }}
+      <span class="badge bg-success ms-2">
+          <i class="bx bx-check-circle"></i> Ativa
       </span>
   </h1>
   <div>
       <!-- Botão para Emitir NF-e -->
-      <a href="https://170771263616851423896000152.emissornfe.sebrae.com.br/index-sebrae.html#/home" target="_blank" class="btn btn-primary">
-          <i class="fas fa-file-invoice"></i> Emitir NF-e
+      <a href="{{ route('nfe.create', ['venda_id' => $venda->id]) }}" class="btn btn-primary">
+          <i class="bx bx-receipt"></i> Emitir NF-e
       </a>
   </div>
 </div>
@@ -45,6 +45,7 @@
     <form action="{{ route('vendas.update', $venda->id) }}" method="POST" id="formEditarVenda">
         @csrf
         @method('PUT')
+        <input type="hidden" id="vendaId" value="{{ $venda->id }}">
         <div id="produtosHidden"></div>
         <div class="card-body">
             <!-- Status da Venda -->

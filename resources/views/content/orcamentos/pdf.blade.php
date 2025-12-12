@@ -234,10 +234,23 @@
     </div>
 
     <!-- Rodapé -->
+    @php
+        $empresa = [
+            'nome' => \App\Models\Configuracao::get('empresa_nome', 'JBTECH Informática'),
+            'cnpj' => \App\Models\Configuracao::get('empresa_cnpj', '54.819.910/0001-20'),
+            'telefone' => \App\Models\Configuracao::get('empresa_telefone', '+55 (24) 98113-2097'),
+            'email' => \App\Models\Configuracao::get('empresa_email', 'informatica.jbtech@gmail.com'),
+            'endereco' => \App\Models\Configuracao::get('empresa_endereco', 'Rua Willy Faulstich'),
+            'numero' => \App\Models\Configuracao::get('empresa_numero', '252'),
+            'bairro' => \App\Models\Configuracao::get('empresa_bairro', 'Centro'),
+            'cidade' => \App\Models\Configuracao::get('empresa_cidade', 'Resende'),
+            'uf' => \App\Models\Configuracao::get('empresa_uf', 'RJ'),
+        ];
+    @endphp
     <div class="footer">
-        <p>JBTECH Informática - Tecnologia ao Seu Alcance</p>
-        <p>Rua Willy Faulstich, 252, Resende, RJ | CNPJ: 54.819.910/0001-20</p>
-        <p>Telefone: +55 (24) 98113-2097 | E-mail: informatica.jbtech@gmail.com</p>
+        <p>{{ $empresa['nome'] }} - Tecnologia ao Seu Alcance</p>
+        <p>{{ $empresa['endereco'] }}, {{ $empresa['numero'] }}, {{ $empresa['bairro'] }}, {{ $empresa['cidade'] }}, {{ $empresa['uf'] }} | CNPJ: {{ $empresa['cnpj'] }}</p>
+        <p>Telefone: {{ $empresa['telefone'] }} | E-mail: {{ $empresa['email'] }}</p>
     </div>
 </body>
 </html>

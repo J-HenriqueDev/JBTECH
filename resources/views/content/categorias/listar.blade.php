@@ -115,6 +115,10 @@
                         <label for="nome" class="form-label">Nome da Categoria</label>
                         <input type="text" class="form-control" name="nome" id="nome" placeholder="Digite o nome da categoria" required>
                     </div>
+                    <div class="mb-3">
+                        <label for="descricao" class="form-label">Descrição (Opcional)</label>
+                        <textarea class="form-control" name="descricao" id="descricao" rows="3" placeholder="Digite uma descrição para a categoria"></textarea>
+                    </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                         <button type="submit" class="btn btn-primary">Adicionar</button>
@@ -141,6 +145,10 @@
                         <label for="editar_nome" class="form-label">Nome da Categoria</label>
                         <input type="text" class="form-control" name="nome" id="editar_nome" placeholder="Digite o novo nome da categoria" required>
                     </div>
+                    <div class="mb-3">
+                        <label for="editar_descricao" class="form-label">Descrição (Opcional)</label>
+                        <textarea class="form-control" name="descricao" id="editar_descricao" rows="3" placeholder="Digite uma descrição para a categoria"></textarea>
+                    </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                         <button type="submit" class="btn btn-primary">Salvar</button>
@@ -151,39 +159,108 @@
     </div>
 </div>
 
+@if(isset($stats))
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h6 class="card-title">Total de Categorias</h6>
+                <h3 class="mb-0">{{ $stats['total'] }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h6 class="card-title">Total de Produtos</h6>
+                <h3 class="mb-0">{{ $stats['total_produtos'] }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h6 class="card-title">Categoria com Mais Produtos</h6>
+                <h5 class="mb-0">{{ $stats['categoria_mais_produtos']->nome ?? 'N/A' }}</h5>
+                <small>{{ $stats['categoria_mais_produtos']->produtos_count ?? 0 }} produtos</small>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
+@if(session('success'))
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    {{ session('success') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+@endif
+
+@if(session('error'))
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    {{ session('error') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+@endif
+
 <!-- Categorias -->
 <div class="accordion" id="accordionCategorias">
-    @foreach ($categorias as $categoria)
+    @forelse ($categorias as $categoria)
         <div class="accordion-item">
             <h2 class="accordion-header" id="heading{{ $categoria->id }}">
                 <div class="d-flex justify-content-between align-items-center w-100">
                     <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ $categoria->id }}" aria-expanded="true" aria-controls="collapse{{ $categoria->id }}">
                         <i class="fas fa-folder"></i> {{ $categoria->nome }}
+                        <span class="badge bg-primary ms-2">{{ $categoria->produtos_count ?? 0 }} produtos</span>
                     </button>
-                    <button type="button" class="btn btn-outline-success btn-edit" data-bs-toggle="modal" data-bs-target="#modalEditarCategoria" onclick="setEditCategory({{ $categoria->id }}, '{{ $categoria->nome }}')">
-                        <i class="fas fa-edit"></i> Editar
-                    </button>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-success btn-edit" data-bs-toggle="modal" data-bs-target="#modalEditarCategoria" onclick="setEditCategory({{ $categoria->id }}, '{{ $categoria->nome }}', '{{ $categoria->descricao ?? '' }}')">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                        <form action="{{ route('categorias.destroy', $categoria->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja excluir esta categoria?');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-outline-danger">
+                                <i class="fas fa-trash"></i> Excluir
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </h2>
             <div id="collapse{{ $categoria->id }}" class="accordion-collapse collapse" aria-labelledby="heading{{ $categoria->id }}" data-bs-parent="#accordionCategorias">
                 <div class="accordion-body">
-                    <div class="input-group">
+                    @if($categoria->descricao)
+                    <p class="text-muted mb-3">{{ $categoria->descricao }}</p>
+                    @endif
+                    <div class="input-group mb-3">
                         <input type="text" class="form-control" placeholder="Buscar produtos..." onkeyup="filterProducts(this, '{{ $categoria->id }}')">
                         <button class="btn btn-outline-secondary" type="button">
                             <i class="fas fa-search"></i>
                         </button>
                     </div>
                     <ul id="produtos{{ $categoria->id }}" class="list-group">
-                        @foreach ($categoria->produtos as $produto)
-                            <li class="list-group-item">
-                                <i class="fas fa-box"></i> {{ $produto->nome }}
+                        @forelse ($categoria->produtos as $produto)
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-box"></i> <strong>{{ $produto->nome }}</strong>
+                                    <br><small class="text-muted">Estoque: {{ $produto->estoque ?? 0 }} | Preço: R$ {{ number_format($produto->preco_venda, 2, ',', '.') }}</small>
+                                </div>
+                                <a href="{{ route('produtos.edit', $produto->id) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
                             </li>
-                        @endforeach
+                        @empty
+                            <li class="list-group-item text-center text-muted">Nenhum produto nesta categoria</li>
+                        @endforelse
                     </ul>
                 </div>
             </div>
         </div>
-    @endforeach
+    @empty
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> Nenhuma categoria cadastrada ainda.
+        </div>
+    @endforelse
 </div>
 
 <script>
@@ -198,9 +275,10 @@
         }
     }
 
-    function setEditCategory(id, nome) {
+    function setEditCategory(id, nome, descricao = '') {
         document.getElementById('editar_nome').value = nome;
-        document.getElementById('formEditarCategoria').action = `/categorias/${id}`;
+        document.getElementById('editar_descricao').value = descricao;
+        document.getElementById('formEditarCategoria').action = `/dashboard/categorias/${id}`;
     }
 </script>
 @endsection

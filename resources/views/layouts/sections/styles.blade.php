@@ -30,3 +30,6 @@
 @livewireStyles
 
 @livewireStyles
+
+<!-- Custom Cards CSS -->
+<link rel="stylesheet" href="{{ asset('css/cards-custom.css') }}">

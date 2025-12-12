@@ -20,37 +20,105 @@ class OrcamentoController extends Controller
 {
     $search = $request->input('search');
     $status = $request->input('status'); // Array de status
+    $data_inicio = $request->input('data_inicio');
+    $data_fim = $request->input('data_fim');
 
     // Ordenação padrão pelos mais recentes primeiro
     $ordenacao = $request->input('ordenacao', 'recentes');
 
-    $orcamentos = Orcamento::with('cliente')
-        ->when($search, function ($query, $search) {
-            return $query->where('id', 'like', "%$search%")
-                ->orWhereHas('cliente', function ($query) use ($search) {
-                    $query->where('nome', 'like', "%$search%");
-                });
-        })
-        ->when($status, function ($query, $status) {
-            return $query->whereIn('status', $status); // Filtra por múltiplos status
-        })
-        ->where('status', '!=', 'apagado') // Exclui orçamentos com status "Apagado" por padrão
-        ->when($ordenacao, function ($query, $ordenacao) {
-            // Aplica a ordenação
-            if ($ordenacao === 'recentes') {
-                return $query->orderBy('updated_at', 'desc');
-            } elseif ($ordenacao === 'antigos') {
-                return $query->orderBy('updated_at', 'asc');
-            } elseif ($ordenacao === 'maior_valor') {
-                return $query->orderBy('valor_total', 'desc');
-            } elseif ($ordenacao === 'menor_valor') {
-                return $query->orderBy('valor_total', 'asc');
-            }
-        })
-        ->paginate(10);
+    $query = Orcamento::with(['cliente', 'usuario']);
 
-    return view('content.orcamentos.index', compact('orcamentos'));
+    // Filtro de busca
+    if ($search) {
+        $query->where(function ($q) use ($search) {
+            $q->where('id', 'like', "%$search%")
+                ->orWhereHas('cliente', function ($q) use ($search) {
+                    $q->where('nome', 'like', "%$search%")
+                      ->orWhere('cpf_cnpj', 'like', "%$search%");
+                });
+        });
+    }
+
+    // Filtro de status
+    if ($status && is_array($status) && count($status) > 0) {
+        $query->whereIn('status', $status);
+    } else {
+        // Exclui orçamentos com status "Apagado" por padrão
+        $query->where('status', '!=', 'apagado');
+    }
+
+    // Filtro de data
+    if ($data_inicio) {
+        $query->whereDate('data', '>=', $data_inicio);
+    }
+    if ($data_fim) {
+        $query->whereDate('data', '<=', $data_fim);
+    }
+
+    // Ordenação
+    switch ($ordenacao) {
+        case 'recentes':
+            $query->orderBy('updated_at', 'desc');
+            break;
+        case 'antigos':
+            $query->orderBy('updated_at', 'asc');
+            break;
+        case 'maior_valor':
+            $query->orderBy('valor_total', 'desc');
+            break;
+        case 'menor_valor':
+            $query->orderBy('valor_total', 'asc');
+            break;
+        default:
+            $query->orderBy('updated_at', 'desc');
+    }
+
+    $orcamentos = $query->paginate(15);
+
+    // Estatísticas
+    $stats = [
+        'total' => Orcamento::where('status', '!=', 'apagado')->count(),
+        'pendentes' => Orcamento::pendentes()->count(),
+        'autorizados' => Orcamento::autorizados()->count(),
+        'recusados' => Orcamento::recusados()->count(),
+        'vencidos' => Orcamento::where('validade', '<', now())
+            ->where('status', '!=', 'apagado')
+            ->where('status', '!=', 'autorizado')
+            ->count(),
+        'valor_total_pendente' => Orcamento::pendentes()->sum('valor_total'),
+        'valor_total_autorizado' => Orcamento::autorizados()->sum('valor_total'),
+    ];
+
+    return view('content.orcamentos.index', compact('orcamentos', 'stats'));
 }
+
+    public function show($id)
+    {
+        $orcamento = Orcamento::with([
+            'cliente.endereco',
+            'produtos.categoria',
+            'usuario'
+        ])->findOrFail($id);
+
+        // Verificar se pode ser autorizado
+        $podeAutorizar = $orcamento->podeSerAutorizado();
+        $produtosSemEstoque = [];
+        
+        if (!$podeAutorizar) {
+            foreach ($orcamento->produtos as $produto) {
+                if ($produto->estoque < $produto->pivot->quantidade) {
+                    $produtosSemEstoque[] = [
+                        'produto' => $produto,
+                        'estoque_disponivel' => $produto->estoque,
+                        'quantidade_solicitada' => $produto->pivot->quantidade,
+                        'faltam' => $produto->pivot->quantidade - $produto->estoque,
+                    ];
+                }
+            }
+        }
+
+        return view('content.orcamentos.show', compact('orcamento', 'podeAutorizar', 'produtosSemEstoque'));
+    }
 
     public function create()
     {
@@ -79,7 +147,10 @@ class OrcamentoController extends Controller
     DB::beginTransaction();
     try {
         // Criar o orçamento sem o valor do serviço inicialmente
-        $orcamento = Orcamento::create($request->only(['cliente_id', 'data', 'validade', 'observacoes']));
+        $orcamento = Orcamento::create(array_merge(
+            $request->only(['cliente_id', 'data', 'validade', 'observacoes']),
+            ['user_id' => Auth::id(), 'status' => Orcamento::STATUS_PENDENTE]
+        ));
         Log::info('Orçamento criado', ['orcamento' => $orcamento]);
 
         // Inicializar valor total do orçamento
@@ -217,6 +288,7 @@ class OrcamentoController extends Controller
             $orcamento->produtos()->attach($produtoId, [
                 'quantidade' => $quantidade,
                 'valor_unitario' => $valorUnitario,
+                'valor_total' => $valorTotalProduto,
             ]);
 
             // Incrementar o valor total
@@ -272,6 +344,17 @@ public function autorizar($id)
 
         $orcamento = Orcamento::findOrFail($id);
         Log::info('Orçamento encontrado:', $orcamento->toArray());
+
+        // Verifica se há estoque suficiente antes de autorizar
+        if (!$orcamento->podeSerAutorizado()) {
+            $produtosSemEstoque = [];
+            foreach ($orcamento->produtos as $produto) {
+                if ($produto->estoque < $produto->pivot->quantidade) {
+                    $produtosSemEstoque[] = $produto->nome . ' (Estoque: ' . $produto->estoque . ', Solicitado: ' . $produto->pivot->quantidade . ')';
+                }
+            }
+            return redirect()->back()->withErrors('Não é possível autorizar o orçamento. Estoque insuficiente para: ' . implode(', ', $produtosSemEstoque));
+        }
 
         // Verifica se já existe uma venda duplicada para o mesmo cliente com os mesmos produtos
         $vendaExistente = Venda::where('cliente_id', $orcamento->cliente_id)

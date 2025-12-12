@@ -9,8 +9,47 @@ class Helpers
 {
   public static function appClasses()
   {
-
     $data = config('custom.custom');
+    
+    // Verifica se o layout atual é 'front' (landing page) - não aplica configurações do banco
+    $isFrontLayout = isset($data['myLayout']) && $data['myLayout'] === 'front';
+    
+    // Verifica se é uma rota autenticada (dashboard) antes de aplicar configurações de interface
+    // A landing page (front) não deve ser afetada pelas configurações
+    $isAuthenticatedRoute = request()->is('dashboard*') || request()->is('page-2*') || (auth()->check() && !request()->is('/'));
+    
+    // Aplica configurações de interface do banco apenas para rotas autenticadas e se não for layout 'front'
+    if ($isAuthenticatedRoute && !$isFrontLayout) {
+        // Busca configurações de interface do banco de dados apenas para rotas autenticadas
+        $interfaceTema = \App\Models\Configuracao::get('interface_tema', 'light');
+        $interfaceLayout = \App\Models\Configuracao::get('interface_layout_menu', 'vertical');
+        $interfaceDensidade = \App\Models\Configuracao::get('interface_densidade', 'compact');
+        $mostrarIcones = \App\Models\Configuracao::get('interface_mostrar_icones', '1') == '1';
+        $mostrarNotificacoes = \App\Models\Configuracao::get('interface_mostrar_notificacoes', '1') == '1';
+        
+        // Aplica configurações de interface do banco
+        if ($interfaceTema === 'dark') {
+            $data['myStyle'] = 'dark';
+        } elseif ($interfaceTema === 'auto') {
+            $data['myStyle'] = 'system';
+        } else {
+            $data['myStyle'] = 'light';
+        }
+        
+        if ($interfaceLayout === 'horizontal') {
+            $data['myLayout'] = 'horizontal';
+        } else {
+            $data['myLayout'] = 'vertical';
+        }
+        
+        if ($interfaceDensidade === 'comfortable') {
+            $data['contentLayout'] = 'wide';
+        } elseif ($interfaceDensidade === 'spacious') {
+            $data['contentLayout'] = 'wide';
+        } else {
+            $data['contentLayout'] = 'compact';
+        }
+    }
 
 
     // default data array
@@ -42,8 +81,16 @@ class Helpers
       //   'defaultLanguage'=>'en',
     ];
 
+    // Preserva o layout 'front' se já estiver definido (landing page)
+    $preserveFrontLayout = isset($data['myLayout']) && $data['myLayout'] === 'front';
+    
     // if any key missing of array from custom.php file it will be merge and set a default value from dataDefault array and store in data variable
     $data = array_merge($DefaultData, $data);
+    
+    // Restaura o layout 'front' se estava definido antes do merge
+    if ($preserveFrontLayout) {
+        $data['myLayout'] = 'front';
+    }
 
     // All options available in the template
     $allOptions = [
@@ -68,6 +115,11 @@ class Helpers
     //if myLayout value empty or not match with default options in custom.php config file then set a default value
     foreach ($allOptions as $key => $value) {
       if (array_key_exists($key, $DefaultData)) {
+        // Preserva o layout 'front' (landing page) - não valida nem altera
+        if ($key === 'myLayout' && $data[$key] === 'front') {
+          continue;
+        }
+        
         if (gettype($DefaultData[$key]) === gettype($data[$key])) {
           // data key should be string
           if (is_string($data[$key])) {
@@ -90,6 +142,11 @@ class Helpers
           $data[$key] = $DefaultData[$key];
         }
       }
+    }
+    
+    // Garante que o layout 'front' seja preservado após todas as validações
+    if ($preserveFrontLayout) {
+        $data['myLayout'] = 'front';
     }
     $styleVal = $data['myStyle'] == "dark" ? "dark" : "light";
     $styleUpdatedVal = $data['myStyle'] == "dark" ? "dark" : $data['myStyle'];

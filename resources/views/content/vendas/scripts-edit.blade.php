@@ -28,8 +28,8 @@
                     false,
                     false
                 );
-                // Adiciona o preço como um atributo de dados
-                $(option).data('preco', produto.preco_venda);
+                // Adiciona o preço como um atributo de dados (garante que seja número)
+                $(option).data('preco', parseFloat(produto.preco_venda) || 0);
                 $('#produto_id').append(option);
             });
 
@@ -58,9 +58,14 @@
 
   // Formata um valor como moeda (R$)
   function formatCurrency(value) {
-      if (isNaN(value) || value === null) return 'R$ 0,00';
-      value = Math.abs(parseFloat(value)).toFixed(2);
-      return `R$ ${value.replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
+      // Trata valores undefined, null ou vazios
+      if (value === undefined || value === null || value === '') {
+          return 'R$ 0,00';
+      }
+      const numValue = parseFloat(value);
+      if (isNaN(numValue)) return 'R$ 0,00';
+      const formatted = Math.abs(numValue).toFixed(2);
+      return `R$ ${formatted.replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
   }
 
   // Remove a formatação de moeda e retorna um número
@@ -172,11 +177,26 @@
 
       // Atualiza o valor unitário e total ao selecionar um produto
       $('#produto_id').on('change', function () {
-          const preco = $(this).find(':selected').data('preco');
-          if (preco) {
+          const selectedId = $(this).val();
+          
+          // Ignora se nenhum produto foi selecionado ou se é o placeholder
+          if (!selectedId || selectedId === '') {
+              $('#valor_unitario').val('');
+              $('#valor_total').val('');
+              return;
+          }
+          
+          const selectedOption = $(this).find('option[value="' + selectedId + '"]');
+          const preco = parseFloat(selectedOption.data('preco')) || 0;
+          
+          if (preco && preco > 0) {
+              // Preenche o campo Valor do Produto
               $('#valor_unitario').val(formatCurrency(preco));
+              
+              // Calcula e preenche o Valor Total (preço × quantidade)
               const quantidade = parseInt($('#quantidade').val() || 1);
-              $('#valor_total').val(formatCurrency(preco * quantidade));
+              const valorTotal = preco * quantidade;
+              $('#valor_total').val(formatCurrency(valorTotal));
           } else {
               $('#valor_unitario').val('');
               $('#valor_total').val('');
@@ -282,37 +302,43 @@
   });
 
   // Evento de submit do formulário
-  document.getElementById('formEditarVenda').addEventListener('submit', function (e) {
+  $('#formEditarVenda').on('submit', function (e) {
       e.preventDefault();
 
       // Recupera os produtos da tabela
       const produtos = [];
-      document.querySelectorAll('#tabelaProdutos tbody tr').forEach((tr, index) => {
-          if (!tr.id.includes('tabelaVazia')) {
-              const produtoId = tr.getAttribute('data-produto-id');
-              const quantidadeInput = tr.querySelector('.quantidade');
-              const valorUnitarioInput = tr.querySelector('.valor-unitario');
+      $('#tabelaProdutos tbody tr').each(function() {
+          if (!$(this).attr('id') || !$(this).attr('id').includes('tabelaVazia')) {
+              const produtoId = $(this).attr('data-produto-id');
+              const quantidade = $(this).find('.quantidade').val();
+              const valorUnitario = $(this).find('.valor-unitario').val();
 
               // Verifica se os campos existem
-              if (quantidadeInput && valorUnitarioInput) {
-                  const quantidade = quantidadeInput.value;
-                  const valorUnitario = valorUnitarioInput.value;
-
+              if (produtoId && quantidade && valorUnitario) {
                   produtos.push({
                       id: produtoId,
-                      quantidade: quantidade,
+                      quantidade: parseInt(quantidade),
                       valor_unitario: valorUnitario,
                   });
               }
           }
       });
 
+      if (produtos.length === 0) {
+          alert('Adicione pelo menos um produto à venda.');
+          return;
+      }
+
+      // Remove o campo hidden anterior se existir
+      $('#produtosHidden input[name="produtos"]').remove();
+
       // Cria um campo oculto para enviar os produtos como JSON
-      const produtosHidden = document.createElement('input');
-      produtosHidden.type = 'hidden';
-      produtosHidden.name = 'produtos';
-      produtosHidden.value = JSON.stringify(produtos);
-      this.appendChild(produtosHidden);
+      const produtosHidden = $('<input>', {
+          type: 'hidden',
+          name: 'produtos',
+          value: JSON.stringify(produtos)
+      });
+      $('#produtosHidden').append(produtosHidden);
 
       // Envia o formulário
       this.submit();

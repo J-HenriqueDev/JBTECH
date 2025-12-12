@@ -24,6 +24,9 @@ class Produto extends Model
       'fornecedor_nome',
       'fornecedor_telefone',
       'fornecedor_email',
+      'sincronizado',
+      'ultima_sincronizacao',
+      'ativo_pdv',
   ];
 
 
@@ -44,4 +47,10 @@ class Produto extends Model
             ->withPivot('quantidade', 'valor_unitario', 'valor_total')
             ->withTimestamps();
     }
+
+    protected $casts = [
+        'sincronizado' => 'boolean',
+        'ativo_pdv' => 'boolean',
+        'ultima_sincronizacao' => 'datetime',
+    ];
 }

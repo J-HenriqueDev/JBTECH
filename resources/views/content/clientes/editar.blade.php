@@ -96,7 +96,7 @@
                                 <label for="telefone">
                                     <i class="fas fa-phone"></i> Telefone
                                 </label>
-                                <input type="text" class="form-control" id="telefone" name="telefone" value="{{ old('telefone', $cliente->telefone) }}" required>
+                                <input type="text" class="form-control" id="telefone" name="telefone" value="{{ old('telefone', $cliente->telefone) }}" placeholder="(00) 00000-0000" oninput="formatPhone(this)" required>
                                 @error('telefone')
                                 <span class="text-danger">{{ $message }}</span>
                                 @enderror
@@ -123,7 +123,12 @@
                                 <label for="cep">
                                     <i class="fas fa-map-marker-alt"></i> CEP
                                 </label>
-                                <input type="text" name="cep" id="cep" class="form-control" value="{{ old('cep', $cliente->endereco->cep) }}" required>
+                                <div class="input-group">
+                                    <input type="text" name="cep" id="cep" class="form-control" value="{{ old('cep', $cliente->endereco->cep ? \Illuminate\Support\Str::substr($cliente->endereco->cep, 0, 5) . '-' . \Illuminate\Support\Str::substr($cliente->endereco->cep, 5) : '') }}" placeholder="00000-000" oninput="formatCEP(this)" required>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="buscarCEP('cep', 'endereco', 'bairro', 'cidade', 'estado', 'numero')">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
                                 @error('cep')
                                 <span class="text-danger">{{ $message }}</span>
                                 @enderror
@@ -224,4 +229,12 @@
         </div>
     </div>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+<script>
+    $(document).ready(function() {
+        // Auto-busca CEP ao sair do campo
+        autoBuscarCEP('cep', 'endereco', 'bairro', 'cidade', 'estado', 'numero');
+    });
+</script>
 @endsection

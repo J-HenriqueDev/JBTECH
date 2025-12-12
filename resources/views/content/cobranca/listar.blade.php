@@ -23,71 +23,176 @@
     </a>
 </div>
 
+@if(isset($stats))
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h6 class="card-title">Total</h6>
+                <h3>{{ $stats['total'] }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <h6 class="card-title">Pendentes</h6>
+                <h3>{{ $stats['pendentes'] }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h6 class="card-title">Pagos</h6>
+                <h3>{{ $stats['pagos'] }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h6 class="card-title">Valor Pendente</h6>
+                <h3>R$ {{ number_format($stats['valor_total'], 2, ',', '.') }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
 <div class="row">
     <div class="col-md-12">
         <div class="card mb-4">
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Cobranças Cadastradas ({{ count($cobrancas) }})</h5>
-                    <div class="d-flex align-items-center">
-                        <!-- Seletor de Ordenação -->
-                        <select id="ordenacao" class="form-select" onchange="ordenarCobrancas()">
-                            <option value="recentes" selected>Mais recentes primeiro</option>
-                            <option value="antigos">Mais antigos primeiro</option>
-                            <option value="maior_valor">Maior valor primeiro</option>
-                            <option value="menor_valor">Menor valor primeiro</option>
-                        </select>
-                    </div>
+                    <h5 class="card-title mb-0">Cobranças Cadastradas</h5>
                 </div>
             </div>
             <div class="card-body">
-                <div class="mb-4">
-                    <input type="text" id="search" class="form-control" placeholder="Pesquisar cobranças..." onkeyup="filterCobrancas()">
-                </div>
+                <!-- Filtros -->
+                <form method="GET" action="{{ route('cobrancas.index') }}" class="mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <input type="text" name="search" class="form-control" placeholder="Buscar por cliente ou ID..." value="{{ request('search') }}">
+                        </div>
+                        <div class="col-md-2">
+                            <select name="status" class="form-select">
+                                <option value="">Todos os status</option>
+                                <option value="pendente" {{ request('status') == 'pendente' ? 'selected' : '' }}>Pendente</option>
+                                <option value="pago" {{ request('status') == 'pago' ? 'selected' : '' }}>Pago</option>
+                                <option value="cancelado" {{ request('status') == 'cancelado' ? 'selected' : '' }}>Cancelado</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select name="metodo_pagamento" class="form-select">
+                                <option value="">Todos os métodos</option>
+                                <option value="pix" {{ request('metodo_pagamento') == 'pix' ? 'selected' : '' }}>PIX</option>
+                                <option value="boleto" {{ request('metodo_pagamento') == 'boleto' ? 'selected' : '' }}>Boleto</option>
+                                <option value="cartao_credito" {{ request('metodo_pagamento') == 'cartao_credito' ? 'selected' : '' }}>Cartão</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <input type="date" name="data_inicio" class="form-control" value="{{ request('data_inicio') }}" placeholder="Data início">
+                        </div>
+                        <div class="col-md-2">
+                            <input type="date" name="data_fim" class="form-control" value="{{ request('data_fim') }}" placeholder="Data fim">
+                        </div>
+                        <div class="col-md-1">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
                 <div class="table-responsive text-nowrap">
                     <table class="table table-striped" id="cobrancasTable">
                         <thead>
                             <tr>
                                 <th>ID</th>
+                                <th>Cliente</th>
                                 <th>Venda</th>
                                 <th>Método</th>
                                 <th>Valor</th>
                                 <th>Status</th>
-                                <th>Data de Vencimento</th>
+                                <th>Vencimento</th>
                                 <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($cobrancas as $cobranca)
+                            @forelse ($cobrancas as $cobranca)
                             <tr>
                                 <td>{{ $cobranca->id }}</td>
-                                <td class="cobranca-venda">
-                                    <strong>{{ \Illuminate\Support\Str::limit($cobranca->venda->id ?? 'Venda não encontrada', 40, '...') }}</strong>
+                                <td>
+                                    <strong>{{ $cobranca->venda->cliente->nome ?? 'N/A' }}</strong>
                                 </td>
-                                <td class="cobranca-metodo">{{ ucfirst($cobranca->metodo_pagamento) }}</td>
+                                <td class="cobranca-venda">
+                                    <strong>#{{ $cobranca->venda->id ?? 'N/A' }}</strong>
+                                </td>
+                                <td class="cobranca-metodo">
+                                    @if($cobranca->metodo_pagamento == 'pix')
+                                        <span class="badge bg-info">PIX</span>
+                                    @elseif($cobranca->metodo_pagamento == 'boleto')
+                                        <span class="badge bg-warning">Boleto</span>
+                                    @else
+                                        <span class="badge bg-primary">Cartão</span>
+                                    @endif
+                                </td>
                                 <td class="cobranca-valor"><strong>R$ {{ number_format($cobranca->valor, 2, ',', '.') }}</strong></td>
                                 <td class="cobranca-status">
                                     <span class="badge bg-{{ $cobranca->status == 'pago' ? 'success' : ($cobranca->status == 'cancelado' ? 'danger' : 'warning') }}">
                                         {{ ucfirst($cobranca->status) }}
                                     </span>
                                 </td>
-                                <td class="cobranca-vencimento">{{ \Carbon\Carbon::parse($cobranca->data_vencimento)->format('d/m/Y') }}</td>
-                                <!-- Coluna oculta para updated_at -->
-                                <td class="cobranca-updated-at" style="display: none;">{{ $cobranca->updated_at }}</td>
+                                <td class="cobranca-vencimento">
+                                    {{ $cobranca->data_vencimento ? \Carbon\Carbon::parse($cobranca->data_vencimento)->format('d/m/Y') : 'N/A' }}
+                                </td>
                                 <td>
-                                    <a href="{{ route('cobrancas.edit', $cobranca->id) }}" class="btn btn-info">
-                                        <i class="fas fa-eye"></i> Ver / Editar
-                                    </a>
-                                    <form action="{{ route('cobrancas.destroy', $cobranca->id) }}" method="POST" style="display:inline;">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-danger">Excluir</button>
-                                    </form>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ route('cobrancas.show', $cobranca->id) }}" class="btn btn-sm btn-info" title="Ver detalhes">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ route('cobrancas.edit', $cobranca->id) }}" class="btn btn-sm btn-warning" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        @if($cobranca->status == 'pendente')
+                                        <form action="{{ route('cobrancas.marcar-paga', $cobranca->id) }}" method="POST" style="display:inline;">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-success" title="Marcar como paga">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+                                        <form action="{{ route('cobrancas.cancelar', $cobranca->id) }}" method="POST" style="display:inline;">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-secondary" title="Cancelar">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </form>
+                                        @endif
+                                        <a href="{{ route('cobrancas.pdf', $cobranca->id) }}" class="btn btn-sm btn-danger" title="Baixar PDF" target="_blank">
+                                            <i class="fas fa-file-pdf"></i>
+                                        </a>
+                                        @if($cobranca->status != 'pago')
+                                        <form action="{{ route('cobrancas.destroy', $cobranca->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja excluir esta cobrança?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-danger" title="Excluir">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
-                            @endforeach
+                            @empty
+                            <tr>
+                                <td colspan="8" class="text-center">Nenhuma cobrança encontrada.</td>
+                            </tr>
+                            @endforelse
                         </tbody>
                     </table>
+                </div>
+                <div class="mt-3">
+                    {{ $cobrancas->links() }}
                 </div>
             </div>
         </div>

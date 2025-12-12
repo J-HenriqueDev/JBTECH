@@ -1,0 +1,128 @@
+@extends('layouts.layoutMaster')
+
+@section('title', 'Notas Fiscais Eletrônicas')
+
+@section('content')
+
+@if(session('success'))
+<div class="alert alert-success alert-dismissible" role="alert">
+    <h6 class="alert-heading d-flex align-items-center fw-bold mb-1">
+        <i class="bx bx-check-circle me-1"></i> Sucesso!
+    </h6>
+    <p class="mb-0">{!! session('success') !!}</p>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
+
+@if(session('info'))
+<div class="alert alert-info alert-dismissible" role="alert">
+    <h6 class="alert-heading d-flex align-items-center fw-bold mb-1">
+        <i class="bx bx-info-circle me-1"></i> Informação!
+    </h6>
+    <p class="mb-0">{!! session('info') !!}</p>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0 text-primary">
+        <i class="bx bx-receipt"></i> Notas Fiscais Eletrônicas
+    </h1>
+    <a href="{{ route('nfe.create') }}" class="btn btn-primary">
+        <i class="bx bx-plus-circle me-1"></i> Emitir NF-e
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">NF-e Emitidas ({{ $notasFiscais->total() }})</h5>
+            </div>
+            <div class="card-body">
+                @if($notasFiscais->isEmpty())
+                    <div class="alert alert-info text-center">
+                        <i class="bx bx-info-circle fs-1 d-block mb-2"></i>
+                        <h5>Nenhuma NF-e encontrada</h5>
+                        <p class="mb-0">Comece emitindo uma NF-e a partir de uma venda.</p>
+                    </div>
+                @else
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Número</th>
+                                    <th>Chave de Acesso</th>
+                                    <th>Cliente</th>
+                                    <th>Venda</th>
+                                    <th>Valor Total</th>
+                                    <th>Data Emissão</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($notasFiscais as $nfe)
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-secondary">#{{ $nfe->numero_nfe ?? 'N/A' }}</span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ $nfe->chave_acesso ?? 'Pendente' }}</small>
+                                    </td>
+                                    <td>{{ $nfe->cliente->nome ?? 'N/A' }}</td>
+                                    <td>
+                                        @if($nfe->venda)
+                                            <a href="{{ route('vendas.edit', $nfe->venda->id) }}" class="text-primary">
+                                                Venda #{{ $nfe->venda->id }}
+                                            </a>
+                                        @else
+                                            N/A
+                                        @endif
+                                    </td>
+                                    <td><strong>R$ {{ number_format($nfe->valor_total, 2, ',', '.') }}</strong></td>
+                                    <td>{{ $nfe->data_emissao ? $nfe->data_emissao->format('d/m/Y') : 'N/A' }}</td>
+                                    <td>
+                                        @php
+                                            $badgeColor = match($nfe->status) {
+                                                'autorizada' => 'success',
+                                                'rejeitada' => 'danger',
+                                                'cancelada' => 'warning',
+                                                'processando' => 'info',
+                                                default => 'secondary'
+                                            };
+                                        @endphp
+                                        <span class="badge bg-{{ $badgeColor }}">
+                                            {{ ucfirst($nfe->status) }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <a href="{{ route('nfe.show', $nfe->id) }}" class="btn btn-info btn-sm">
+                                                <i class="bx bx-show"></i> Ver
+                                            </a>
+                                            @if($nfe->xml)
+                                                <a href="{{ route('nfe.downloadXml', $nfe->id) }}" class="btn btn-success btn-sm" target="_blank">
+                                                    <i class="bx bx-download"></i> XML
+                                                </a>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-3">
+                        {{ $notasFiscais->links() }}
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+</div>
+
+@endsection
+
+
+
