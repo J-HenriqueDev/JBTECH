@@ -147,36 +147,36 @@
                                     {{ $cobranca->data_vencimento ? \Carbon\Carbon::parse($cobranca->data_vencimento)->format('d/m/Y') : 'N/A' }}
                                 </td>
                                 <td>
-                                    <div class="btn-group" role="group">
-                                        <a href="{{ route('cobrancas.show', $cobranca->id) }}" class="btn btn-sm btn-info" title="Ver detalhes">
-                                            <i class="fas fa-eye"></i>
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ route('cobrancas.show', $cobranca->id) }}" class="btn btn-sm btn-icon btn-outline-info" title="Ver detalhes">
+                                            <i class="bx bx-show"></i>
                                         </a>
-                                        <a href="{{ route('cobrancas.edit', $cobranca->id) }}" class="btn btn-sm btn-warning" title="Editar">
-                                            <i class="fas fa-edit"></i>
+                                        <a href="{{ route('cobrancas.edit', $cobranca->id) }}" class="btn btn-sm btn-icon btn-outline-primary" title="Editar">
+                                            <i class="bx bx-edit-alt"></i>
                                         </a>
                                         @if($cobranca->status == 'pendente')
                                         <form action="{{ route('cobrancas.marcar-paga', $cobranca->id) }}" method="POST" style="display:inline;">
                                             @csrf
-                                            <button type="submit" class="btn btn-sm btn-success" title="Marcar como paga">
-                                                <i class="fas fa-check"></i>
+                                            <button type="submit" class="btn btn-sm btn-icon btn-outline-success" title="Marcar como paga">
+                                                <i class="bx bx-check"></i>
                                             </button>
                                         </form>
                                         <form action="{{ route('cobrancas.cancelar', $cobranca->id) }}" method="POST" style="display:inline;">
                                             @csrf
-                                            <button type="submit" class="btn btn-sm btn-secondary" title="Cancelar">
-                                                <i class="fas fa-times"></i>
+                                            <button type="submit" class="btn btn-sm btn-icon btn-outline-secondary" title="Cancelar">
+                                                <i class="bx bx-x"></i>
                                             </button>
                                         </form>
                                         @endif
-                                        <a href="{{ route('cobrancas.pdf', $cobranca->id) }}" class="btn btn-sm btn-danger" title="Baixar PDF" target="_blank">
-                                            <i class="fas fa-file-pdf"></i>
+                                        <a href="{{ route('cobrancas.pdf', $cobranca->id) }}" class="btn btn-sm btn-icon btn-outline-danger" title="Baixar PDF" target="_blank">
+                                            <i class="bx bxs-file-pdf"></i>
                                         </a>
                                         @if($cobranca->status != 'pago')
                                         <form action="{{ route('cobrancas.destroy', $cobranca->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja excluir esta cobrança?');">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger" title="Excluir">
-                                                <i class="fas fa-trash"></i>
+                                            <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" title="Excluir">
+                                                <i class="bx bx-trash"></i>
                                             </button>
                                         </form>
                                         @endif

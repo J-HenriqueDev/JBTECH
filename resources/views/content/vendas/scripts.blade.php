@@ -247,9 +247,20 @@ $(document).ready(function () {
 
     // Inicializa o Select2 para o campo de clientes
     $('#select2Cliente').select2({
-        tags: true, // Permite adicionar valores não listados
+        tags: true,
         placeholder: 'Selecione um cliente',
         width: '100%'
+    });
+
+    $('#select2Cliente').on('select2:opening', function (e) {
+        const select = $(this);
+        const count = select.find('option').not('[value=""]').length;
+        if (count === 0) {
+            if (confirm('Nenhum cliente cadastrado. Deseja cadastrar agora?')) {
+                window.location.href = '{{ route("clientes.create") }}';
+            }
+            e.preventDefault();
+        }
     });
 
     // Atualiza o endereço do cliente ao selecionar

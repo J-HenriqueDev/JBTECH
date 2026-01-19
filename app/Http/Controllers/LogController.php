@@ -10,6 +10,11 @@ class LogController extends Controller
 {
     public function index(Request $request)
     {
+        // Restriction: Only Admins can access
+        if (!auth()->user()->isAdmin()) {
+            return redirect()->route('dashboard')->with('error', 'Acesso não autorizado.');
+        }
+
         // Inicia a query com o relacionamento do usuário e ordena pelos mais recentes
         $query = Log::with('user')->latest();
 

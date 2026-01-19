@@ -76,20 +76,20 @@
                                     <td class="venda-updated-at" style="display: none;">{{ $venda->updated_at }}</td>
                                     <td>
                                         <div class="d-flex gap-2">
-                                            <a href="{{ route('vendas.edit', $venda->id) }}" class="btn btn-info btn-sm">
-                                                <i class="bx bx-edit"></i> Ver/Editar
+                                            <a href="{{ route('vendas.edit', $venda->id) }}" class="btn btn-sm btn-icon btn-outline-info" title="Ver/Editar">
+                                                <i class="bx bx-edit-alt"></i>
                                             </a>
-                                            <a href="{{ route('vendas.exportarPdf', $venda->id) }}" class="btn btn-success btn-sm" target="_blank">
-                                                <i class="bx bx-download"></i> PDF
+                                            <a href="{{ route('vendas.exportarPdf', $venda->id) }}" class="btn btn-sm btn-icon btn-outline-secondary" target="_blank" title="Gerar PDF">
+                                                <i class="bx bx-file"></i>
                                             </a>
-                                            <a href="{{ route('nfe.create', ['venda_id' => $venda->id]) }}" class="btn btn-primary btn-sm" title="Emitir NF-e">
-                                                <i class="bx bx-receipt"></i> NF-e
+                                            <a href="{{ route('nfe.create', ['venda_id' => $venda->id]) }}" class="btn btn-sm btn-icon btn-outline-primary" title="Emitir NF-e">
+                                                <i class="bx bx-receipt"></i>
                                             </a>
                                             <form action="{{ route('vendas.destroy', $venda->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja excluir esta venda?');">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-danger btn-sm">
-                                                    <i class="bx bx-trash"></i> Excluir
+                                                <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" title="Excluir">
+                                                    <i class="bx bx-trash"></i>
                                                 </button>
                                             </form>
                                         </div>

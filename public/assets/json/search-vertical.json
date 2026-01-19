@@ -53,7 +53,7 @@
     {
       "name": "User Management",
       "icon": "bx-user",
-      "url": "laravel/user-management"
+      "url": "dashboard/users"
     },
     {
       "name": "Email",

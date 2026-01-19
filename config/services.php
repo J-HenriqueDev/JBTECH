@@ -31,4 +31,8 @@ return [
     ],
   ],
 
+  'cosmos' => [
+      'token' => env('COSMOS_TOKEN'),
+  ],
+
 ];

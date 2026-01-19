@@ -2,30 +2,43 @@
 
 @section('vendor-style')
 @vite([
-  'resources/assets/vendor/libs/select2/select2.scss',
-  'resources/assets/vendor/libs/swiper/swiper.scss'
+'resources/assets/vendor/libs/select2/select2.scss',
+'resources/assets/vendor/libs/swiper/swiper.scss'
 ])
 @endsection
 
 @section('vendor-script')
 @vite([
-  'resources/assets/vendor/libs/select2/select2.js',
-  'resources/assets/vendor/libs/swiper/swiper.js'
+'resources/assets/vendor/libs/select2/select2.js',
+'resources/assets/vendor/libs/swiper/swiper.js'
 ])
 @endsection
 
 @section('page-script')
 @vite([
-  'resources/assets/js/forms-selects.js'
+'resources/assets/js/forms-selects.js'
 ])
 @endsection
 
 @section('content')
 <h1 class="mb-4 text-primary" style="font-size: 2.5rem; font-weight: bold; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);">
-  <i class="fas fa-plus-circle"></i> Importar Produtos via XML
+    <i class="fas fa-plus-circle"></i> Importar Produtos via XML
 </h1>
 <div class="col-md-12">
+    <div class="card p-4 shadow-sm mb-4">
+        <h4 class="mb-3"><i class="bx bx-key"></i> Importar via Chave de Acesso</h4>
+        <form action="{{ route('produtos.importar.chave') }}" method="POST">
+            @csrf
+            <div class="input-group mb-3">
+                <input type="text" name="chave_acesso" class="form-control form-control-lg" placeholder="Digite a Chave de Acesso da NF-e (44 dígitos)" maxlength="44" required>
+                <button class="btn btn-primary" type="submit"><i class="bx bx-search"></i> Buscar e Importar</button>
+            </div>
+            <small class="text-muted">A busca por chave requer que a nota tenha sido emitida para o CNPJ da empresa e esteja disponível na SEFAZ.</small>
+        </form>
+    </div>
+
     <div class="card p-4 shadow-sm">
+        <h4 class="mb-3"><i class="bx bx-file"></i> Ou Importar Arquivo XML</h4>
         <form action="{{ route('produtos.import') }}" method="POST" enctype="multipart/form-data">
             @csrf
             <div class="mb-3">
@@ -43,6 +56,7 @@
                 <table class="table table-bordered table-hover">
                     <thead class="table-dark">
                         <tr>
+                            <th class="text-center" style="width: 80px;">Status</th>
                             <th class="col-md-3">Nome</th>
                             <th class="d-none d-md-table-cell">Preço Custo</th>
                             <th class="d-none d-md-table-cell">Preço Venda</th>
@@ -56,42 +70,50 @@
                     <tbody>
                         @foreach ($productsData as $index => $product)
                         <tr>
+                            <td class="text-center align-middle">
+                                @if(isset($product['match_type']) && $product['match_type'] == 'existente')
+                                <span class="badge bg-info" data-bs-toggle="tooltip" title="Produto já existe e será atualizado">Atualizar</span>
+                                <input type="hidden" name="produtos[{{ $index }}][id]" value="{{ $product['id'] }}">
+                                @else
+                                <span class="badge bg-success" data-bs-toggle="tooltip" title="Novo produto será criado">Novo</span>
+                                @endif
+                            </td>
                             <td>
                                 <input type="text" name="produtos[{{ $index }}][nome]"
-                                       value="{{ $product['nome'] }}"
-                                       class="form-control"
-                                       style="width: 100%;" required>
+                                    value="{{ $product['nome'] }}"
+                                    class="form-control"
+                                    style="width: 100%;" required>
                             </td>
                             <td class="d-none d-md-table-cell">
                                 <div class="input-group">
                                     <span class="input-group-text">R$</span>
                                     <input type="text" name="produtos[{{ $index }}][preco_custo]"
-                                           value="{{ number_format($product['preco_custo'], 2, ',', '.') }}"
-                                           class="form-control" required oninput="formatCurrency(this)">
+                                        value="{{ number_format($product['preco_custo'], 2, ',', '.') }}"
+                                        class="form-control" required oninput="formatCurrency(this)">
                                 </div>
                             </td>
                             <td class="d-none d-md-table-cell">
                                 <div class="input-group">
                                     <span class="input-group-text">R$</span>
                                     <input type="text" name="produtos[{{ $index }}][preco_venda]"
-                                           value="{{ number_format($product['preco_venda'], 2, ',', '.') }}"
-                                           class="form-control" required oninput="formatCurrency(this)">
+                                        value="{{ number_format($product['preco_venda'], 2, ',', '.') }}"
+                                        class="form-control" required oninput="formatCurrency(this)">
                                 </div>
                             </td>
                             <td class="d-none d-md-table-cell">
                                 <input type="text" name="produtos[{{ $index }}][codigo_barras]"
-                                       value="{{ $product['codigo_barras'] }}"
-                                       class="form-control">
+                                    value="{{ $product['codigo_barras'] }}"
+                                    class="form-control">
                             </td>
                             <td class="d-none d-md-table-cell">
                                 <input type="text" name="produtos[{{ $index }}][ncm]"
-                                       value="{{ $product['ncm'] }}"
-                                       class="form-control" required>
+                                    value="{{ $product['ncm'] }}"
+                                    class="form-control" required>
                             </td>
                             <td>
                                 <input type="number" name="produtos[{{ $index }}][estoque]"
-                                       value="{{ $product['estoque'] }}"
-                                       class="form-control" style="width: 80px;" required> <!-- Reduzido o tamanho do campo -->
+                                    value="{{ $product['estoque'] }}"
+                                    class="form-control" style="width: 80px;" required> <!-- Reduzido o tamanho do campo -->
                             </td>
                             <td>
                                 <select name="produtos[{{ $index }}][categoria_id]" class="form-control">
@@ -121,24 +143,24 @@
                 <div class="col-md-6">
                     <label for="fornecedor_cnpj" class="form-label"><i class="bx bx-id-card"></i> CNPJ do Fornecedor</label>
                     <input type="text" class="form-control" name="fornecedor_cnpj" id="fornecedor_cnpj"
-                          value="{{ $fornecedor['cnpj'] ?? '' }}" required oninput="formatCNPJ(this)">
+                        value="{{ $fornecedor['cnpj'] ?? '' }}" required oninput="formatCNPJ(this)">
                 </div>
                 <div class="col-md-6">
                     <label for="fornecedor_nome" class="form-label"><i class="bx bx-user"></i> Nome do Fornecedor</label>
                     <input type="text" class="form-control" name="fornecedor_nome" id="fornecedor_nome"
-                          value="{{ $fornecedor['nome'] ?? '' }}" required>
+                        value="{{ $fornecedor['nome'] ?? '' }}" required>
                 </div>
             </div>
             <div class="row mb-4">
                 <div class="col-md-6">
                     <label for="fornecedor_telefone" class="form-label"><i class="bx bx-phone"></i> Telefone do Fornecedor</label>
                     <input type="text" class="form-control" name="fornecedor_telefone" id="fornecedor_telefone"
-                          value="{{ $fornecedor['telefone'] ?? '' }}" required oninput="formatTelefone(this)">
+                        value="{{ $fornecedor['telefone'] ?? '' }}" required oninput="formatTelefone(this)">
                 </div>
                 <div class="col-md-6">
                     <label for="fornecedor_email" class="form-label"><i class="bx bx-envelope"></i> E-mail do Fornecedor</label>
                     <input type="email" class="form-control" name="fornecedor_email" id="fornecedor_email"
-                          value="{{ $fornecedor['email'] ?? '' }}">
+                        value="{{ $fornecedor['email'] ?? '' }}">
                 </div>
             </div>
 
@@ -159,27 +181,41 @@
 
 <style>
     .input-group-text {
-        font-size: 16px; /* Ajuste o tamanho da fonte do "R$" */
+        font-size: 16px;
+        /* Ajuste o tamanho da fonte do "R$" */
     }
+
     .table-responsive {
         overflow-x: auto;
     }
-    .table th, .table td {
-        vertical-align: middle; /* Centraliza o conteúdo das células */
+
+    .table th,
+    .table td {
+        vertical-align: middle;
+        /* Centraliza o conteúdo das células */
     }
+
     .table thead th {
-        white-space: nowrap; /* Evita quebra de linha no cabeçalho */
+        white-space: nowrap;
+        /* Evita quebra de linha no cabeçalho */
     }
+
     .table tbody td {
-        font-size: 14px; /* Reduz o tamanho da fonte em dispositivos móveis */
+        font-size: 14px;
+        /* Reduz o tamanho da fonte em dispositivos móveis */
     }
+
     @media (max-width: 768px) {
         .table tbody td {
-            font-size: 12px; /* Reduz ainda mais o tamanho da fonte em telas pequenas */
+            font-size: 12px;
+            /* Reduz ainda mais o tamanho da fonte em telas pequenas */
         }
+
         .btn {
-            width: 100%; /* Botões ocupam toda a largura em dispositivos móveis */
-            margin-bottom: 10px; /* Adiciona espaçamento entre os botões */
+            width: 100%;
+            /* Botões ocupam toda a largura em dispositivos móveis */
+            margin-bottom: 10px;
+            /* Adiciona espaçamento entre os botões */
         }
     }
 </style>
@@ -217,10 +253,10 @@
         input.value = value;
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
         const inputsPreco = document.querySelectorAll('input[name*="[preco_custo]"], input[name*="[preco_venda]"]');
         inputsPreco.forEach(input => {
-            input.addEventListener('input', function () {
+            input.addEventListener('input', function() {
                 const index = this.name.match(/\[(\d+)\]/)[1];
                 const precoCusto = parseFloat(document.querySelector(`input[name="produtos[${index}][preco_custo]"]`).value.replace('R$ ', '').replace('.', '').replace(',', '.'));
                 const precoVenda = parseFloat(document.querySelector(`input[name="produtos[${index}][preco_venda]"]`).value.replace('R$ ', '').replace('.', '').replace(',', '.'));

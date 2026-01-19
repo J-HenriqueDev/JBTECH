@@ -9,8 +9,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 use NFePHP\Common\Certificate;
 use Exception;
+
+use App\Services\NFeService;
 
 class ConfiguracaoController extends Controller
 {
@@ -21,7 +24,7 @@ class ConfiguracaoController extends Controller
     {
         // Carrega configurações padrão se não existirem
         $this->inicializarConfiguracoes();
-        
+
         $configuracoes = Configuracao::all()->groupBy('grupo');
 
         LogService::registrar(
@@ -34,268 +37,57 @@ class ConfiguracaoController extends Controller
     }
 
     /**
-     * Testa o certificado digital antes de salvar
-     */
-    public function testarCertificado(Request $request)
-    {
-        try {
-            $request->validate([
-                'certificado' => 'required|file|mimes:pfx',
-                'senha' => 'required|string',
-            ]);
-
-            $arquivo = $request->file('certificado');
-            $senha = $request->input('senha');
-
-            // Salva temporariamente para testar
-            $nomeTemp = 'certificado_temp_' . time() . '.pfx';
-            $caminhoTemp = 'certificates/' . $nomeTemp;
-            
-            // Cria o diretório se não existir
-            if (!Storage::exists('certificates')) {
-                Storage::makeDirectory('certificates');
-            }
-            
-            // Salva temporariamente
-            Storage::putFileAs('certificates', $arquivo, $nomeTemp);
-            
-            try {
-                // Valida o certificado
-                $this->validarCertificado($caminhoTemp, $senha);
-                
-                // Remove o arquivo temporário após validação bem-sucedida
-                Storage::delete($caminhoTemp);
-                
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Certificado e senha válidos!'
-                ]);
-            } catch (Exception $e) {
-                // Remove o arquivo temporário em caso de erro
-                if (Storage::exists($caminhoTemp)) {
-                    Storage::delete($caminhoTemp);
-                }
-                throw $e;
-            }
-        } catch (Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 400);
-        }
-    }
-
-    /**
      * Salva as configurações
      */
     public function store(Request $request)
     {
         try {
             $grupo = $request->input('grupo', 'geral');
+
+            // Verificação de permissão para grupos sensíveis
+            $gruposSensiveis = ['nfe', 'email', 'sistema'];
+            if (in_array($grupo, $gruposSensiveis) && !auth()->user()->isAdmin()) {
+                return back()->withErrors('Você não tem permissão para alterar configurações deste grupo.');
+            }
+
             $dados = $request->except(['_token', 'grupo']);
-            
+
             // Debug: verifica se a senha está chegando
             Log::info('Salvando configurações', [
                 'grupo' => $grupo,
-                'tem_certificado' => $request->hasFile('nfe_certificado'),
-                'senha_fornecida' => $request->filled('nfe_cert_password'),
-                'senha_valor' => $request->filled('nfe_cert_password') ? '***' : 'vazia',
                 'dados_keys' => array_keys($dados)
             ]);
 
             // Tratamento especial para upload de logo da interface
             if ($request->hasFile('interface_logo')) {
                 $arquivo = $request->file('interface_logo');
-                
+
                 // Valida o tipo de arquivo
                 if (!in_array($arquivo->getClientOriginalExtension(), ['jpg', 'jpeg', 'png', 'gif', 'svg'])) {
                     return back()->withErrors('O arquivo de logo deve ser uma imagem (JPG, PNG, GIF ou SVG).');
                 }
-                
+
                 $nomeArquivo = 'logo_empresa.' . $arquivo->getClientOriginalExtension();
                 $caminho = 'logos/' . $nomeArquivo;
-                
+
                 // Cria o diretório se não existir
                 if (!Storage::exists('logos')) {
                     Storage::makeDirectory('logos');
                 }
-                
+
                 // Salva o arquivo
                 Storage::putFileAs('logos', $arquivo, $nomeArquivo);
-                
+
                 Configuracao::set('interface_logo', $caminho, 'interface', 'file', 'Logo da empresa');
             }
 
-            // Tratamento especial para upload de certificado
-            if ($request->hasFile('nfe_certificado')) {
-                $arquivo = $request->file('nfe_certificado');
-                
-                // Valida o tipo de arquivo
-                if ($arquivo->getClientOriginalExtension() !== 'pfx') {
-                    return back()->withErrors('O arquivo deve ser um certificado digital no formato PFX.');
-                }
-                
-                $nomeArquivo = 'certificado.pfx';
-                $caminho = 'certificates/' . $nomeArquivo;
-                
-                // Cria o diretório se não existir
-                if (!Storage::exists('certificates')) {
-                    Storage::makeDirectory('certificates');
-                }
-                
-                // Salva temporariamente para validar antes de substituir
-                $nomeTemp = 'certificado_temp_' . time() . '.pfx';
-                $caminhoTemp = 'certificates/' . $nomeTemp;
-                Storage::putFileAs('certificates', $arquivo, $nomeTemp);
-                
-                // Obtém a senha (nova ou atual)
-                $senhaNova = $request->input('nfe_cert_password');
-                $senhaAtual = Configuracao::get('nfe_cert_password', '');
-                
-                // Determina qual senha usar
-                if (!empty($senhaNova)) {
-                    // Se forneceu senha nova, usa ela
-                    $senha = $senhaNova;
-                } elseif (!empty($senhaAtual)) {
-                    // Se não forneceu mas existe senha atual, usa a atual
-                    $senha = $senhaAtual;
-                } else {
-                    // Se não forneceu e não existe senha atual, retorna erro
-                    Storage::delete($caminhoTemp);
-                    return back()->withErrors('É necessário fornecer a senha do certificado ao importar um novo certificado.');
-                }
-                
-                // OBRIGATÓRIO: Valida o certificado ANTES de salvar
-                try {
-                    $this->validarCertificado($caminhoTemp, $senha);
-                } catch (Exception $e) {
-                    Storage::delete($caminhoTemp);
-                    return back()->withErrors('Erro ao validar certificado: ' . $e->getMessage() . ' Por favor, verifique o certificado e a senha antes de tentar novamente.');
-                }
-                
-                // Se passou na validação, substitui o arquivo antigo
-                if (Storage::exists($caminho)) {
-                    Storage::delete($caminho);
-                }
-                
-                // Move o arquivo temporário para o nome final
-                Storage::move($caminhoTemp, $caminho);
-                
-                Configuracao::set('nfe_cert_path', $nomeArquivo, 'nfe', 'file', 'Caminho do certificado digital');
-                
-                // SEMPRE salva a senha quando um certificado é importado (já foi validada acima)
-                // Se foi fornecida nova senha, salva a nova. Se não, mantém a atual.
-                $senhaParaSalvar = !empty($senhaNova) ? trim($senhaNova) : (empty($senhaAtual) ? '' : trim($senhaAtual));
-                
-                if (empty($senhaParaSalvar)) {
-                    Storage::delete($caminho);
-                    return back()->withErrors('É necessário fornecer a senha do certificado ao importar.');
-                }
-                
-                // Salva a senha
-                try {
-                    $resultado = Configuracao::set('nfe_cert_password', $senhaParaSalvar, 'nfe', 'password', 'Senha do certificado digital');
-                    
-                    // Verifica se foi salvo corretamente - busca direto do banco
-                    $configSalva = Configuracao::where('chave', 'nfe_cert_password')->first();
-                    if (!$configSalva || $configSalva->valor !== $senhaParaSalvar) {
-                        Log::error('Erro ao salvar senha do certificado no banco de dados', [
-                            'senha_fornecida' => !empty($senhaNova) ? 'nova' : 'atual',
-                            'senha_length' => strlen($senhaParaSalvar),
-                            'resultado_id' => $resultado ? $resultado->id : 'null',
-                            'valor_salvo' => $configSalva ? $configSalva->valor : 'null',
-                            'valor_esperado' => $senhaParaSalvar
-                        ]);
-                        Storage::delete($caminho);
-                        return back()->withErrors('Erro ao salvar a senha do certificado no banco de dados. Verifique os logs para mais detalhes.');
-                    }
-                    
-                    Log::info('Senha do certificado salva com sucesso', [
-                        'senha_length' => strlen($senhaParaSalvar),
-                        'config_id' => $resultado->id,
-                        'valor_verificado' => $configSalva->valor
-                    ]);
-                } catch (\Exception $e) {
-                    Log::error('Exceção ao salvar senha do certificado', [
-                        'erro' => $e->getMessage(),
-                        'trace' => $e->getTraceAsString()
-                    ]);
-                    Storage::delete($caminho);
-                    return back()->withErrors('Erro ao salvar a senha do certificado: ' . $e->getMessage());
-                }
-            }
-
             foreach ($dados as $chave => $valor) {
-                // Ignora o campo de upload de arquivo (já foi processado)
+                // Ignora o campo de upload de arquivo (já foi processado ou é tratado separadamente)
                 if ($chave === 'nfe_certificado' || $chave === 'interface_logo') {
                     continue;
                 }
 
-
-                // Valida senha do certificado se foi alterada
-                if ($chave === 'nfe_cert_password') {
-                    // Se um novo certificado foi enviado, a senha já foi processada acima
-                    if ($request->hasFile('nfe_certificado')) {
-                        continue; // Já foi processado no bloco acima
-                    }
-                    
-                    // Se a senha está vazia, mantém a atual (se existir)
-                    if (empty($valor) || trim($valor) === '') {
-                        $senhaAtual = Configuracao::get('nfe_cert_password');
-                        if (!empty($senhaAtual)) {
-                            continue; // Mantém a senha atual, não atualiza
-                        }
-                        // Se está vazia e não existe uma configurada, não salva
-                        continue;
-                    }
-                    
-                    // Valida a senha se foi fornecida (usando certificado atual)
-                    $certPath = 'certificates/' . Configuracao::get('nfe_cert_path', 'certificado.pfx');
-                    
-                    if (!Storage::exists($certPath)) {
-                        // Se não tem certificado, apenas salva a senha sem validar
-                        Log::info('Salvando senha sem validar (certificado não encontrado)', ['chave' => $chave]);
-                    } else {
-                        // Valida a senha com o certificado existente
-                        try {
-                            $this->validarCertificado($certPath, $valor);
-                        } catch (Exception $e) {
-                            return back()->withErrors('Erro ao validar senha do certificado: ' . $e->getMessage());
-                        }
-                    }
-                    
-                    // Salva a senha (validada ou não, dependendo se tem certificado)
-                    $senhaLimpa = trim($valor);
-                    if (empty($senhaLimpa)) {
-                        continue; // Não salva senha vazia
-                    }
-                    
-                    $resultado = Configuracao::set('nfe_cert_password', $senhaLimpa, 'nfe', 'password', 'Senha do certificado digital');
-                    
-                    // Verifica se foi salvo corretamente - busca direto do banco
-                    $configSalva = Configuracao::where('chave', 'nfe_cert_password')->first();
-                    if (!$configSalva || $configSalva->valor !== $senhaLimpa) {
-                        Log::error('Erro ao salvar senha do certificado no banco de dados', [
-                            'chave' => $chave,
-                            'valor_length' => strlen($senhaLimpa),
-                            'resultado_id' => $resultado ? $resultado->id : 'null',
-                            'valor_salvo' => $configSalva ? $configSalva->valor : 'null',
-                            'valor_esperado' => $senhaLimpa
-                        ]);
-                        return back()->withErrors('Erro ao salvar a senha do certificado no banco de dados. Por favor, tente novamente.');
-                    }
-                    
-                    Log::info('Senha do certificado salva com sucesso', [
-                        'chave' => $chave,
-                        'senha_length' => strlen($senhaLimpa),
-                        'config_id' => $resultado->id
-                    ]);
-                    
-                    // Já foi salvo, não precisa processar novamente no loop
-                    continue;
-                }
-                
-                // Ignora campos vazios de senha (para não sobrescrever) - exceto nfe_cert_password que já foi tratado
+                // Ignora campos vazios de senha (para não sobrescrever)
                 if ((str_contains($chave, 'senha') || str_contains($chave, 'password')) && empty($valor)) {
                     continue;
                 }
@@ -303,10 +95,8 @@ class ConfiguracaoController extends Controller
                 // Determina o grupo e tipo baseado na chave
                 $configGrupo = $grupo;
                 $configTipo = 'text';
-                
-                if (str_starts_with($chave, 'nfe_')) {
-                    $configGrupo = 'nfe';
-                } elseif (str_starts_with($chave, 'email_')) {
+
+                if (str_starts_with($chave, 'email_')) {
                     $configGrupo = 'email';
                 } elseif (str_starts_with($chave, 'sistema_')) {
                     $configGrupo = 'sistema';
@@ -329,24 +119,30 @@ class ConfiguracaoController extends Controller
                     $configTipo = 'password';
                 } elseif (str_contains($chave, 'certificado') || str_contains($chave, 'arquivo') || str_contains($chave, 'logo')) {
                     $configTipo = 'file';
-                } elseif (str_contains($chave, 'ambiente') || str_contains($chave, 'porta') || str_contains($chave, 'paginacao') || 
-                          str_contains($chave, 'desconto') || str_contains($chave, 'comissao') || str_contains($chave, 'limite') ||
-                          str_contains($chave, 'prazo') || str_contains($chave, 'periodo') || str_contains($chave, 'estoque_minimo') ||
-                          str_contains($chave, 'garantia')) {
+                } elseif (
+                    str_contains($chave, 'ambiente') || str_contains($chave, 'porta') || str_contains($chave, 'paginacao') ||
+                    str_contains($chave, 'desconto') || str_contains($chave, 'comissao') || str_contains($chave, 'limite') ||
+                    str_contains($chave, 'prazo') || str_contains($chave, 'periodo') || str_contains($chave, 'estoque_minimo') ||
+                    str_contains($chave, 'garantia')
+                ) {
                     $configTipo = 'number';
-                } elseif (str_contains($chave, 'ativo') || str_contains($chave, 'habilitado') || str_contains($chave, 'edicao_inline') ||
-                          str_contains($chave, 'exigir') || str_contains($chave, 'permitir') || str_contains($chave, 'gerar') ||
-                          str_contains($chave, 'imprimir') || str_contains($chave, 'enviar') || str_contains($chave, 'alertar') ||
-                          str_contains($chave, 'mostrar') || str_contains($chave, 'agrupar') || str_contains($chave, 'controle') ||
-                          str_contains($chave, 'venda_estoque_negativo')) {
+                } elseif (
+                    str_contains($chave, 'ativo') || str_contains($chave, 'habilitado') || str_contains($chave, 'edicao_inline') ||
+                    str_contains($chave, 'exigir') || str_contains($chave, 'permitir') || str_contains($chave, 'gerar') ||
+                    str_contains($chave, 'imprimir') || str_contains($chave, 'enviar') || str_contains($chave, 'alertar') ||
+                    str_contains($chave, 'mostrar') || str_contains($chave, 'agrupar') || str_contains($chave, 'controle') ||
+                    str_contains($chave, 'venda_estoque_negativo')
+                ) {
                     $configTipo = 'boolean';
                 } elseif (str_contains($chave, 'email')) {
                     $configTipo = 'email';
                 }
 
                 // Remove formatação de campos numéricos antes de salvar
-                if (str_contains($chave, 'cnpj') || str_contains($chave, 'cpf') || 
-                    str_contains($chave, 'cep') || str_contains($chave, 'telefone')) {
+                if (
+                    str_contains($chave, 'cnpj') || str_contains($chave, 'cpf') ||
+                    str_contains($chave, 'cep') || str_contains($chave, 'telefone')
+                ) {
                     $valor = preg_replace('/[^0-9]/', '', $valor);
                 }
 
@@ -357,14 +153,14 @@ class ConfiguracaoController extends Controller
 
                 // Configurações específicas que são por usuário
                 $configuracoesPorUsuario = ['produtos_edicao_inline'];
-                
+
                 // Se for uma configuração por usuário, salva para o usuário autenticado
                 // Caso contrário, salva como global (user_id = null)
                 $userId = null;
                 if (in_array($chave, $configuracoesPorUsuario) && Auth::check()) {
                     $userId = Auth::id();
                 }
-                
+
                 Configuracao::set($chave, $valor, $configGrupo, $configTipo, null, $userId);
             }
 
@@ -378,6 +174,129 @@ class ConfiguracaoController extends Controller
                 ->with('success', 'Configurações salvas com sucesso!');
         } catch (\Exception $e) {
             return back()->withErrors('Erro ao salvar configurações: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Processa especificamente as configurações de NFe
+     */
+    private function storeNFe(Request $request)
+    {
+        try {
+            Log::info('Iniciando storeNFe');
+
+            // 1. Processa Upload de Certificado (se houver)
+            if ($request->hasFile('nfe_certificado')) {
+                $arquivo = $request->file('nfe_certificado');
+
+                // Valida extensão
+                $extensao = strtolower($arquivo->getClientOriginalExtension());
+                if ($extensao !== 'pfx' && $extensao !== 'p12') {
+                    return back()->withErrors('O arquivo deve ser um certificado digital no formato PFX ou P12.');
+                }
+
+                $nomeArquivo = 'certificado.pfx';
+                $caminho = 'certificates/' . $nomeArquivo;
+
+                if (!Storage::exists('certificates')) {
+                    Storage::makeDirectory('certificates');
+                }
+
+                // Salva temporariamente
+                $nomeTemp = 'certificado_temp_' . time() . '.pfx';
+                $caminhoTemp = 'certificates/' . $nomeTemp;
+                Storage::putFileAs('certificates', $arquivo, $nomeTemp);
+
+                // Determina a senha para validação
+                $senhaNova = $request->input('nfe_cert_password');
+                $senhaAtual = Configuracao::get('nfe_cert_password');
+
+                $senhaParaValidar = !empty($senhaNova) ? $senhaNova : $senhaAtual;
+
+                if (empty($senhaParaValidar)) {
+                    Storage::delete($caminhoTemp);
+                    return back()->withErrors('É necessário fornecer a senha para validar o novo certificado.');
+                }
+
+                // Valida o certificado
+                try {
+                    $this->validarCertificado($caminhoTemp, $senhaParaValidar);
+                } catch (Exception $e) {
+                    Storage::delete($caminhoTemp);
+                    return back()->withErrors('Erro ao validar certificado: ' . $e->getMessage());
+                }
+
+                // Se validou, move para o local definitivo e salva o caminho
+                if (Storage::exists($caminho)) {
+                    Storage::delete($caminho);
+                }
+                Storage::move($caminhoTemp, $caminho);
+                Configuracao::set('nfe_cert_path', $nomeArquivo, 'nfe', 'file', 'Caminho do certificado digital');
+
+                // Salva a senha validada
+                Configuracao::set('nfe_cert_password', $senhaParaValidar, 'nfe', 'password', 'Senha do certificado digital');
+                Log::info('Senha do certificado (novo) salva com sucesso.');
+            }
+            // 2. Se NÃO tem arquivo novo, mas tem senha nova, valida e atualiza
+            elseif ($request->filled('nfe_cert_password')) {
+                $senhaNova = $request->input('nfe_cert_password');
+                $certPath = 'certificates/' . Configuracao::get('nfe_cert_path', 'certificado.pfx');
+
+                // Se o certificado existe, valida a nova senha contra ele
+                if (Storage::exists($certPath)) {
+                    try {
+                        $this->validarCertificado($certPath, $senhaNova);
+                    } catch (Exception $e) {
+                        return back()->withErrors('A nova senha fornecida é inválida para o certificado atual: ' . $e->getMessage());
+                    }
+                }
+
+                // Salva a nova senha
+                Configuracao::set('nfe_cert_password', $senhaNova, 'nfe', 'password', 'Senha do certificado digital');
+                Log::info('Senha do certificado (existente) atualizada com sucesso.');
+            }
+
+            // 3. Salva os demais campos da NFe explicitamente
+            $camposNFe = [
+                'nfe_razao_social' => 'text',
+                'nfe_nome_fantasia' => 'text',
+                'nfe_cnpj' => 'text',
+                'nfe_ie' => 'text',
+                'nfe_crt' => 'text',
+                'nfe_ambiente' => 'number',
+                'nfe_serie' => 'number',
+                'nfe_ultimo_numero' => 'number',
+                'nfe_csc' => 'text',
+                'nfe_csc_id' => 'text',
+            ];
+
+            foreach ($camposNFe as $chave => $tipo) {
+                if ($request->has($chave)) {
+                    $valor = $request->input($chave);
+
+                    // Limpeza específica
+                    if ($chave === 'nfe_cnpj') {
+                        $valor = preg_replace('/[^0-9]/', '', $valor);
+                    }
+
+                    // Validação de IE
+                    if ($chave === 'nfe_ie') {
+                        $valor = trim($valor);
+                        if (!empty($valor) && !preg_match('/^([0-9]{2,14}|ISENTO)$/i', $valor)) {
+                            return back()->withErrors("A Inscrição Estadual (IE) deve conter apenas números (2-14 dígitos) ou a palavra 'ISENTO'.");
+                        }
+                        $valor = strtoupper($valor);
+                    }
+
+                    Configuracao::set($chave, $valor, 'nfe', $tipo);
+                }
+            }
+
+            LogService::registrar('Configuração', 'Atualizar', 'Configurações de NF-e atualizadas');
+            return redirect()->route('configuracoes.index')->with('success', 'Configurações de NF-e salvas com sucesso!');
+        } catch (Exception $e) {
+            Log::error('Erro em storeNFe: ' . $e->getMessage());
+            return back()->withErrors('Erro ao salvar configurações de NF-e: ' . $e->getMessage());
         }
     }
 
@@ -430,7 +349,7 @@ class ConfiguracaoController extends Controller
 
         foreach ($configuracoesPadrao as $config) {
             Configuracao::updateOrCreate(
-                ['chave' => $config['chave']],
+                ['chave' => $config['chave'], 'user_id' => null],
                 [
                     'valor' => $config['valor'],
                     'grupo' => $config['grupo'],
@@ -442,13 +361,42 @@ class ConfiguracaoController extends Controller
     }
 
     /**
+     * Consulta CNPJ via BrasilAPI
+     */
+    public function consultaCnpj($cnpj)
+    {
+        try {
+            // Remove caracteres não numéricos
+            $cnpj = preg_replace('/[^0-9]/', '', $cnpj);
+
+            if (strlen($cnpj) !== 14) {
+                return response()->json(['error' => 'CNPJ inválido'], 400);
+            }
+
+            // Consulta na BrasilAPI
+            $response = Http::timeout(10)->get("https://brasilapi.com.br/api/cnpj/v1/{$cnpj}");
+
+            if ($response->failed()) {
+                return response()->json(['error' => 'Não foi possível consultar o CNPJ. Verifique se está correto.'], 400);
+            }
+
+            $data = $response->json();
+
+            return response()->json($data);
+        } catch (Exception $e) {
+            Log::error('Erro ao consultar CNPJ: ' . $e->getMessage());
+            return response()->json(['error' => 'Erro interno ao consultar CNPJ'], 500);
+        }
+    }
+
+    /**
      * Configura o OpenSSL para usar provider legacy (necessário para OpenSSL 3.x)
      */
     protected function configurarOpenSSLLegacy()
     {
         // Cria um arquivo de configuração temporário do OpenSSL
         $opensslConfigPath = storage_path('app/openssl_legacy.cnf');
-        
+
         // Conteúdo do arquivo de configuração para ativar provider legacy
         $opensslConfig = <<<'INI'
 openssl_conf = openssl_init
@@ -471,21 +419,38 @@ INI;
         if (!file_exists($opensslConfigPath)) {
             file_put_contents($opensslConfigPath, $opensslConfig);
         }
-        
+
         // Configura a variável de ambiente OPENSSL_CONF ANTES de qualquer uso do OpenSSL
         // Usa múltiplas formas para garantir que funcione
         putenv('OPENSSL_CONF=' . $opensslConfigPath);
         $_ENV['OPENSSL_CONF'] = $opensslConfigPath;
         $_SERVER['OPENSSL_CONF'] = $opensslConfigPath;
-        
+
         // No Windows, também tenta configurar via variável de sistema
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
             putenv('OPENSSL_CONF=' . $opensslConfigPath);
         }
-        
+
+        // Tenta localizar e configurar o diretório de módulos do OpenSSL (crítico para Windows/Git Bash)
+        $possibleModulePaths = [
+            'C:\\Program Files\\Git\\mingw64\\lib\\ossl-modules',
+            'C:\\Program Files\\Git\\usr\\lib\\ossl-modules',
+            'C:\\OpenSSL-Win64\\lib\\ossl-modules',
+            'C:\\OpenSSL-Win32\\lib\\ossl-modules',
+        ];
+
+        foreach ($possibleModulePaths as $path) {
+            if (file_exists($path) && file_exists($path . '\\legacy.dll')) {
+                putenv('OPENSSL_MODULES=' . $path);
+                $_ENV['OPENSSL_MODULES'] = $path;
+                $_SERVER['OPENSSL_MODULES'] = $path;
+                break;
+            }
+        }
+
         return $opensslConfigPath;
     }
-    
+
     /**
      * Valida certificado usando OpenSSL via linha de comando (workaround para OpenSSL 3.x)
      */
@@ -496,40 +461,71 @@ INI;
         if (!$opensslPath) {
             return false;
         }
-        
+
         // Cria arquivo temporário com a senha
         $senhaFile = storage_path('app/temp_senha_' . uniqid() . '.txt');
         file_put_contents($senhaFile, $senha);
-        
+
         try {
             // Tenta ler o certificado usando OpenSSL com provider legacy
             $opensslConfigPath = $this->configurarOpenSSLLegacy();
-            
-            // Comando para verificar o certificado usando provider legacy
-            // Usa -legacy para forçar o uso de algoritmos legados
-            $command = sprintf(
-                '"%s" pkcs12 -info -in "%s" -passin file:"%s" -noout -legacy -config "%s" 2>&1',
+
+            // Tenta PRIMEIRO com a flag -legacy (assumindo OpenSSL 3.x e certificado antigo)
+            // Adiciona -provider-path se OPENSSL_MODULES estiver definido
+            $extraArgs = '';
+            if (getenv('OPENSSL_MODULES')) {
+                $extraArgs .= ' -provider-path "' . getenv('OPENSSL_MODULES') . '"';
+            }
+
+            $commandLegacy = sprintf(
+                '"%s" pkcs12 -info -in "%s" -passin file:"%s" -noout -legacy -config "%s"%s 2>&1',
                 $opensslPath,
                 escapeshellarg($certPath),
                 escapeshellarg($senhaFile),
-                escapeshellarg($opensslConfigPath)
+                escapeshellarg($opensslConfigPath),
+                $extraArgs
             );
-            
+
             $output = [];
             $returnVar = 0;
-            exec($command, $output, $returnVar);
-            
+            exec($commandLegacy, $output, $returnVar);
+
+            // Se falhou, verifica se é porque a flag -legacy não existe (OpenSSL 1.x) ou outro erro
+            if ($returnVar !== 0) {
+                $outputStr = implode(' ', $output);
+
+                // Se o erro for opção desconhecida, tenta sem a flag -legacy
+                if (str_contains($outputStr, 'unknown option') || str_contains($outputStr, 'bad flag') || str_contains($outputStr, 'Unrecognized flag')) {
+                    $commandStandard = sprintf(
+                        '"%s" pkcs12 -info -in "%s" -passin file:"%s" -noout 2>&1',
+                        $opensslPath,
+                        escapeshellarg($certPath),
+                        escapeshellarg($senhaFile)
+                    );
+
+                    $output = [];
+                    $returnVar = 0;
+                    exec($commandStandard, $output, $returnVar);
+                }
+            }
+
             // Remove arquivo temporário
             @unlink($senhaFile);
-            
+
             // Se o comando retornou 0, o certificado é válido
-            return $returnVar === 0;
+            if ($returnVar === 0) {
+                return true;
+            }
+
+            Log::warning('Falha na validação OpenSSL (CLI): ' . implode(" | ", $output));
+            return false;
         } catch (\Exception $e) {
+            Log::error('Exceção na validação OpenSSL (CLI): ' . $e->getMessage());
             @unlink($senhaFile);
             return false;
         }
     }
-    
+
     /**
      * Encontra o caminho do executável OpenSSL
      */
@@ -537,22 +533,32 @@ INI;
     {
         // Tenta encontrar OpenSSL em locais comuns
         $possiveisCaminhos = [
+            'C:\\Program Files\\Git\\mingw64\\bin\\openssl.exe', // Prioridade para mingw64 (mais compatível com módulos no Windows)
+            'C:\\Program Files\\Git\\usr\\bin\\openssl.exe',
+            'C:\\Program Files\\Git\\bin\\openssl.exe',
+            'C:\\OpenSSL-Win64\\bin\\openssl.exe',
+            'C:\\OpenSSL-Win32\\bin\\openssl.exe',
             'openssl',
             '/usr/bin/openssl',
             '/usr/local/bin/openssl',
-            'C:\\OpenSSL-Win64\\bin\\openssl.exe',
-            'C:\\OpenSSL-Win32\\bin\\openssl.exe',
         ];
-        
+
         foreach ($possiveisCaminhos as $caminho) {
             $output = [];
             $returnVar = 0;
+            // No Windows, verifica se o arquivo existe antes de tentar executar para evitar delay
+            if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' && $caminho !== 'openssl') {
+                if (!file_exists($caminho)) {
+                    continue;
+                }
+            }
+
             exec('"' . $caminho . '" version 2>&1', $output, $returnVar);
             if ($returnVar === 0) {
                 return $caminho;
             }
         }
-        
+
         // Tenta encontrar no PATH
         $output = [];
         $returnVar = 0;
@@ -560,8 +566,174 @@ INI;
         if ($returnVar === 0) {
             return 'openssl';
         }
-        
+
         return null;
+    }
+
+    /**
+     * Converte certificado legado para formato moderno compatível com OpenSSL 3
+     */
+    protected function converterCertificadoLegacy($caminho, $senha)
+    {
+        // Garante que o ambiente esteja configurado
+        $this->configurarOpenSSLLegacy();
+
+        $opensslPath = $this->encontrarOpenSSL();
+        if (!$opensslPath) {
+            throw new Exception('OpenSSL não encontrado no sistema.');
+        }
+
+        $certPath = storage_path('app/' . $caminho);
+        // Normaliza caminhos
+        $certPath = str_replace('\\', '/', $certPath);
+
+        // Arquivos temporários
+        $pemPath = $certPath . '.pem';
+        $pfxPath = $certPath . '.converted.pfx';
+
+        // Cria arquivo temporário com a senha
+        $senhaFile = storage_path('app/temp_senha_' . uniqid() . '.txt');
+        file_put_contents($senhaFile, $senha);
+        $senhaFile = str_replace('\\', '/', $senhaFile);
+
+        try {
+            // Adiciona -provider-path se OPENSSL_MODULES estiver definido
+            $extraArgs = '';
+            if (getenv('OPENSSL_MODULES')) {
+                $extraArgs .= ' -provider-path "' . getenv('OPENSSL_MODULES') . '"';
+            }
+
+            // --- ETAPA 1: Extrair PFX (Legacy) para PEM ---
+            // Usamos -nodes para não criptografar a chave privada no arquivo temporário PEM
+
+            $commandExtract = sprintf(
+                '"%s" pkcs12 -in "%s" -out "%s" -nodes -legacy -passin file:"%s"%s 2>&1',
+                $opensslPath,
+                $certPath,
+                $pemPath,
+                $senhaFile,
+                $extraArgs
+            );
+
+            $output = [];
+            $returnVar = 0;
+            exec($commandExtract, $output, $returnVar);
+
+            if ($returnVar !== 0) {
+                $outputStr = implode(' ', $output);
+
+                // Retry 1: Senha direta se erro de BIO (problema no Windows)
+                if (str_contains($outputStr, 'Error reading password') || str_contains($outputStr, 'Error getting passwords')) {
+                    $senhaEscaped = str_replace('"', '\"', $senha);
+                    $commandExtract = sprintf(
+                        '"%s" pkcs12 -in "%s" -out "%s" -nodes -legacy -passin pass:"%s"%s 2>&1',
+                        $opensslPath,
+                        $certPath,
+                        $pemPath,
+                        $senhaEscaped,
+                        $extraArgs
+                    );
+                    $output = [];
+                    $returnVar = 0;
+                    exec($commandExtract, $output, $returnVar);
+                    $outputStr = implode(' ', $output);
+                }
+
+                // Retry 2: Sem flag -legacy (caso seja OpenSSL antigo ou erro de flag)
+                if ($returnVar !== 0 && (str_contains($outputStr, 'unknown option') || str_contains($outputStr, 'bad flag'))) {
+                    $commandExtract = sprintf(
+                        '"%s" pkcs12 -in "%s" -out "%s" -nodes -passin file:"%s" 2>&1',
+                        $opensslPath,
+                        $certPath,
+                        $pemPath,
+                        $senhaFile
+                    );
+                    $output = [];
+                    $returnVar = 0;
+                    exec($commandExtract, $output, $returnVar);
+                    $outputStr = implode(' ', $output);
+
+                    // Retry 2.1: Sem flag -legacy e com senha direta
+                    if ($returnVar !== 0 && (str_contains($outputStr, 'Error reading password') || str_contains($outputStr, 'Error getting passwords'))) {
+                        $senhaEscaped = str_replace('"', '\"', $senha);
+                        $commandExtract = sprintf(
+                            '"%s" pkcs12 -in "%s" -out "%s" -nodes -passin pass:"%s" 2>&1',
+                            $opensslPath,
+                            $certPath,
+                            $pemPath,
+                            $senhaEscaped
+                        );
+                        $output = [];
+                        $returnVar = 0;
+                        exec($commandExtract, $output, $returnVar);
+                        $outputStr = implode(' ', $output);
+                    }
+                }
+
+                if ($returnVar !== 0) {
+                    if (str_contains($outputStr, 'Mac verify error') || str_contains($outputStr, 'invalid password')) {
+                        throw new Exception('Senha do certificado incorreta (Validação CLI).');
+                    }
+                    throw new Exception('Falha na extração do certificado: ' . $outputStr);
+                }
+            }
+
+            if (!file_exists($pemPath) || filesize($pemPath) === 0) {
+                throw new Exception('Arquivo PEM temporário não foi criado ou está vazio.');
+            }
+
+            // --- ETAPA 2: Criar novo PFX a partir do PEM ---
+            // O novo PFX usará os algoritmos padrão do OpenSSL atual (modernos)
+
+            $commandExport = sprintf(
+                '"%s" pkcs12 -export -in "%s" -out "%s" -passout file:"%s" 2>&1',
+                $opensslPath,
+                $pemPath,
+                $pfxPath,
+                $senhaFile
+            );
+
+            $output = [];
+            $returnVar = 0;
+            exec($commandExport, $output, $returnVar);
+
+            // Retry Export: Senha direta se erro de BIO
+            if ($returnVar !== 0) {
+                $outputStr = implode(' ', $output);
+                if (str_contains($outputStr, 'Error reading password') || str_contains($outputStr, 'Error getting passwords')) {
+                    $senhaEscaped = str_replace('"', '\"', $senha);
+                    $commandExport = sprintf(
+                        '"%s" pkcs12 -export -in "%s" -out "%s" -passout pass:"%s" 2>&1',
+                        $opensslPath,
+                        $pemPath,
+                        $pfxPath,
+                        $senhaEscaped
+                    );
+                    exec($commandExport, $output, $returnVar);
+                }
+            }
+
+            if ($returnVar !== 0) {
+                throw new Exception('Falha na geração do novo PFX: ' . implode(' ', $output));
+            }
+
+            if (file_exists($pfxPath) && filesize($pfxPath) > 0) {
+                // Substitui o arquivo original pelo convertido
+                if (copy($pfxPath, $certPath)) {
+                    @unlink($pfxPath);
+                    @unlink($pemPath);
+                    @unlink($senhaFile);
+                    return true;
+                }
+            }
+
+            throw new Exception('Arquivo convertido final não foi criado.');
+        } catch (\Exception $e) {
+            @unlink($senhaFile);
+            if (isset($pemPath) && file_exists($pemPath)) @unlink($pemPath);
+            if (isset($pfxPath) && file_exists($pfxPath)) @unlink($pfxPath);
+            throw $e;
+        }
     }
 
     /**
@@ -571,82 +743,67 @@ INI;
     {
         try {
             $certPath = storage_path('app/' . $caminho);
-            
+
             if (!file_exists($certPath)) {
                 throw new Exception('Certificado não encontrado.');
             }
-            
+
             if (empty($senha)) {
                 throw new Exception('Senha do certificado não fornecida.');
             }
-            
+
             // Verifica se o arquivo é válido
             $certContent = file_get_contents($certPath);
             if (empty($certContent)) {
                 throw new Exception('O arquivo do certificado está vazio ou corrompido.');
             }
-            
-            // Configura OpenSSL para usar provider legacy (OpenSSL 3.x) ANTES de qualquer uso
+
+            // Configura OpenSSL para usar provider legacy (OpenSSL 3.x)
             $this->configurarOpenSSLLegacy();
-            
-            // Método 1: Tenta validar via OpenSSL linha de comando (mais confiável para OpenSSL 3.x)
-            if ($this->validarCertificadoViaOpenSSL($certPath, $senha)) {
-                return true;
-            }
-            
-            // Método 2: Tenta com openssl_pkcs12_read (método nativo do PHP)
-            if (function_exists('openssl_pkcs12_read')) {
-                $certData = null;
-                $result = @openssl_pkcs12_read($certContent, $certData, $senha);
-                if ($result && isset($certData['cert'])) {
-                    // Certificado válido usando método nativo do PHP
-                    return true;
-                }
-            }
-            
-            // Método 3: Tenta com NFePHP Certificate::readPfx
+
+            // Tenta usar a biblioteca NFePHP (abordagem principal)
             try {
                 $certificate = Certificate::readPfx($certContent, $senha);
-                
-                // Verifica se o certificado foi lido com sucesso
-                if (!$certificate) {
-                    throw new Exception('Não foi possível ler o certificado.');
-                }
-                
+
+                // Se chegou aqui, funcionou!
                 return true;
             } catch (\Exception $e) {
-                $errorMessage = $e->getMessage();
-                
-                // Trata erros específicos
-                if (str_contains($errorMessage, 'mac verify failure') || 
-                    str_contains($errorMessage, 'PKCS12') ||
-                    str_contains($errorMessage, 'mac verify')) {
-                    throw new Exception('Senha do certificado digital incorreta. Por favor, verifique a senha.');
-                } elseif (str_contains($errorMessage, 'digital envelope') || 
-                          str_contains($errorMessage, 'unsupported')) {
-                    // Se ainda falhar, tenta uma última vez com OpenSSL linha de comando
-                    if ($this->validarCertificadoViaOpenSSL($certPath, $senha)) {
-                        return true;
-                    }
-                    
-                    throw new Exception('Erro ao ler certificado com OpenSSL 3.x. O sistema tentou múltiplas abordagens (provider legacy, linha de comando, métodos nativos) mas ainda assim falhou. Isso pode indicar que o certificado precisa ser reexportado ou que há um problema de configuração do OpenSSL no servidor. Detalhes: ' . $errorMessage);
-                } elseif (str_contains($errorMessage, 'bad decrypt')) {
-                    throw new Exception('Senha do certificado incorreta ou certificado corrompido.');
-                } else {
-                    throw new Exception('Erro ao validar certificado: ' . $errorMessage);
+                $msg = $e->getMessage();
+
+                // Verifica se é erro de senha
+                if (str_contains($msg, 'Mac verify failure') || str_contains($msg, 'PKCS12_parse') || str_contains($msg, 'bad decrypt')) {
+                    throw new Exception('Senha do certificado incorreta.');
                 }
-            }
-        } catch (Exception $e) {
-            // Se já é uma Exception com mensagem tratada, apenas relança
-            if (str_starts_with($e->getMessage(), 'Senha') || 
-                str_starts_with($e->getMessage(), 'Erro ao ler') ||
-                str_starts_with($e->getMessage(), 'Erro ao validar')) {
+
+                // Verifica se é erro de algoritmo legado (OpenSSL 3.x)
+                if (str_contains($msg, 'digital envelope') || str_contains($msg, 'unsupported')) {
+
+                    // Tenta converter
+                    try {
+                        $this->converterCertificadoLegacy($caminho, $senha);
+
+                        // Se converteu, tenta ler novamente
+                        $certContent = file_get_contents($certPath);
+                        Certificate::readPfx($certContent, $senha);
+                        return true;
+                    } catch (\Exception $convEx) {
+                        // Se falhou a conversão, relança o erro da conversão se for de senha
+                        if (str_contains($convEx->getMessage(), 'Senha')) {
+                            throw $convEx;
+                        }
+
+                        // Caso contrário, lança erro detalhado
+                        throw new Exception('O certificado utiliza criptografia antiga não suportada pelo OpenSSL 3.x e a conversão automática falhou: ' . $convEx->getMessage());
+                    }
+                }
+
+                // Outros erros
                 throw $e;
             }
-            
-            // Caso contrário, trata o erro genérico
-            $errorMessage = 'Erro ao validar certificado: ' . $e->getMessage();
-            throw new Exception($errorMessage);
+        } catch (Exception $e) {
+            // Log do erro real
+            Log::error('Erro validação certificado: ' . $e->getMessage());
+            throw $e;
         }
     }
 }

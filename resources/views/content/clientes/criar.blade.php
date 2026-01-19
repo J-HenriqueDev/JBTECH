@@ -3,207 +3,186 @@
 @section('title', 'Novo Cliente')
 
 @section('content')
- <h1 class="text-primary" style="font-size: 2.5rem; font-weight: bold; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);">
-  <i class="fas fa-plus-circle"></i> Cadastro de Clientes
-</h1>
-<div class="row">
-    <div class="col-md-12">
-        <div class="card mb-4">
-              <form action="{{ route('clientes.store') }}" method="POST">
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-10">
+        <div class="card border-top border-primary border-3 shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center bg-transparent py-3">
+                <h4 class="mb-0 text-primary fw-bold">
+                    <i class="fas fa-user-plus me-2"></i>Novo Cliente
+                </h4>
+                <a href="{{ route('clientes.index') }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i> Voltar
+                </a>
+            </div>
+
+            <form action="{{ route('clientes.store') }}" method="POST">
                 @csrf
-                <div class="card-body">
-                    <!-- Primeira linha: CPF/CNPJ, Nome/Razão Social, Inscrição Estadual/Data de Nascimento -->
-                    <div class="row">
-                        <div class="col-md-3"> <!-- Ajuste para manter na mesma linha -->
-                            <div class="form-group">
-                                <label for="cpf">
-                                    <i class="fas fa-id-card"></i> CPF/CNPJ
-                                </label>
-                                <input type="text" class="form-control" id="cpf" name="cpf" placeholder="123.456.789-10" oninput="formatCPFCNPJ(this)" required>
-                                @error('cpf')
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-                        </div>
+                <div class="card-body p-4">
 
-                        <div class="col-md-5"> <!-- Ajuste para manter na mesma linha -->
-                            <div class="form-group">
-                                <label for="nome">
-                                    <i class="fas fa-user"></i> Nome/Razão Social
-                                </label>
-                                <input type="text" class="form-control" id="nome" name="nome" placeholder="José Henrique" required>
-                                @error('nome')
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
+                    <!-- Seção: Dados Cadastrais -->
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-primary bg-opacity-10 rounded p-2 me-3 text-primary">
+                            <i class="fas fa-id-card fa-lg"></i>
                         </div>
-
-                        <div class="col-md-4"> <!-- Inscrição Estadual ou Data de Nascimento -->
-                            <div class="form-group" id="inscricao_estadual_container" style="display: none;">
-                                <label for="inscricao_estadual" id="inscricao_estadual_label">
-                                    <i class="fas fa-file-invoice"></i> Inscrição Estadual
-                                </label>
-                                <input type="text" class="form-control" id="inscricao_estadual" name="inscricao_estadual" placeholder="123456789" >
-                                @error('inscricao_estadual')
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-
-                            <div class="form-group" id="data_nascimento_container" style="display: none;">
-                                <label for="data_nascimento">
-                                    <i class="fas fa-calendar-alt"></i> Data de Nascimento
-                                </label>
-                                <input type="date" class="form-control" id="data_nascimento" name="data_nascimento">
-                                @error('data_nascimento')
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-                        </div>
+                        <h5 class="mb-0 fw-bold text-dark">Dados Cadastrais</h5>
                     </div>
 
-                    <!-- Outras linhas -->
-                    <div class="row">
+                    <div class="row g-3 mb-4">
                         <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="telefone">
-                                    <i class="fas fa-phone"></i> Telefone
-                                </label>
-                                <input type="text" class="form-control" id="telefone" name="telefone" placeholder="(00) 00000-0000" oninput="formatPhone(this)" required>
-                                @error('telefone')
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
+                            <label class="form-label fw-bold" for="cpf">CPF / CNPJ</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="cpf" name="cpf"
+                                    placeholder="000.000.000-00" oninput="formatCPFCNPJ(this)" required>
+                                <button class="btn btn-primary" type="button" id="btn-buscar-cnpj"
+                                    onclick="validarEBuscarCNPJ()" title="Buscar dados do CNPJ na Receita">
+                                    <i class="fas fa-search me-1"></i> Buscar
+                                </button>
                             </div>
+                            @error('cpf') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
                         </div>
 
                         <div class="col-md-8">
-                            <div class="form-group">
-                                <label for="email">
-                                    <i class="fas fa-envelope"></i> E-mail
-                                </label>
-                                <input type="email" class="form-control" id="email" name="email" placeholder="informatica.jbtech@gmail.com" required>
-                                @error('email')
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="divider my-6">
-                      <div class="divider-text"><i class="fas fa-briefcase"></i> Endereço</div>
-                    </div>
-
-                    <!-- Endereço -->
-                    <div class="row mt-4">
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="cep">
-                                    <i class="fas fa-map-marker-alt"></i> CEP
-                                </label>
-                                <div class="input-group">
-                                    <input type="text" name="cep" id="cep" class="form-control" placeholder="00000-000" oninput="formatCEP(this)" required>
-                                    @error('cep')
-                                    <span class="text-danger">{{ $message }}</span>
-                                    @enderror
-                                    <button id="cep-search" class="btn btn-outline-secondary" type="button" onclick="buscarCEP('cep', 'endereco', 'bairro', 'cidade', 'estado', 'numero')">
-                                        <i class="fas fa-search"></i>
-                                    </button>
-                                </div>
-                            </div>
+                            <label class="form-label fw-bold" for="nome">Nome Completo / Razão Social</label>
+                            <input type="text" class="form-control" id="nome" name="nome" placeholder="Ex: João Silva ou Empresa LTDA" required>
+                            @error('nome') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
                         </div>
 
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="endereco">
-                                    <i class="fas fa-road"></i> Endereço
-                                </label>
-                                <input type="text" class="form-control" id="endereco" name="endereco" placeholder="Rua Teste" required>
-                                @error('endereco')
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
+                        <div class="col-md-3" id="data_nascimento_container" style="display:none;">
+                            <label class="form-label fw-bold" for="data_nascimento">Data de Nascimento</label>
+                            <input type="date" class="form-control" id="data_nascimento" name="data_nascimento">
+                        </div>
+
+                        <!-- Dados Fiscais (CNPJ) -->
+                        <div class="col-md-3" id="inscricao_estadual_container">
+                            <label class="form-label fw-bold" for="inscricao_estadual">Inscrição Estadual</label>
+                            <input type="text" class="form-control" id="inscricao_estadual" name="inscricao_estadual" placeholder="Isento ou Número">
                         </div>
 
                         <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="numero">
-                                    <i class="fas fa-home"></i> Número
-                                </label>
-                                <input type="text" class="form-control" id="numero" name="numero" placeholder="123" required>
-                                @error('numero')
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
+                            <label class="form-label fw-bold" for="inscricao_municipal">Inscrição Municipal</label>
+                            <input type="text" class="form-control" id="inscricao_municipal" name="inscricao_municipal" placeholder="Opcional">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold" for="indicador_ie">Indicador da IE</label>
+                            <select class="form-select" id="indicador_ie" name="indicador_ie">
+                                <option value="1">Contribuinte ICMS</option>
+                                <option value="2">Contribuinte Isento</option>
+                                <option value="9" selected>Não Contribuinte</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold" for="suframa">Suframa</label>
+                            <input type="text" class="form-control" id="suframa" name="suframa" placeholder="Se houver">
+                        </div>
+                    </div>
+
+                    <hr class="my-4 text-muted opacity-25">
+
+                    <!-- Seção: Contato -->
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-success bg-opacity-10 rounded p-2 me-3 text-success">
+                            <i class="fas fa-address-book fa-lg"></i>
+                        </div>
+                        <h5 class="mb-0 fw-bold text-dark">Informações de Contato</h5>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold" for="telefone">Telefone Principal</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-phone"></i></span>
+                                <input type="text" class="form-control" id="telefone" name="telefone"
+                                    placeholder="(00) 00000-0000" oninput="formatPhone(this)" required>
+                            </div>
+                            @error('telefone') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold" for="telefone_secundario">Telefone Secundário</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-phone-alt"></i></span>
+                                <input type="text" class="form-control" id="telefone_secundario" name="telefone_secundario"
+                                    placeholder="(00) 00000-0000" oninput="formatPhone(this)">
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold" for="email">E-mail Principal</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-envelope"></i></span>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                            @error('email') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold" for="email_secundario">E-mail Secundário</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-envelope-open"></i></span>
+                                <input type="email" class="form-control" id="email_secundario" name="email_secundario">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Bairro, Cidade, Estado -->
-                    <div class="row">
+                    <hr class="my-4 text-muted opacity-25">
+
+                    <!-- Seção: Endereço -->
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-warning bg-opacity-10 rounded p-2 me-3 text-warning">
+                            <i class="fas fa-map-marker-alt fa-lg"></i>
+                        </div>
+                        <h5 class="mb-0 fw-bold text-dark">Endereço Completo</h5>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold" for="cep">CEP</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="cep" name="cep"
+                                    placeholder="00000-000" oninput="formatCEP(this)" required>
+                                <button class="btn btn-outline-secondary" type="button"
+                                    onclick="buscarCEP('cep', 'endereco', 'bairro', 'cidade', 'estado', 'numero')">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                            @error('cep') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+                        </div>
+
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold" for="endereco">Rua / Avenida</label>
+                            <input type="text" class="form-control" id="endereco" name="endereco" required>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold" for="numero">Número</label>
+                            <input type="text" class="form-control" id="numero" name="numero" required>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold" for="bairro">Bairro</label>
+                            <input type="text" class="form-control" id="bairro" name="bairro" required>
+                        </div>
+
                         <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="bairro">
-                                    <i class="fas fa-map-pin"></i> Bairro
-                                </label>
-                                <input type="text" class="form-control" id="bairro" name="bairro" placeholder="Morada do Contorno" required>
-                                @error('bairro')
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
+                            <label class="form-label fw-bold" for="cidade">Cidade</label>
+                            <input type="text" class="form-control" id="cidade" name="cidade" required>
                         </div>
 
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="cidade">
-                                    <i class="fas fa-city"></i> Cidade
-                                </label>
-                                <input type="text" class="form-control" id="cidade" name="cidade" placeholder="Resende" required>
-                                @error('cidade')
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="estado">
-                                    <i class="fas fa-globe-americas"></i> Estado
-                                </label>
-                                <input type="text" class="form-control" id="estado" name="estado" placeholder="RJ" required>
-                                @error('estado')
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold" for="estado">UF</label>
+                            <input type="text" class="form-control" id="estado" name="estado" maxlength="2" required>
                         </div>
                     </div>
 
-                    <div class="divider my-6">
-                      <div class="divider-text"><i class="fas fa-briefcase"></i> Tipo de Cliente</div>
-                    </div>
-
-                    <!-- Tipo de Cliente -->
-                    <div class="form-group col-sm-5">
-                        <label for="tipo_cliente" class="form-label d-block">
-                        </label>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="tipo_cliente" id="particular" value="0" checked>
-                            <label class="form-check-label" for="particular">Particular</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="tipo_cliente" id="contrato" value="1">
-                            <label class="form-check-label" for="contrato">Contrato</label>
-                        </div>
-                        @error('tipo_cliente')
-                        <span class="text-danger">{{ $message }}</span>
-                        @enderror
-                    </div>
                 </div>
 
-                <div class="card-footer d-flex justify-content-end">
-                  <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary me-2" onclick="window.history.back();">
-                      <i class="bx bx-x"></i> Cancelar
+                <div class="card-footer bg-light px-4 py-3 d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-label-secondary" onclick="window.history.back()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary fw-bold px-4">
+                        <i class="fas fa-check me-2"></i> Salvar Cliente
                     </button>
-
-                    <button class="btn btn-md btn-primary fw-bold">Adicionar</button>
                 </div>
             </form>
         </div>
@@ -212,21 +191,57 @@
 
 <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
 <script>
+    function validarEBuscarCNPJ() {
+        const cpfInput = document.getElementById('cpf');
+        const valor = cpfInput.value.replace(/\D/g, '');
+
+        if (!valor) {
+            alert('Por favor, digite um CNPJ antes de buscar.');
+            cpfInput.focus();
+            return;
+        }
+
+        if (valor.length !== 14) {
+            alert('Para realizar a busca, digite um CNPJ válido (14 dígitos).');
+            cpfInput.focus();
+            return;
+        }
+
+        // Chama a função global definida em scripts.blade.php
+        buscarCNPJ('cpf', 'nome', 'cep', 'endereco', 'numero', 'bairro', 'cidade', 'estado', 'telefone', 'email');
+    }
+
     $(document).ready(function() {
-        // Mostra/esconde campos baseado no CPF/CNPJ
-        $('#cpf').on('blur', function() {
+        // Controle de exibição de campos baseado no tamanho do CPF/CNPJ
+        $('#cpf').on('input', function() {
             var cpfCnpj = $(this).val().replace(/\D/g, '');
-            if (cpfCnpj.length === 11) {
-                $('#data_nascimento_container').show();
-                $('#inscricao_estadual_container').hide();
-            } else if (cpfCnpj.length === 14) {
+
+            if (cpfCnpj.length > 11) {
+                // É CNPJ
                 $('#data_nascimento_container').hide();
                 $('#inscricao_estadual_container').show();
+                $('#btn-buscar-cnpj').prop('disabled', false);
+
+                // Busca automática se tiver 14 dígitos
+                if (cpfCnpj.length === 14) {
+                    buscarCNPJ('cpf', 'nome', 'cep', 'endereco', 'numero', 'bairro', 'cidade', 'estado', 'telefone', 'email');
+                }
+            } else {
+                // É CPF
+                $('#data_nascimento_container').show();
+                $('#inscricao_estadual_container').show(); // Alterado: deixar visível sempre, pois PF pode ter IE
+                $('#btn-buscar-cnpj').prop('disabled', true);
             }
         });
-        
-        // Auto-busca CEP ao sair do campo
+
+        // Trigger inicial para ajustar campos
+        $('#cpf').trigger('input');
+
+        // Auto-busca CEP
         autoBuscarCEP('cep', 'endereco', 'bairro', 'cidade', 'estado', 'numero');
+
+        // Auto-busca CNPJ ao sair do campo (opcional, já que temos o botão agora, mas bom manter)
+        // autoBuscarCNPJ('cpf', 'nome', 'cep', 'endereco', 'numero', 'bairro', 'cidade', 'estado', 'telefone', 'email');
     });
 </script>
 @endsection

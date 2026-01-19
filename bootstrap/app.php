@@ -5,6 +5,14 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\LocaleMiddleware;
 
+// Polyfill for SOAP constants if extension is missing
+if (!defined('SOAP_1_1')) {
+    define('SOAP_1_1', 1);
+}
+if (!defined('SOAP_1_2')) {
+    define('SOAP_1_2', 2);
+}
+
 return Application::configure(basePath: dirname(__DIR__))
   ->withRouting(
     web: __DIR__ . '/../routes/web.php',

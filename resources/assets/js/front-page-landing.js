@@ -10,6 +10,9 @@
     animationElements = document.querySelectorAll('.hero-elements-img'),
     swiperLogos = document.getElementById('swiper-clients-logos'),
     swiperReviews = document.getElementById('swiper-reviews'),
+    swiperTechTrends = document.getElementById('swiper-tech-trends'),
+    landingHero = document.getElementById('landingHero'),
+    testimonialSwiper = document.querySelector('.testimonialSwiper'),
     ReviewsPreviousBtn = document.getElementById('reviews-previous-btn'),
     ReviewsNextBtn = document.getElementById('reviews-next-btn'),
     ReviewsSliderPrev = document.querySelector('.swiper-button-prev'),
@@ -56,29 +59,35 @@
   // swiper carousel
   // Customers reviews
   // -----------------------------------
+  let swiperReviewsInstance;
   if (swiperReviews) {
-    new Swiper(swiperReviews, {
+    swiperReviewsInstance = new Swiper(swiperReviews, {
       slidesPerView: 1,
-      spaceBetween: 5,
+      spaceBetween: 10,
       grabCursor: true,
       autoplay: {
-        delay: 3000,
+        delay: 0,
         disableOnInteraction: false
       },
+      speed: 3000,
       loop: true,
-      loopAdditionalSlides: 1,
-      navigation: {
-        nextEl: '.swiper-button-next',
-        prevEl: '.swiper-button-prev'
-      },
       breakpoints: {
+        1400: {
+          slidesPerView: 4,
+          spaceBetween: 20
+        },
         1200: {
           slidesPerView: 3,
-          spaceBetween: 26
+          spaceBetween: 20
         },
         992: {
           slidesPerView: 2,
           spaceBetween: 20
+        }
+      },
+      on: {
+        init: function () {
+          this.wrapperEl.style.transitionTimingFunction = 'linear';
         }
       }
     });
@@ -87,12 +96,16 @@
   // Reviews slider next and previous
   // -----------------------------------
   // Add click event listener to next button
-  ReviewsNextBtn.addEventListener('click', function () {
-    ReviewsSliderNext.click();
-  });
-  ReviewsPreviousBtn.addEventListener('click', function () {
-    ReviewsSliderPrev.click();
-  });
+  if (ReviewsNextBtn && swiperReviewsInstance) {
+    ReviewsNextBtn.addEventListener('click', function () {
+      swiperReviewsInstance.slideNext();
+    });
+  }
+  if (ReviewsPreviousBtn && swiperReviewsInstance) {
+    ReviewsPreviousBtn.addEventListener('click', function () {
+      swiperReviewsInstance.slidePrev();
+    });
+  }
 
   // Review client logo
   // -----------------------------------
@@ -114,33 +127,104 @@
     });
   }
 
+  // Tech Trends Swiper
+  // -----------------------------------
+  if (swiperTechTrends) {
+    new Swiper(swiperTechTrends, {
+      slidesPerView: 1,
+      spaceBetween: 20,
+      pagination: {
+        el: '.swiper-pagination',
+        clickable: true
+      },
+      breakpoints: {
+        640: {
+          slidesPerView: 2,
+          spaceBetween: 20
+        },
+        768: {
+          slidesPerView: 3,
+          spaceBetween: 30
+        },
+        1024: {
+          slidesPerView: 4,
+          spaceBetween: 30
+        }
+      },
+      autoplay: {
+        delay: 3000,
+        disableOnInteraction: false
+      },
+      loop: true
+    });
+  }
+
+  // Landing Hero Swiper
+  // -----------------------------------
+  if (landingHero) {
+    new Swiper(landingHero, {
+      slidesPerView: 1,
+      centeredSlides: true,
+      autoplay: {
+        delay: 2500,
+        disableOnInteraction: false
+      },
+      pagination: {
+        el: '.swiper-pagination',
+        clickable: true
+      },
+      navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev'
+      }
+    });
+  }
+
+  // Hero Testimonial Swiper
+  // -----------------------------------
+  if (testimonialSwiper) {
+    new Swiper(testimonialSwiper, {
+      slidesPerView: 1,
+      autoplay: {
+        delay: 3000,
+        disableOnInteraction: false
+      },
+      pagination: {
+        el: '.swiper-pagination',
+        clickable: true
+      }
+    });
+  }
+
   // Pricing Plans
   // -----------------------------------
   document.addEventListener('DOMContentLoaded', function (event) {
-    function togglePrice() {
-      if (priceDurationToggler.checked) {
-        // If checked
-        priceYearlyList.map(function (yearEl) {
-          yearEl.classList.remove('d-none');
-        });
-        priceMonthlyList.map(function (monthEl) {
-          monthEl.classList.add('d-none');
-        });
-      } else {
-        // If not checked
-        priceYearlyList.map(function (yearEl) {
-          yearEl.classList.add('d-none');
-        });
-        priceMonthlyList.map(function (monthEl) {
-          monthEl.classList.remove('d-none');
-        });
+    if (priceDurationToggler) {
+      function togglePrice() {
+        if (priceDurationToggler.checked) {
+          // If checked
+          priceYearlyList.map(function (yearEl) {
+            yearEl.classList.remove('d-none');
+          });
+          priceMonthlyList.map(function (monthEl) {
+            monthEl.classList.add('d-none');
+          });
+        } else {
+          // If not checked
+          priceYearlyList.map(function (yearEl) {
+            yearEl.classList.add('d-none');
+          });
+          priceMonthlyList.map(function (monthEl) {
+            monthEl.classList.remove('d-none');
+          });
+        }
       }
-    }
-    // togglePrice Event Listener
-    togglePrice();
-
-    priceDurationToggler.onchange = function () {
+      // togglePrice Event Listener
       togglePrice();
-    };
+
+      priceDurationToggler.onchange = function () {
+        togglePrice();
+      };
+    }
   });
 })();

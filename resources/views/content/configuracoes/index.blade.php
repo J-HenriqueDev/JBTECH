@@ -3,9 +3,9 @@
 @section('title', 'Configurações do Sistema')
 
 @php
-    use App\Models\Configuracao;
-    use App\Helpers\FormatacaoHelper;
-    use Illuminate\Support\Facades\Storage;
+use App\Models\Configuracao;
+use App\Helpers\FormatacaoHelper;
+use Illuminate\Support\Facades\Storage;
 @endphp
 
 @section('content')
@@ -24,7 +24,7 @@
 <div class="alert alert-danger">
     <ul class="mb-0">
         @foreach($errors->all() as $error)
-            <li>{{ $error }}</li>
+        <li>{{ $error }}</li>
         @endforeach
     </ul>
 </div>
@@ -47,16 +47,13 @@
                             <i class="bx bx-building"></i> Geral
                         </button>
                     </li>
-                    <li class="nav-item">
-                        <button type="button" class="nav-link" data-bs-toggle="tab" data-bs-target="#nfe" role="tab">
-                            <i class="bx bx-receipt"></i> NF-e
-                        </button>
-                    </li>
+                    @if(auth()->user()->isAdmin())
                     <li class="nav-item">
                         <button type="button" class="nav-link" data-bs-toggle="tab" data-bs-target="#email" role="tab">
                             <i class="bx bx-envelope"></i> Email
                         </button>
                     </li>
+                    @endif
                     <li class="nav-item">
                         <button type="button" class="nav-link" data-bs-toggle="tab" data-bs-target="#produtos" role="tab">
                             <i class="bx bx-package"></i> Produtos
@@ -82,11 +79,13 @@
                             <i class="bx bx-palette"></i> Interface
                         </button>
                     </li>
+                    @if(auth()->user()->isAdmin())
                     <li class="nav-item">
                         <button type="button" class="nav-link" data-bs-toggle="tab" data-bs-target="#sistema" role="tab">
                             <i class="bx bx-server"></i> Sistema
                         </button>
                     </li>
+                    @endif
                 </ul>
 
                 <!-- Tab Content -->
@@ -96,60 +95,65 @@
                         <form action="{{ route('configuracoes.store') }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             <input type="hidden" name="grupo" value="geral">
-                            
+
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Nome da Empresa</label>
-                                    <input type="text" name="empresa_nome" class="form-control" 
-                                           value="{{ Configuracao::get('empresa_nome', '') }}">
+                                    <input type="text" name="empresa_nome" class="form-control"
+                                        value="{{ Configuracao::get('empresa_nome', '') }}">
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">CNPJ</label>
-                                    <input type="text" name="empresa_cnpj" id="empresa_cnpj" class="form-control mask-cnpj" 
-                                           value="{{ FormatacaoHelper::cpfCnpj(Configuracao::get('empresa_cnpj', '')) }}" 
-                                           placeholder="00.000.000/0000-00" maxlength="18">
+                                    <div class="input-group">
+                                        <input type="text" name="empresa_cnpj" id="empresa_cnpj" class="form-control mask-cnpj"
+                                            value="{{ FormatacaoHelper::cpfCnpj(Configuracao::get('empresa_cnpj', '')) }}"
+                                            placeholder="00.000.000/0000-00" maxlength="18">
+                                        <button class="btn btn-outline-primary" type="button" id="btn-consultar-cnpj">
+                                            <i class="bx bx-search"></i> Consultar
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Telefone</label>
-                                    <input type="text" name="empresa_telefone" id="empresa_telefone" class="form-control mask-telefone" 
-                                           value="{{ FormatacaoHelper::telefone(Configuracao::get('empresa_telefone', '')) }}" 
-                                           placeholder="(00) 00000-0000" maxlength="15">
+                                    <input type="text" name="empresa_telefone" id="empresa_telefone" class="form-control mask-telefone"
+                                        value="{{ FormatacaoHelper::telefone(Configuracao::get('empresa_telefone', '')) }}"
+                                        placeholder="(00) 00000-0000" maxlength="15">
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Email</label>
-                                    <input type="email" name="empresa_email" class="form-control" 
-                                           value="{{ Configuracao::get('empresa_email', '') }}">
+                                    <input type="email" name="empresa_email" class="form-control"
+                                        value="{{ Configuracao::get('empresa_email', '') }}">
                                 </div>
                                 <div class="col-md-8 mb-3">
                                     <label class="form-label">Endereço</label>
-                                    <input type="text" name="empresa_endereco" class="form-control" 
-                                           value="{{ Configuracao::get('empresa_endereco', '') }}">
+                                    <input type="text" name="empresa_endereco" class="form-control"
+                                        value="{{ Configuracao::get('empresa_endereco', '') }}">
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label">Número</label>
-                                    <input type="text" name="empresa_numero" class="form-control" 
-                                           value="{{ Configuracao::get('empresa_numero', '') }}">
+                                    <input type="text" name="empresa_numero" class="form-control"
+                                        value="{{ Configuracao::get('empresa_numero', '') }}">
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label">Bairro</label>
-                                    <input type="text" name="empresa_bairro" class="form-control" 
-                                           value="{{ Configuracao::get('empresa_bairro', '') }}">
+                                    <input type="text" name="empresa_bairro" class="form-control"
+                                        value="{{ Configuracao::get('empresa_bairro', '') }}">
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label">Cidade</label>
-                                    <input type="text" name="empresa_cidade" class="form-control" 
-                                           value="{{ Configuracao::get('empresa_cidade', '') }}">
+                                    <input type="text" name="empresa_cidade" class="form-control"
+                                        value="{{ Configuracao::get('empresa_cidade', '') }}">
                                 </div>
                                 <div class="col-md-2 mb-3">
                                     <label class="form-label">UF</label>
                                     <input type="text" name="empresa_uf" class="form-control" maxlength="2"
-                                           value="{{ Configuracao::get('empresa_uf', '') }}">
+                                        value="{{ Configuracao::get('empresa_uf', '') }}">
                                 </div>
                                 <div class="col-md-2 mb-3">
                                     <label class="form-label">CEP</label>
-                                    <input type="text" name="empresa_cep" id="empresa_cep" class="form-control mask-cep" 
-                                           value="{{ FormatacaoHelper::cep(Configuracao::get('empresa_cep', '')) }}" 
-                                           placeholder="00000-000" maxlength="9">
+                                    <input type="text" name="empresa_cep" id="empresa_cep" class="form-control mask-cep"
+                                        value="{{ FormatacaoHelper::cep(Configuracao::get('empresa_cep', '')) }}"
+                                        placeholder="00000-000" maxlength="9">
                                 </div>
                             </div>
 
@@ -161,144 +165,15 @@
                         </form>
                     </div>
 
-                    <!-- Aba NF-e -->
-                    <div class="tab-pane fade" id="nfe" role="tabpanel">
-                        <form action="{{ route('configuracoes.store') }}" method="POST" enctype="multipart/form-data">
-                            @csrf
-                            <input type="hidden" name="grupo" value="nfe">
-                            
-                            <h6 class="mb-3">Dados do Emitente</h6>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Razão Social</label>
-                                    <input type="text" name="nfe_razao_social" class="form-control" 
-                                           value="{{ Configuracao::get('nfe_razao_social', '') }}">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Nome Fantasia</label>
-                                    <input type="text" name="nfe_nome_fantasia" class="form-control" 
-                                           value="{{ Configuracao::get('nfe_nome_fantasia', '') }}">
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label">CNPJ</label>
-                                    <input type="text" name="nfe_cnpj" class="form-control" 
-                                           value="{{ Configuracao::get('nfe_cnpj', '') }}">
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label">Inscrição Estadual</label>
-                                    <input type="text" name="nfe_ie" class="form-control" 
-                                           value="{{ Configuracao::get('nfe_ie', '') }}">
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label">CRT</label>
-                                    <select name="nfe_crt" class="form-select">
-                                        <option value="1" {{ Configuracao::get('nfe_crt') == '1' ? 'selected' : '' }}>1 - Simples Nacional</option>
-                                        <option value="2" {{ Configuracao::get('nfe_crt') == '2' ? 'selected' : '' }}>2 - Simples Nacional Excesso</option>
-                                        <option value="3" {{ Configuracao::get('nfe_crt') == '3' ? 'selected' : '' }}>3 - Regime Normal</option>
-                                    </select>
-                                </div>
-                            </div>
 
-                            <hr class="my-4">
 
-                            <h6 class="mb-3">Certificado Digital</h6>
-                            <div class="alert alert-success">
-                                <i class="bx bx-check-circle"></i> 
-                                <strong>OpenSSL 3.x:</strong> O sistema está configurado para usar o provider legacy automaticamente, 
-                                permitindo a leitura de certificados com algoritmos legados sem necessidade de reexportação.
-                            </div>
-                            <div class="alert alert-info">
-                                <i class="bx bx-info-circle"></i> 
-                                <strong>Importante:</strong> O certificado e a senha serão validados automaticamente antes de salvar. 
-                                Certifique-se de que ambos estão corretos.
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Certificado Digital (PFX) *</label>
-                                    <input type="file" name="nfe_certificado" id="nfe_certificado" class="form-control" accept=".pfx">
-                                    <small class="form-text text-muted">
-                                        @if(Storage::exists('certificates/certificado.pfx'))
-                                            <span class="text-success">
-                                                <i class="bx bx-check-circle"></i> Certificado já carregado
-                                            </span>
-                                        @else
-                                            <span class="text-warning">
-                                                <i class="bx bx-error"></i> Nenhum certificado carregado
-                                            </span>
-                                        @endif
-                                    </small>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Senha do Certificado</label>
-                                    <div class="input-group">
-                                        <input type="password" name="nfe_cert_password" id="nfe_cert_password" class="form-control" 
-                                               value="" 
-                                               placeholder="{{ Configuracao::get('nfe_cert_password') ? 'Deixe em branco para manter a senha atual' : 'Digite a senha do certificado' }}">
-                                        <button type="button" class="btn btn-outline-secondary" id="btnToggleSenha" title="Mostrar/Ocultar senha">
-                                            <i class="bx bx-hide" id="iconeSenha"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-outline-primary" id="btnTestarCertificado" title="Testar certificado antes de salvar">
-                                            <i class="bx bx-check"></i> Testar
-                                        </button>
-                                    </div>
-                                    <small class="form-text text-muted">
-                                        <i class="bx bx-info-circle"></i> 
-                                        @if(Configuracao::get('nfe_cert_password'))
-                                            <span class="text-success d-block mt-1">
-                                                <i class="bx bx-check-circle"></i> Senha já configurada. Deixe em branco para manter ou digite uma nova senha.
-                                            </span>
-                                        @else
-                                            <span class="text-warning d-block mt-1">
-                                                <i class="bx bx-error"></i> <strong>Obrigatório ao importar certificado:</strong> Digite a senha do certificado.
-                                            </span>
-                                        @endif
-                                        <div id="resultadoTeste" class="mt-2"></div>
-                                    </small>
-                                </div>
-                            </div>
-
-                            <hr class="my-4">
-
-                            <h6 class="mb-3">Configurações de Emissão</h6>
-                            <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label">Ambiente</label>
-                                    <select name="nfe_ambiente" class="form-select">
-                                        <option value="1" {{ Configuracao::get('nfe_ambiente') == '1' ? 'selected' : '' }}>Produção</option>
-                                        <option value="2" {{ Configuracao::get('nfe_ambiente') == '2' ? 'selected' : '' }}>Homologação</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label">Série</label>
-                                    <input type="text" name="nfe_serie" class="form-control" 
-                                           value="{{ Configuracao::get('nfe_serie', '1') }}">
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label">CSC (Código de Segurança)</label>
-                                    <input type="text" name="nfe_csc" class="form-control" 
-                                           value="{{ Configuracao::get('nfe_csc', '') }}">
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label">CSC ID</label>
-                                    <input type="text" name="nfe_csc_id" class="form-control" 
-                                           value="{{ Configuracao::get('nfe_csc_id', '') }}">
-                                </div>
-                            </div>
-
-                            <div class="d-flex justify-content-end">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bx bx-save"></i> Salvar Configurações
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-
+                    @if(auth()->user()->isAdmin())
                     <!-- Aba Email -->
                     <div class="tab-pane fade" id="email" role="tabpanel">
                         <form action="{{ route('configuracoes.store') }}" method="POST">
                             @csrf
                             <input type="hidden" name="grupo" value="email">
-                            
+
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Driver</label>
@@ -310,14 +185,14 @@
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Servidor SMTP</label>
-                                    <input type="text" name="email_host" class="form-control" 
-                                           value="{{ Configuracao::get('email_host', '') }}" 
-                                           placeholder="smtp.gmail.com">
+                                    <input type="text" name="email_host" class="form-control"
+                                        value="{{ Configuracao::get('email_host', '') }}"
+                                        placeholder="smtp.gmail.com">
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label">Porta</label>
-                                    <input type="number" name="email_porta" class="form-control" 
-                                           value="{{ Configuracao::get('email_porta', '587') }}">
+                                    <input type="number" name="email_porta" class="form-control"
+                                        value="{{ Configuracao::get('email_porta', '587') }}">
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label">Criptografia</label>
@@ -328,23 +203,23 @@
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label">Usuário</label>
-                                    <input type="text" name="email_usuario" class="form-control" 
-                                           value="{{ Configuracao::get('email_usuario', '') }}">
+                                    <input type="text" name="email_usuario" class="form-control"
+                                        value="{{ Configuracao::get('email_usuario', '') }}">
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Senha</label>
-                                    <input type="password" name="email_senha" class="form-control" 
-                                           placeholder="Deixe em branco para não alterar">
+                                    <input type="password" name="email_senha" class="form-control"
+                                        placeholder="Deixe em branco para não alterar">
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Nome do Remetente</label>
-                                    <input type="text" name="email_remetente_nome" class="form-control" 
-                                           value="{{ Configuracao::get('email_remetente_nome', '') }}">
+                                    <input type="text" name="email_remetente_nome" class="form-control"
+                                        value="{{ Configuracao::get('email_remetente_nome', '') }}">
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Email do Remetente</label>
-                                    <input type="email" name="email_remetente_email" class="form-control" 
-                                           value="{{ Configuracao::get('email_remetente_email', '') }}">
+                                    <input type="email" name="email_remetente_email" class="form-control"
+                                        value="{{ Configuracao::get('email_remetente_email', '') }}">
                                 </div>
                             </div>
 
@@ -356,12 +231,14 @@
                         </form>
                     </div>
 
+                    @endif
+
                     <!-- Aba Produtos -->
                     <div class="tab-pane fade" id="produtos" role="tabpanel">
                         <form action="{{ route('configuracoes.store') }}" method="POST">
                             @csrf
                             <input type="hidden" name="grupo" value="produtos">
-                            
+
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">
@@ -391,8 +268,8 @@
                                     <label class="form-label">
                                         <i class="bx bx-error-circle me-1"></i> Estoque Mínimo Padrão
                                     </label>
-                                    <input type="number" name="produtos_estoque_minimo" class="form-control" 
-                                           value="{{ Configuracao::get('produtos_estoque_minimo', '10') }}" min="0">
+                                    <input type="number" name="produtos_estoque_minimo" class="form-control"
+                                        value="{{ Configuracao::get('produtos_estoque_minimo', '10') }}" min="0">
                                     <small class="form-text text-muted">
                                         <i class="bx bx-info-circle"></i> Quantidade mínima padrão para alertas de estoque baixo
                                     </small>
@@ -448,14 +325,14 @@
                         <form action="{{ route('configuracoes.store') }}" method="POST">
                             @csrf
                             <input type="hidden" name="grupo" value="vendas">
-                            
+
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">
                                         <i class="bx bx-percent me-1"></i> Desconto Máximo Permitido (%)
                                     </label>
-                                    <input type="number" name="vendas_desconto_maximo" class="form-control" 
-                                           value="{{ Configuracao::get('vendas_desconto_maximo', '10') }}" min="0" max="100" step="0.01">
+                                    <input type="number" name="vendas_desconto_maximo" class="form-control"
+                                        value="{{ Configuracao::get('vendas_desconto_maximo', '10') }}" min="0" max="100" step="0.01">
                                     <small class="form-text text-muted">
                                         <i class="bx bx-info-circle"></i> Percentual máximo de desconto que pode ser aplicado em vendas
                                     </small>
@@ -464,8 +341,8 @@
                                     <label class="form-label">
                                         <i class="bx bx-money me-1"></i> Comissão Padrão (%)
                                     </label>
-                                    <input type="number" name="vendas_comissao_padrao" class="form-control" 
-                                           value="{{ Configuracao::get('vendas_comissao_padrao', '0') }}" min="0" max="100" step="0.01">
+                                    <input type="number" name="vendas_comissao_padrao" class="form-control"
+                                        value="{{ Configuracao::get('vendas_comissao_padrao', '0') }}" min="0" max="100" step="0.01">
                                     <small class="form-text text-muted">
                                         <i class="bx bx-info-circle"></i> Percentual padrão de comissão para vendedores
                                     </small>
@@ -512,10 +389,20 @@
                                     <label class="form-label">
                                         <i class="bx bx-time me-1"></i> Prazo de Garantia Padrão (dias)
                                     </label>
-                                    <input type="number" name="vendas_garantia_padrao" class="form-control" 
-                                           value="{{ Configuracao::get('vendas_garantia_padrao', '90') }}" min="0">
+                                    <input type="number" name="vendas_garantia_padrao" class="form-control"
+                                        value="{{ Configuracao::get('vendas_garantia_padrao', '90') }}" min="0">
                                     <small class="form-text text-muted">
                                         <i class="bx bx-info-circle"></i> Prazo padrão de garantia para produtos vendidos
+                                    </small>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">
+                                        <i class="bx bx-gas-pump me-1"></i> Custo de Combustível por Km (R$)
+                                    </label>
+                                    <input type="number" name="vendas_custo_km" class="form-control"
+                                        value="{{ Configuracao::get('vendas_custo_km', '1.50') }}" min="0" step="0.01">
+                                    <small class="form-text text-muted">
+                                        <i class="bx bx-info-circle"></i> Valor utilizado para cálculo de deslocamento em orçamentos (ida e volta)
                                     </small>
                                 </div>
                             </div>
@@ -533,7 +420,7 @@
                         <form action="{{ route('configuracoes.store') }}" method="POST">
                             @csrf
                             <input type="hidden" name="grupo" value="clientes">
-                            
+
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">
@@ -575,8 +462,8 @@
                                     <label class="form-label">
                                         <i class="bx bx-credit-card me-1"></i> Limite de Crédito Padrão (R$)
                                     </label>
-                                    <input type="number" name="clientes_limite_credito_padrao" class="form-control" 
-                                           value="{{ Configuracao::get('clientes_limite_credito_padrao', '0') }}" min="0" step="0.01">
+                                    <input type="number" name="clientes_limite_credito_padrao" class="form-control"
+                                        value="{{ Configuracao::get('clientes_limite_credito_padrao', '0') }}" min="0" step="0.01">
                                     <small class="form-text text-muted">
                                         <i class="bx bx-info-circle"></i> Limite de crédito padrão para novos clientes
                                     </small>
@@ -585,8 +472,8 @@
                                     <label class="form-label">
                                         <i class="bx bx-calendar me-1"></i> Prazo de Vencimento Padrão (dias)
                                     </label>
-                                    <input type="number" name="clientes_prazo_vencimento_padrao" class="form-control" 
-                                           value="{{ Configuracao::get('clientes_prazo_vencimento_padrao', '30') }}" min="1">
+                                    <input type="number" name="clientes_prazo_vencimento_padrao" class="form-control"
+                                        value="{{ Configuracao::get('clientes_prazo_vencimento_padrao', '30') }}" min="1">
                                     <small class="form-text text-muted">
                                         <i class="bx bx-info-circle"></i> Prazo padrão para vencimento de títulos
                                     </small>
@@ -618,7 +505,7 @@
                         <form action="{{ route('configuracoes.store') }}" method="POST">
                             @csrf
                             <input type="hidden" name="grupo" value="relatorios">
-                            
+
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">
@@ -649,8 +536,8 @@
                                     <label class="form-label">
                                         <i class="bx bx-calendar me-1"></i> Período Padrão de Relatórios (dias)
                                     </label>
-                                    <input type="number" name="relatorios_periodo_padrao" class="form-control" 
-                                           value="{{ Configuracao::get('relatorios_periodo_padrao', '30') }}" min="1">
+                                    <input type="number" name="relatorios_periodo_padrao" class="form-control"
+                                        value="{{ Configuracao::get('relatorios_periodo_padrao', '30') }}" min="1">
                                     <small class="form-text text-muted">
                                         <i class="bx bx-info-circle"></i> Período padrão em dias para filtros de relatórios
                                     </small>
@@ -682,7 +569,7 @@
                         <form action="{{ route('configuracoes.store') }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             <input type="hidden" name="grupo" value="interface">
-                            
+
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">
@@ -770,12 +657,13 @@
                         </form>
                     </div>
 
+                    @if(auth()->user()->isAdmin())
                     <!-- Aba Sistema -->
                     <div class="tab-pane fade" id="sistema" role="tabpanel">
                         <form action="{{ route('configuracoes.store') }}" method="POST">
                             @csrf
                             <input type="hidden" name="grupo" value="sistema">
-                            
+
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Fuso Horário</label>
@@ -794,8 +682,8 @@
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Itens por Página</label>
-                                    <input type="number" name="sistema_paginacao" class="form-control" 
-                                           value="{{ Configuracao::get('sistema_paginacao', '15') }}" min="5" max="100">
+                                    <input type="number" name="sistema_paginacao" class="form-control"
+                                        value="{{ Configuracao::get('sistema_paginacao', '15') }}" min="5" max="100">
                                 </div>
                             </div>
 
@@ -806,161 +694,230 @@
                             </div>
                         </form>
                     </div>
+                    @endif
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-@push('scripts')
-<script>
-$(document).ready(function() {
-    // Funções de formatação
-    function formatarCNPJ(valor) {
-        valor = valor.replace(/\D/g, '');
-        if (valor.length <= 14) {
-            valor = valor.replace(/^(\d{2})(\d)/, '$1.$2');
-            valor = valor.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
-            valor = valor.replace(/\.(\d{3})(\d)/, '.$1/$2');
-            valor = valor.replace(/(\d{4})(\d)/, '$1-$2');
-        }
-        return valor;
-    }
-    
-    function formatarTelefone(valor) {
-        valor = valor.replace(/\D/g, '');
-        if (valor.length <= 11) {
-            if (valor.length <= 10) {
-                valor = valor.replace(/^(\d{2})(\d{4})(\d{4})$/, '($1) $2-$3');
-            } else {
-                valor = valor.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
+@section('page-script')
+<script type="module">
+    // Aguarda o jQuery estar disponível se necessário, mas como type="module", deve rodar após o carregamento do jQuery via Vite
+    $(document).ready(function() {
+        // Funções de formatação
+        function formatarCNPJ(valor) {
+            valor = valor.replace(/\D/g, '');
+            if (valor.length <= 14) {
+                valor = valor.replace(/^(\d{2})(\d)/, '$1.$2');
+                valor = valor.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+                valor = valor.replace(/\.(\d{3})(\d)/, '.$1/$2');
+                valor = valor.replace(/(\d{4})(\d)/, '$1-$2');
             }
+            return valor;
         }
-        return valor;
-    }
-    
-    function formatarCEP(valor) {
-        valor = valor.replace(/\D/g, '');
-        if (valor.length <= 8) {
-            valor = valor.replace(/^(\d{5})(\d{3})$/, '$1-$2');
-        }
-        return valor;
-    }
-    
-    // Aplicar formatações
-    $('.mask-cnpj').on('input', function() {
-        this.value = formatarCNPJ(this.value);
-    });
-    
-    $('.mask-telefone').on('input', function() {
-        this.value = formatarTelefone(this.value);
-    });
-    
-    $('.mask-cep').on('input', function() {
-        this.value = formatarCEP(this.value);
-    });
-    
-    // Toggle mostrar/ocultar senha
-    $('#btnToggleSenha').on('click', function() {
-        const inputSenha = $('#nfe_cert_password');
-        const icone = $('#iconeSenha');
-        
-        if (inputSenha.attr('type') === 'password') {
-            inputSenha.attr('type', 'text');
-            icone.removeClass('bx-hide').addClass('bx-show');
-        } else {
-            inputSenha.attr('type', 'password');
-            icone.removeClass('bx-show').addClass('bx-hide');
-        }
-    });
-    
-    // Teste do certificado antes de salvar
-    $('#btnTestarCertificado').on('click', function(e) {
-        e.preventDefault();
-        
-        const certificado = $('#nfe_certificado')[0].files[0];
-        const senha = $('#nfe_cert_password').val();
-        const resultadoDiv = $('#resultadoTeste');
-        
-        if (!certificado) {
-            resultadoDiv.html('<div class="alert alert-warning mb-0"><i class="bx bx-error"></i> Selecione um arquivo de certificado primeiro.</div>');
-            return;
-        }
-        
-        if (!senha || senha.trim() === '') {
-            resultadoDiv.html('<div class="alert alert-warning mb-0"><i class="bx bx-error"></i> Digite a senha do certificado.</div>');
-            return;
-        }
-        
-        // Desabilita o botão durante o teste
-        const btnTestar = $(this);
-        btnTestar.prop('disabled', true).html('<i class="bx bx-loader bx-spin"></i> Testando...');
-        resultadoDiv.html('<div class="alert alert-info mb-0"><i class="bx bx-loader bx-spin"></i> Testando certificado...</div>');
-        
-        // Cria FormData para enviar o arquivo
-        const formData = new FormData();
-        formData.append('certificado', certificado);
-        formData.append('senha', senha);
-        formData.append('_token', '{{ csrf_token() }}');
-        
-        $.ajax({
-            url: '{{ route("configuracoes.testarCertificado") }}',
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function(response) {
-                if (response.success) {
-                    resultadoDiv.html('<div class="alert alert-success mb-0"><i class="bx bx-check-circle"></i> ' + response.message + '</div>');
+
+        function formatarTelefone(valor) {
+            valor = valor.replace(/\D/g, '');
+            if (valor.length <= 11) {
+                if (valor.length <= 10) {
+                    valor = valor.replace(/^(\d{2})(\d{4})(\d{4})$/, '($1) $2-$3');
                 } else {
-                    resultadoDiv.html('<div class="alert alert-danger mb-0"><i class="bx bx-error"></i> ' + response.message + '</div>');
+                    valor = valor.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
                 }
-            },
-            error: function(xhr) {
-                let mensagem = 'Erro ao testar certificado.';
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    mensagem = xhr.responseJSON.message;
-                } else if (xhr.responseText) {
-                    try {
-                        const response = JSON.parse(xhr.responseText);
-                        if (response.message) {
-                            mensagem = response.message;
-                        }
-                    } catch(e) {
-                        mensagem = 'Erro ao processar resposta do servidor.';
-                    }
-                }
-                resultadoDiv.html('<div class="alert alert-danger mb-0"><i class="bx bx-error"></i> ' + mensagem + '</div>');
-            },
-            complete: function() {
-                btnTestar.prop('disabled', false).html('<i class="bx bx-check"></i> Testar');
+            }
+            return valor;
+        }
+
+        function formatarCEP(valor) {
+            valor = valor.replace(/\D/g, '');
+            if (valor.length <= 8) {
+                valor = valor.replace(/^(\d{5})(\d{3})$/, '$1-$2');
+            }
+            return valor;
+        }
+
+        // Aplicar formatações
+        $('.mask-cnpj').on('input', function() {
+            this.value = formatarCNPJ(this.value);
+        });
+
+        $('.mask-telefone').on('input', function() {
+            this.value = formatarTelefone(this.value);
+        });
+
+        $('.mask-cep').on('input', function() {
+            this.value = formatarCEP(this.value);
+        });
+
+        // Toggle mostrar/ocultar senha
+        $('#btnToggleSenha').on('click', function() {
+            const inputSenha = $('#nfe_cert_password');
+            const icone = $('#iconeSenha');
+
+            if (inputSenha.attr('type') === 'password') {
+                inputSenha.attr('type', 'text');
+                icone.removeClass('bx-hide').addClass('bx-show');
+            } else {
+                inputSenha.attr('type', 'password');
+                icone.removeClass('bx-show').addClass('bx-hide');
             }
         });
-    });
-    
-    // Validação antes de submeter o formulário
-    $('form').on('submit', function(e) {
-        const certificado = $('#nfe_certificado')[0].files[0];
-        const senha = $('#nfe_cert_password').val();
-        const grupo = $('input[name="grupo"]').val();
-        
-        // Se está na aba NF-e e tem certificado ou senha, valida
-        if (grupo === 'nfe') {
-            if (certificado || senha) {
-                // Se tem certificado novo, precisa de senha
-                if (certificado && !senha) {
-                    const senhaAtual = '{{ Configuracao::get("nfe_cert_password", "") }}';
-                    if (!senhaAtual) {
-                        e.preventDefault();
-                        alert('É necessário fornecer a senha do certificado para validar antes de salvar.');
-                        return false;
+
+        // Teste do certificado antes de salvar
+        $('#btnTestarCertificado').on('click', function(e) {
+            e.preventDefault();
+
+            const certificado = $('#nfe_certificado')[0].files[0];
+            const senha = $('#nfe_cert_password').val();
+            const resultadoDiv = $('#resultadoTeste');
+
+            // Verifica se existe certificado no servidor
+            const certExists = @json(Storage::exists('certificates/'.Configuracao::get('nfe_cert_path', 'certificado.pfx')));
+            const passwordSaved = @json(!empty(Configuracao::get('nfe_cert_password')));
+
+            if (!certificado && !certExists) {
+                resultadoDiv.html('<div class="alert alert-warning mb-0"><i class="bx bx-error"></i> Selecione um arquivo de certificado primeiro ou verifique se já existe um carregado.</div>');
+                return;
+            }
+
+            // Se tem certificado novo, EXIGE a senha
+            if (certificado && (!senha || senha.trim() === '')) {
+                resultadoDiv.html('<div class="alert alert-warning mb-0"><i class="bx bx-error"></i> Para testar um novo arquivo, digite a senha.</div>');
+                return;
+            }
+
+            // Se NÃO tem certificado novo (testando existente), só exige senha se NÃO tiver salva
+            if (!certificado && !passwordSaved && (!senha || senha.trim() === '')) {
+                resultadoDiv.html('<div class="alert alert-warning mb-0"><i class="bx bx-error"></i> Digite a senha do certificado.</div>');
+                return;
+            }
+
+            // Desabilita o botão durante o teste
+            const btnTestar = $(this);
+            btnTestar.prop('disabled', true).html('<i class="bx bx-loader bx-spin"></i> Testando...');
+            resultadoDiv.html('<div class="alert alert-info mb-0"><i class="bx bx-loader bx-spin"></i> Testando certificado...</div>');
+
+            // Cria FormData para enviar o arquivo
+            const formData = new FormData();
+            if (certificado) {
+                formData.append('certificado', certificado);
+            }
+            formData.append('senha', senha);
+            formData.append('_token', '{{ csrf_token() }}');
+
+            $.ajax({
+                url: '{{ route("nfe.testarCertificado") }}',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        resultadoDiv.html('<div class="alert alert-success mb-0"><i class="bx bx-check-circle"></i> ' + response.message + '</div>');
+                    } else {
+                        resultadoDiv.html('<div class="alert alert-danger mb-0"><i class="bx bx-error"></i> ' + response.message + '</div>');
+                    }
+                },
+                error: function(xhr) {
+                    let mensagem = 'Erro ao testar certificado.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        mensagem = xhr.responseJSON.message;
+                    } else if (xhr.responseText) {
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            if (response.message) {
+                                mensagem = response.message;
+                            }
+                        } catch (e) {
+                            mensagem = 'Erro ao processar resposta do servidor.';
+                        }
+                    }
+                    resultadoDiv.html('<div class="alert alert-danger mb-0"><i class="bx bx-error"></i> ' + mensagem + '</div>');
+                },
+                complete: function() {
+                    btnTestar.prop('disabled', false).html('<i class="bx bx-check"></i> Testar');
+                }
+            });
+        });
+
+        // Validação antes de submeter o formulário
+        $('form').on('submit', function(e) {
+            const certificado = $('#nfe_certificado')[0].files[0];
+            const senha = $('#nfe_cert_password').val();
+            const grupo = $('input[name="grupo"]').val();
+
+            // Se está na aba NF-e e tem certificado ou senha, valida
+            if (grupo === 'nfe') {
+                if (certificado || senha) {
+                    // Se tem certificado novo, precisa de senha
+                    if (certificado && !senha) {
+                        const senhaAtual = '{{ Configuracao::get("nfe_cert_password", "") }}';
+                        if (!senhaAtual) {
+                            e.preventDefault();
+                            alert('É necessário fornecer a senha do certificado para validar antes de salvar.');
+                            return false;
+                        }
                     }
                 }
             }
-        }
+        });
+
+        // Consulta CNPJ
+        $('#btn-consultar-cnpj').on('click', function() {
+            const btn = $(this);
+            const input = $('#empresa_cnpj');
+            const cnpj = input.val().replace(/\D/g, '');
+
+            if (cnpj.length !== 14) {
+                alert('Por favor, informe um CNPJ válido com 14 dígitos.');
+                return;
+            }
+
+            const originalText = btn.html();
+            btn.html('<i class="bx bx-loader-alt bx-spin"></i>');
+            btn.prop('disabled', true);
+
+            $.ajax({
+                url: '/dashboard/util/consulta-cnpj/' + cnpj,
+                method: 'GET',
+                success: function(data) {
+                    if (data.error) {
+                        alert(data.error);
+                        return;
+                    }
+
+                    // Preencher campos
+                    $('input[name="empresa_nome"]').val(data.razao_social);
+
+                    if (data.ddd_telefone_1) {
+                        $('input[name="empresa_telefone"]').val(`(${data.ddd_telefone_1.substring(0,2)}) ${data.ddd_telefone_1.substring(2)}`);
+                    }
+
+                    $('input[name="empresa_endereco"]').val(data.logradouro);
+                    $('input[name="empresa_numero"]').val(data.numero);
+                    $('input[name="empresa_bairro"]').val(data.bairro);
+                    $('input[name="empresa_cidade"]').val(data.municipio);
+                    $('input[name="empresa_uf"]').val(data.uf);
+                    $('input[name="empresa_cep"]').val(data.cep);
+
+                    if (data.email) {
+                        $('input[name="empresa_email"]').val(data.email);
+                    }
+
+                    alert('Dados carregados com sucesso!');
+                },
+                error: function() {
+                    alert('Erro ao consultar CNPJ. Verifique se o CNPJ está correto.');
+                },
+                complete: function() {
+                    btn.html(originalText);
+                    btn.prop('disabled', false);
+                }
+            });
+        });
     });
-});
 </script>
-@endpush
+@endsection
 
 @endsection

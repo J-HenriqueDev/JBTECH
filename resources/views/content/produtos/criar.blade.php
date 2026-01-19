@@ -2,304 +2,516 @@
 
 @section('vendor-style')
 @vite([
-  'resources/assets/vendor/libs/select2/select2.scss',
-  'resources/assets/vendor/libs/swiper/swiper.scss'
+'resources/assets/vendor/libs/select2/select2.scss',
+'resources/assets/vendor/libs/swiper/swiper.scss'
 ])
 @endsection
 
 @section('vendor-script')
 @vite([
-  'resources/assets/vendor/libs/select2/select2.js',
-  'resources/assets/vendor/libs/swiper/swiper.js'
+'resources/assets/vendor/libs/select2/select2.js',
+'resources/assets/vendor/libs/swiper/swiper.js'
 ])
 @endsection
 
 @section('page-script')
 @vite([
-  'resources/assets/js/forms-selects.js'
+'resources/assets/js/forms-selects.js'
 ])
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+<script>
+  $(document).ready(function() {
+    $('.select2').select2({
+      placeholder: "Selecione uma ou mais opções",
+      allowClear: true,
+      width: '100%'
+    });
+
+    initCategoriaSugestao(0);
+
+    const nomeInput = document.getElementById('nome_0');
+    if (nomeInput) {
+      nomeInput.addEventListener('blur', function() {
+        const ncmInput = document.getElementById('ncm_0');
+        if (ncmInput && !ncmInput.value) {
+          buscarNCMPorNome('nome_0', 'ncm_0');
+        }
+      });
+    }
+  });
+
+  // Funções de formatação e cálculo
+  function formatCurrency(input) {
+    let value = input.value.replace(/\D/g, '');
+    value = (value / 100).toFixed(2) + '';
+    value = value.replace(".", ",");
+    value = value.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
+    input.value = value;
+  }
+
+  function calculateProfit(index) {
+    let custo = parseFloat(document.getElementById('preco_custo_' + index).value.replace(/\./g, '').replace(',', '.')) || 0;
+    let venda = parseFloat(document.getElementById('preco_venda_' + index).value.replace(/\./g, '').replace(',', '.')) || 0;
+
+    if (custo > 0 && venda > 0) {
+      let lucro = ((venda - custo) / custo) * 100;
+      document.getElementById('lucro_percentual_' + index).innerText = lucro.toFixed(2) + '% Lucro';
+    } else {
+      document.getElementById('lucro_percentual_' + index).innerText = '0%';
+    }
+  }
+
+  // Códigos Adicionais
+  let codigoIndex = 0;
+
+  function adicionarCodigo() {
+    let tbody = document.querySelector('#tabelaCodigos tbody');
+    let tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td><input type="text" class="form-control" name="produtos[0][codigos_adicionais][${codigoIndex}][codigo]" placeholder="EAN / GTIN"></td>
+        <td><input type="text" class="form-control" name="produtos[0][codigos_adicionais][${codigoIndex}][descricao]" placeholder="Ex: Caixa com 12"></td>
+        <td><button type="button" class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()"><i class="fas fa-trash"></i></button></td>
+    `;
+    tbody.appendChild(tr);
+    codigoIndex++;
+  }
+
+  // Consulta Fiscal (Mock/API)
+  function consultarFiscal(index) {
+    let codigo = document.getElementById('codigo_barras_' + index).value;
+    if (!codigo) {
+      alert('Digite um código de barras para consultar.');
+      return;
+    }
+
+    // Feedback visual
+    let btn = event.currentTarget;
+    let originalIcon = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    btn.disabled = true;
+
+    fetch(`/dashboard/produtos/consultar-fiscal/${codigo}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          let d = data.data;
+          // Preencher campos
+          document.getElementById('nome_' + index).value = d.nome || '';
+          document.getElementById('ncm_' + index).value = d.ncm || '';
+          document.getElementById('cest_' + index).value = d.cest || '';
+          document.getElementById('cfop_interno_' + index).value = d.cfop_interno || '';
+          document.getElementById('cfop_externo_' + index).value = d.cfop_externo || '';
+          document.getElementById('csosn_icms_' + index).value = d.csosn_icms || '';
+          document.getElementById('cst_icms_' + index).value = d.cst_icms || '';
+          document.getElementById('aliquota_icms_' + index).value = d.aliquota_icms || 0;
+          document.getElementById('aliquota_pis_' + index).value = d.aliquota_pis || 0;
+          document.getElementById('aliquota_cofins_' + index).value = d.aliquota_cofins || 0;
+
+          // Trigger intelligent categorization if name is populated
+          if (d.nome) {
+            sugerirCategoria(index, d.nome);
+          }
+
+          alert('Dados fiscais preenchidos com sucesso!');
+        } else {
+          alert('Produto não encontrado na base fiscal.');
+        }
+      })
+      .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao consultar dados fiscais.');
+      })
+      .finally(() => {
+        btn.innerHTML = originalIcon;
+        btn.disabled = false;
+      });
+  }
+
+  // Intelligent Categorization Logic
+  let debounceTimer;
+
+  function initCategoriaSugestao(index) {
+    const nomeInput = document.getElementById('nome_' + index);
+    if (!nomeInput) return;
+
+    nomeInput.addEventListener('input', function() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        sugerirCategoria(index, this.value);
+      }, 500);
+    });
+  }
+
+  function sugerirCategoria(index, nome) {
+    if (nome.length < 3) return;
+
+    fetch(`{{ route('produtos.sugerirCategoria') }}?nome=${encodeURIComponent(nome)}`)
+      .then(response => response.json())
+      .then(data => {
+        const sugestaoBox = document.getElementById('sugestao-categoria-' + index);
+        const nomeCategoriaSugerida = document.getElementById('nome-categoria-sugerida-' + index);
+
+        if (data.success && data.categoria_id) {
+          // Find category name
+          const select = document.getElementById('categoria_id_' + index);
+          const option = select.querySelector(`option[value="${data.categoria_id}"]`);
+
+          if (option) {
+            // Store the ID in a data attribute on the apply button
+            const applyBtn = sugestaoBox.querySelector('a');
+            applyBtn.dataset.categoriaId = data.categoria_id;
+
+            nomeCategoriaSugerida.innerText = option.text;
+            sugestaoBox.style.display = 'block';
+          }
+        } else {
+          sugestaoBox.style.display = 'none';
+        }
+      })
+      .catch(err => console.error(err));
+  }
+
+  function aplicarSugestao(index, event) {
+    event.preventDefault();
+    const btn = event.currentTarget;
+    const categoriaId = btn.dataset.categoriaId;
+    const sugestaoBox = document.getElementById('sugestao-categoria-' + index);
+
+    if (categoriaId) {
+      const select = document.getElementById('categoria_id_' + index);
+      // For Select2/Regular select, trigger change
+      $(select).val(categoriaId).trigger('change');
+      sugestaoBox.style.display = 'none';
+    }
+  }
+</script>
 @endsection
 
 @section('content')
 @php
-    use App\Models\Configuracao;
-    $gerarCodigoBarras = Configuracao::get('produtos_gerar_codigo_barras', '1') == '1';
-    $exigirImagem = Configuracao::get('produtos_exigir_imagem', '0') == '1';
+use App\Models\Configuracao;
+$gerarCodigoBarras = Configuracao::get('produtos_gerar_codigo_barras', '1') == '1';
 @endphp
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
-<div class="d-flex justify-content-between align-items-center">
-  <h1 class="mb-4 text-primary" style="font-size: 2.5rem; font-weight: bold; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);">
-    <i class="fas fa-plus-circle"></i> Cadastro de Produtos
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="text-primary" style="font-size: 2.5rem; font-weight: bold; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);">
+    <i class="fas fa-plus-circle"></i> Cadastro de Produto
   </h1>
-  <form action="{) }}" method="POST" enctype="multipart/form-data" class="d-inline">
-    @csrf
-
-    <!-- Campo oculto para o usuario_id -->
-    <input type="hidden" name="produtos[0][usuario_id]" value="{{ auth()->id() }}">
-
-
+  <div>
     <label for="importXml" class="btn btn-primary" onclick="window.location.href='{{ route('produtos.importar') }}'">
-      <i class="fas fa-plus-circle me-1"></i> Importar XML
-  </label>
-
-  </form>
+      <i class="fas fa-file-import me-1"></i> Importar XML
+    </label>
+  </div>
 </div>
 
 <div class="row">
   <div class="col-md-12">
     <div class="card mb-4">
+      <div class="card-header p-0">
+        <ul class="nav nav-tabs nav-fill" id="produtoTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="geral-tab" data-bs-toggle="tab" data-bs-target="#geral" type="button" role="tab" aria-controls="geral" aria-selected="true">
+              <i class="fas fa-info-circle me-1"></i> Geral
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="estoque-tab" data-bs-toggle="tab" data-bs-target="#estoque" type="button" role="tab" aria-controls="estoque" aria-selected="false">
+              <i class="fas fa-boxes me-1"></i> Estoque
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tributacao-tab" data-bs-toggle="tab" data-bs-target="#tributacao" type="button" role="tab" aria-controls="tributacao" aria-selected="false">
+              <i class="fas fa-file-invoice-dollar me-1"></i> Tributação
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="fornecedores-tab" data-bs-toggle="tab" data-bs-target="#fornecedores" type="button" role="tab" aria-controls="fornecedores" aria-selected="false">
+              <i class="fas fa-truck me-1"></i> Fornecedores
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="codigos-tab" data-bs-toggle="tab" data-bs-target="#codigos" type="button" role="tab" aria-controls="codigos" aria-selected="false">
+              <i class="fas fa-barcode me-1"></i> Códigos
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="outros-tab" data-bs-toggle="tab" data-bs-target="#outros" type="button" role="tab" aria-controls="outros" aria-selected="false">
+              <i class="fas fa-ellipsis-h me-1"></i> Outros
+            </button>
+          </li>
+        </ul>
+      </div>
+
       <form class="needs-validation" action="{{ route('produtos.store') }}" method="POST" enctype="multipart/form-data" novalidate>
         @csrf
+        <!-- Campo oculto para o usuario_id -->
+        <input type="hidden" name="produtos[0][usuario_id]" value="{{ auth()->id() }}">
+
         <div class="card-body">
-          <div class="row mb-4">
-            <div class="col-md-6">
-              <div class="form-group">
-                <label for="nome_0" class="form-label">
-                  <i class="fas fa-tag"></i> Nome do Produto
-                </label>
-                <input type="text" class="form-control" name="produtos[0][nome]" id="nome_0" placeholder="Digite o nome do produto" required>
-                <div class="valid-feedback">Ok!!</div>
-                <div class="invalid-feedback">Por favor, insira o nome do produto.</div>
-                @error('produtos.0.nome')
-                <small class="text-danger fw-bold">{{ $message }}</small>
-                @enderror
+          <div class="tab-content pt-4" id="produtoTabsContent">
+
+            <!-- ABA GERAL -->
+            <div class="tab-pane fade show active" id="geral" role="tabpanel" aria-labelledby="geral-tab">
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label for="nome_0" class="form-label">Nome do Produto *</label>
+                  <input type="text" class="form-control form-control-lg" name="produtos[0][nome]" id="nome_0" placeholder="Ex: Teclado Gamer USB" required>
+                  <div class="invalid-feedback">O nome é obrigatório.</div>
+                  <div id="sugestao-categoria-0" class="form-text text-info" style="display: none;">
+                    <i class="fas fa-magic"></i> Sugestão: <span id="nome-categoria-sugerida-0"></span>
+                    <a href="#" onclick="aplicarSugestao(0, event)" class="fw-bold">Aplicar</a>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <label for="codigo_barras_0" class="form-label">Código de Barras (Principal)</label>
+                  <div class="input-group">
+                    <input type="text" class="form-control" name="produtos[0][codigo_barras]" id="codigo_barras_0" placeholder="{{ $gerarCodigoBarras ? 'Gerado Autom.' : 'EAN-13' }}">
+                    <button class="btn btn-outline-primary" type="button" onclick="consultarFiscal(0)" title="Buscar na API">
+                      <i class="fas fa-search"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">Status</label>
+                  <div class="form-check form-switch mt-2">
+                    <input class="form-check-input" type="checkbox" id="ativo_0" name="produtos[0][ativo]" value="1" checked>
+                    <label class="form-check-label" for="ativo_0">Produto Ativo</label>
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <div class="col-md-2">
-              <div class="form-group">
-                <label for="preco_custo_0" class="form-label">
-                  <i class="fas fa-dollar-sign"></i> Preço de Custo
-                </label>
-                <input type="text" class="form-control" name="produtos[0][preco_custo]" id="preco_custo_0" placeholder="0,00" required oninput="formatCurrency(this); calculateProfit(0);">
-                <div class="valid-feedback">Ok!!</div>
-                <div class="invalid-feedback">Por favor, insira o preço de custo.</div>
-                @error('produtos.0.preco_custo')
-                <small class="text-danger fw-bold">{{ $message }}</small>
-                @enderror
-              </div>
-            </div>
-
-            <div class="col-md-2">
-              <div class="form-group">
-                <label for="preco_venda_0" class="form-label">
-                  <i class="fas fa-dollar-sign"></i> Preço de Venda
-                </label>
-                <input type="text" class="form-control" name="produtos[0][preco_venda]" id="preco_venda_0" placeholder="0,00" required oninput="formatCurrency(this); calculateProfit(0);">
-                <div class="valid-feedback">Ok!!</div>
-                <div class="invalid-feedback">Por favor, insira o preço de venda.</div>
-                @error('produtos.0.preco_venda')
-                <small class="text-danger fw-bold">{{ $message }}</small>
-                @enderror
-              </div>
-            </div>
-
-            <div class="col-md-2 d-flex align-items-center">
-              <div class="form-group">
-                <label for="lucro_0" class="form-label">
-                  <i class="fas fa-dollar-sign"></i> Lucro
-                </label>
-                <h5 id="lucro_percentual_0" style="margin-top: 2px;">0% Lucro</h5>
-              </div>
-            </div>
-          </div>
-
-          <!-- Linha com a seta para expandir -->
-          <div class="row mb-4">
-            <div class="col-md-12 text-center">
-              <button type="button" class="btn btn-link" onclick="toggleAdditionalFields()">
-                <i class="fas fa-chevron-down"></i> Cadastro completo
-              </button>
-            </div>
-          </div>
-
-          <!-- Campos adicionais (inicialmente ocultos) -->
-          <div id="additionalFields" style="display: none;">
-            <div class="divider my-4">
-              <div class="divider-text">
-                <i class="bx bx-package"></i> Informações Fiscais
-              </div>
-            </div>
-
-            <div class="row mb-4">
-              <div class="col-md-4">
-                <div class="form-group">
-                  <label for="categoria_id_0" class="form-label">
-                    <i class="fas fa-list-alt"></i> Categoria
-                  </label>
-                  <select class="form-select" id="categoria_id_0" name="produtos[0][categoria_id]">
-                    <option value="" disabled selected>Selecione uma categoria</option>
+              <div class="row mb-3">
+                <div class="col-md-3">
+                  <label for="preco_custo_0" class="form-label">Preço de Custo *</label>
+                  <div class="input-group">
+                    <span class="input-group-text">R$</span>
+                    <input type="text" class="form-control" name="produtos[0][preco_custo]" id="preco_custo_0" placeholder="0,00" required oninput="formatCurrency(this); calculateProfit(0);">
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <label for="preco_venda_0" class="form-label">Preço de Venda *</label>
+                  <div class="input-group">
+                    <span class="input-group-text">R$</span>
+                    <input type="text" class="form-control" name="produtos[0][preco_venda]" id="preco_venda_0" placeholder="0,00" required oninput="formatCurrency(this); calculateProfit(0);">
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">Margem de Lucro</label>
+                  <h4 class="text-success mt-1" id="lucro_percentual_0">0%</h4>
+                </div>
+                <div class="col-md-3">
+                  <label for="categoria_id_0" class="form-label">Categoria</label>
+                  <select class="form-select" name="produtos[0][categoria_id]" id="categoria_id_0">
                     @foreach ($categorias as $categoria)
                     <option value="{{ $categoria->id }}">{{ $categoria->nome }}</option>
                     @endforeach
                   </select>
-                  <div class="valid-feedback">Ok!!</div>
-                  <div class="invalid-feedback">Por favor, selecione uma categoria.</div>
-                  @error('produtos.0.categoria_id')
-                  <small class="text-danger fw-bold">{{ $message }}</small>
-                  @enderror
                 </div>
               </div>
 
-              <div class="col-md-4">
-                <div class="form-group">
-                  <label for="codigo_barras_0" class="form-label">
-                    <i class="fas fa-barcode"></i> Código de Barras
-                    @if($gerarCodigoBarras)
-                    <small class="text-muted">(será gerado automaticamente se deixado em branco)</small>
-                    @endif
-                  </label>
-                  <input type="text" class="form-control" name="produtos[0][codigo_barras]" id="codigo_barras_0" 
-                         placeholder="{{ $gerarCodigoBarras ? 'Deixe em branco para gerar automaticamente' : 'Digite o código de barras' }}"
-                         {{ $gerarCodigoBarras ? '' : '' }}>
-                  <div class="valid-feedback">Ok!!</div>
-                  <div class="invalid-feedback">Por favor, insira o código de barras.</div>
-                  @error('produtos.0.codigo_barras')
-                  <small class="text-danger fw-bold">{{ $message }}</small>
-                  @enderror
-                </div>
-              </div>
-
-              <div class="col-md-4">
-                <div class="form-group">
-                  <label for="ncm_0" class="form-label">
-                    <i class="fas fa-barcode"></i> NCM
-                  </label>
-                  <input type="text" class="form-control" name="produtos[0][ncm]" id="ncm_0" placeholder="Digite o NCM">
-                  <div class="valid-feedback">Ok!!</div>
-                  <div class="invalid-feedback">Por favor, insira o NCM.</div>
-                  @error('produtos.0.ncm')
-                  <small class="text-danger fw-bold">{{ $message }}</small>
-                  @enderror
-                </div>
-              </div>
-
-              <div class="col-md-4">
-                <div class="form-group">
-                  <label for="unidade_medida" class="form-label">
-                    <i class="fas fa-balance-scale"></i> Unidade de Medida
-                  </label>
-                  <select class="form-select" id="unidade_medida" name="produtos[unidade_medida]">
-                    <option value="" disabled selected>Selecione a unidade</option>
-                    <option value="Unidade" selected>Unidade</option>
-                    <option value="Kg">Kg</option>
-                    <option value="Litro">Litro</option>
-                    <option value="Metro">Metro</option>
+              <div class="row">
+                <div class="col-md-4">
+                  <label for="tipo_item_0" class="form-label">Tipo do Item</label>
+                  <select class="form-select" name="produtos[0][tipo_item]" id="tipo_item_0">
+                    <option value="00" selected>00 - Mercadoria para Revenda</option>
+                    <option value="01">01 - Matéria-Prima</option>
+                    <option value="02">02 - Embalagem</option>
+                    <option value="03">03 - Produto em Processo</option>
+                    <option value="04">04 - Produto Acabado</option>
+                    <option value="05">05 - Subproduto</option>
+                    <option value="06">06 - Produto Intermediário</option>
+                    <option value="07">07 - Material de Uso e Consumo</option>
+                    <option value="08">08 - Ativo Imobilizado</option>
+                    <option value="09">09 - Serviços</option>
+                    <option value="99">99 - Outros</option>
                   </select>
-                  <div class="valid-feedback">Ok!!</div>
-                  <div class="invalid-feedback">Por favor, selecione a unidade de medida.</div>
-                  @error('produtos.'.'.unidade_medida')
-                  <small class="text-danger fw-bold">{{ $message }}</small>
-                  @enderror
-                </div>
-              </div>
-
-              <div class="col-md-4">
-                <div class="form-group">
-                  <label for="fabricante" class="form-label">
-                    <i class="fas fa-industry"></i> Fabricante
-                  </label>
-                  <input type="text" class="form-control" name="produtos[fabricante]" id="fabricante" placeholder="Digite o nome do Fabricante">
-                  <div class="valid-feedback">Ok!!</div>
-                  <div class="invalid-feedback">Por favor, insira o nome do fabricante.</div>
-                  @error('produtos.'.'.fabricante')
-                  <small class="text-danger fw-bold">{{ $message }}</small>
-                  @enderror
-                </div>
-              </div>
-
-              <div class="col-md-4">
-                <div class="form-group">
-                  <label for="estoque_0" class="form-label">
-                    <i class="fas fa-cubes"></i> Estoque
-                  </label>
-                  <input type="number" class="form-control" name="produtos[0][estoque]" id="estoque_0" placeholder="Digite a quantidade em estoque">
-                  <div class="valid-feedback">Ok!!</div>
-                  <div class="invalid-feedback">Por favor, insira a quantidade em estoque.</div>
-                  @error('produtos.0.estoque')
-                  <small class="text-danger fw-bold">{{ $message }}</small>
-                  @enderror
                 </div>
               </div>
             </div>
 
-            <div class="divider my-6">
-              <div class="divider-text">
-                <i class="bx bx-package"></i> Informações do Fornecedor
-              </div>
-            </div>
-
-            <div class="row mb-4">
-              <div class="col-md-6">
-                <div class="form-group">
-                  <label for="fornecedor_cnpj" class="form-label">
-                    <i class="fas fa-id-card"></i> CNPJ do Fornecedor
-                  </label>
-                  <input type="text" class="form-control" name="fornecedor_cnpj" id="fornecedor_cnpj" placeholder="Ex.: 12.345.678/0001-90" oninput="formatCNPJ(this)">
-                  <div class="valid-feedback">Ok!!</div>
-                  <div class="invalid-feedback">Por favor, insira um CNPJ válido.</div>
-                  @error('fornecedor_cnpj')
-                  <small class="text-danger fw-bold">{{ $message }}</small>
-                  @enderror
+            <!-- ABA ESTOQUE -->
+            <div class="tab-pane fade" id="estoque" role="tabpanel" aria-labelledby="estoque-tab">
+              <div class="row mb-3">
+                <div class="col-md-3">
+                  <label for="estoque_0" class="form-label">Estoque Atual</label>
+                  <input type="number" class="form-control" name="produtos[0][estoque]" id="estoque_0" value="0">
                 </div>
-              </div>
-
-              <div class="col-md-6">
-                <div class="form-group">
-                  <label for="fornecedor_nome" class="form-label">
-                    <i class="fas fa-user"></i> Nome do Fornecedor
-                  </label>
-                  <input type="text" class="form-control" name="fornecedor_nome" id="fornecedor_nome" placeholder="Digite o nome do fornecedor">
-                  <div class="valid-feedback">Ok!!</div>
-                  <div class="invalid-feedback">Por favor, insira o nome do fornecedor.</div>
-                  @error('fornecedor_nome')
-                  <small class="text-danger fw-bold">{{ $message }}</small>
-                  @enderror
+                <div class="col-md-3">
+                  <label for="estoque_minimo_0" class="form-label">Estoque Mínimo</label>
+                  <input type="number" class="form-control" name="produtos[0][estoque_minimo]" id="estoque_minimo_0" value="0">
+                </div>
+                <div class="col-md-3">
+                  <label for="estoque_maximo_0" class="form-label">Estoque Máximo</label>
+                  <input type="number" class="form-control" name="produtos[0][estoque_maximo]" id="estoque_maximo_0">
+                </div>
+                <div class="col-md-3">
+                  <label for="localizacao_0" class="form-label">Localização</label>
+                  <input type="text" class="form-control" name="produtos[0][localizacao]" id="localizacao_0" placeholder="Corredor A, Prateleira 2">
                 </div>
               </div>
             </div>
 
-            <div class="row mb-4">
-              <div class="col-md-6">
-                <div class="form-group">
-                  <label for="fornecedor_telefone" class="form-label">
-                    <i class="fas fa-phone"></i> Telefone do Fornecedor
-                  </label>
-                  <input type="text" class="form-control" name="fornecedor_telefone" id="fornecedor_telefone" placeholder="Ex.: (11) 91234-5678" oninput="formatPhone(this)">
-                  <div class="valid-feedback">Ok!!</div>
-                  <div class="invalid-feedback">Por favor, insira um telefone válido.</div>
-                  @error('fornecedor_telefone')
-                  <small class="text-danger fw-bold">{{ $message }}</small>
-                  @enderror
+            <!-- ABA TRIBUTAÇÃO -->
+            <div class="tab-pane fade" id="tributacao" role="tabpanel" aria-labelledby="tributacao-tab">
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> Use o botão de busca na aba "Geral" (ao lado do código de barras) para preencher automaticamente.
+              </div>
+              <div class="row mb-3">
+                <div class="col-md-3">
+                  <label class="form-label">NCM</label>
+                  <div class="input-group">
+                    <input type="text" class="form-control" name="produtos[0][ncm]" id="ncm_0">
+                    <button class="btn btn-outline-secondary" type="button" onclick="buscarNCMPorNome('nome_0', 'ncm_0')" title="Buscar NCM por nome">
+                        <i class="fas fa-search"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">Unid. Comercial</label>
+                  <input type="text" class="form-control" name="produtos[0][unidade_comercial]" id="unidade_comercial_0" value="UN" maxlength="6">
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">CEST</label>
+                  <input type="text" class="form-control" name="produtos[0][cest]" id="cest_0">
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">CFOP Interno</label>
+                  <input type="text" class="form-control" name="produtos[0][cfop_interno]" id="cfop_interno_0" placeholder="5102">
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">CFOP Externo</label>
+                  <input type="text" class="form-control" name="produtos[0][cfop_externo]" id="cfop_externo_0" placeholder="6102">
                 </div>
               </div>
-
-              <div class="col-md-6">
-                <div class="form-group">
-                  <label for="fornecedor_email" class="form-label">
-                    <i class="fas fa-envelope"></i> E-mail do Fornecedor
-                  </label>
-                  <input type="email" class="form-control" name="fornecedor_email" id="fornecedor_email" placeholder="Ex.: fornecedor@example.com">
-                  <div class="valid-feedback">Ok!!</div>
-                  <div class="invalid-feedback">Por favor, insira um e-mail válido.</div>
-                  @error('fornecedor_email')
-                  <small class="text-danger fw-bold">{{ $message }}</small>
-                  @enderror
+              <div class="row mb-3">
+                <div class="col-md-3">
+                  <label class="form-label">Origem</label>
+                  <select class="form-select" name="produtos[0][origem]" id="origem_0">
+                    <option value="0">0 - Nacional</option>
+                    <option value="1">1 - Estrangeira (Imp. Direta)</option>
+                    <option value="2">2 - Estrangeira (Adq. no Int.)</option>
+                  </select>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">CSOSN (Simples)</label>
+                  <input type="text" class="form-control" name="produtos[0][csosn_icms]" id="csosn_icms_0" placeholder="102">
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">CST ICMS</label>
+                  <input type="text" class="form-control" name="produtos[0][cst_icms]" id="cst_icms_0" placeholder="00">
+                </div>
+              </div>
+              <div class="row mb-3">
+                <div class="col-md-4">
+                  <label class="form-label">Alíquota ICMS (%)</label>
+                  <input type="number" step="0.01" class="form-control" name="produtos[0][aliquota_icms]" id="aliquota_icms_0" value="0.00">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Alíquota PIS (%)</label>
+                  <input type="number" step="0.01" class="form-control" name="produtos[0][aliquota_pis]" id="aliquota_pis_0" value="0.00">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Alíquota COFINS (%)</label>
+                  <input type="number" step="0.01" class="form-control" name="produtos[0][aliquota_cofins]" id="aliquota_cofins_0" value="0.00">
                 </div>
               </div>
             </div>
-          </div>
 
-          <div class="row">
-            <div class="col-md-12 text-end">
-              <button type="button" class="btn btn-secondary me-2" onclick="window.history.back();">
-                <i class="bx bx-x"></i> Cancelar
+            <!-- ABA FORNECEDORES -->
+            <div class="tab-pane fade" id="fornecedores" role="tabpanel" aria-labelledby="fornecedores-tab">
+              <div class="row">
+                <div class="col-md-12">
+                  <label class="form-label">Selecione os Fornecedores deste produto</label>
+                  <select class="select2 form-select" name="produtos[0][fornecedores][]" multiple>
+                    @foreach($fornecedores as $fornecedor)
+                    <option value="{{ $fornecedor->id }}">{{ $fornecedor->nome }} ({{ $fornecedor->cnpj ?? 'S/ CNPJ' }})</option>
+                    @endforeach
+                  </select>
+                  <small class="text-muted">Você pode selecionar múltiplos fornecedores.</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- ABA CÓDIGOS ADICIONAIS -->
+            <div class="tab-pane fade" id="codigos" role="tabpanel" aria-labelledby="codigos-tab">
+              <div class="table-responsive">
+                <table class="table table-bordered" id="tabelaCodigos">
+                  <thead>
+                    <tr>
+                      <th>Código de Barras</th>
+                      <th>Descrição (Ex: Caixa, Unidade)</th>
+                      <th style="width: 50px;">Ação</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- Linhas adicionadas via JS -->
+                  </tbody>
+                </table>
+              </div>
+              <button type="button" class="btn btn-outline-primary mt-2" onclick="adicionarCodigo()">
+                <i class="fas fa-plus"></i> Adicionar Código
               </button>
-
-              <button type="submit" class="btn btn-primary">
-                <i class="fas fa-save"></i> Salvar
-              </button>
             </div>
+
+            <!-- ABA OUTROS -->
+            <div class="tab-pane fade" id="outros" role="tabpanel" aria-labelledby="outros-tab">
+              <div class="row mb-3">
+                <div class="col-md-12">
+                  <h5>Dimensões e Peso (Para Frete)</h5>
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label">Peso Líq. (kg)</label>
+                  <input type="number" step="0.001" class="form-control" name="produtos[0][peso_liquido]">
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label">Peso Bruto (kg)</label>
+                  <input type="number" step="0.001" class="form-control" name="produtos[0][peso_bruto]">
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label">Largura (cm)</label>
+                  <input type="number" step="0.01" class="form-control" name="produtos[0][largura]">
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label">Altura (cm)</label>
+                  <input type="number" step="0.01" class="form-control" name="produtos[0][altura]">
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label">Comprimento (cm)</label>
+                  <input type="number" step="0.01" class="form-control" name="produtos[0][comprimento]">
+                </div>
+              </div>
+              <hr>
+              <div class="row mb-3">
+                <div class="col-md-12">
+                  <h5>Preços Avançados</h5>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">Preço Atacado</label>
+                  <input type="text" class="form-control" name="produtos[0][preco_atacado]" oninput="formatCurrency(this)">
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">Qtd. Mín. Atacado</label>
+                  <input type="number" class="form-control" name="produtos[0][qtd_min_atacado]">
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">Preço Promocional</label>
+                  <input type="text" class="form-control" name="produtos[0][preco_promocional]" oninput="formatCurrency(this)">
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-12">
+                  <label class="form-label">Observações Internas</label>
+                  <textarea class="form-control" name="produtos[0][observacoes_internas]" rows="3"></textarea>
+                </div>
+              </div>
+            </div>
+
+          </div> <!-- End Tab Content -->
+
+          <div class="mt-4 text-end">
+            <button type="submit" class="btn btn-primary btn-lg">
+              <i class="fas fa-save me-1"></i> Salvar Produto
+            </button>
           </div>
         </div>
       </form>
@@ -307,90 +519,4 @@
   </div>
 </div>
 
-<script>
-  // Função para formatar CNPJ
-  function formatCNPJ(input) {
-    let value = input.value.replace(/\D/g, ''); // Remove caracteres não numéricos
-    value = value.replace(/(\d{2})(\d)/, '$1.$2'); // Adiciona o primeiro ponto
-    value = value.replace(/(\d{3})(\d)/, '$1.$2'); // Adiciona o segundo ponto
-    value = value.replace(/(\d{3})(\d{1,2})$/, '$1/$2'); // Adiciona a barra
-    value = value.replace(/(\d{2})$/, '-$1'); // Adiciona o hífen
-    input.value = value; // Atualiza o valor do campo
-  }
-
-  // Função para formatar telefone
-  function formatPhone(input) {
-    let value = input.value.replace(/\D/g, ''); // Remove qualquer caractere que não seja dígito
-    value = value.replace(/(\d{2})(\d)/, '($1) $2'); // Formata DDD
-    value = value.replace(/(\d{5})(\d)/, '$1-$2'); // Formata telefone
-    input.value = value; // Atualiza o valor do campo
-  }
-
-  // Função para formatar moeda
-  function formatCurrency(input) {
-    let value = input.value.replace(/\D/g, ''); // Remove qualquer caractere que não seja dígito
-    value = (value / 100).toFixed(2) + ''; // Adiciona casas decimais
-    value = value.replace('.', ','); // Troca ponto por vírgula
-    value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.'); // Adiciona pontos como separador de milhar
-    input.value = value;
-  }
-
-  // Função para calcular o lucro
-  function calculateProfit(index) {
-    let precoVenda = parseFloat(document.getElementById('preco_venda_' + index).value.replace(/\./g, '').replace(',', '.')) || 0;
-    let precoCusto = parseFloat(document.getElementById('preco_custo_' + index).value.replace(/\./g, '').replace(',', '.')) || 0;
-
-    if (precoCusto > 0) {
-      let lucroPercentual = ((precoVenda - precoCusto) / precoCusto) * 100;
-      let lucroText = lucroPercentual.toFixed(2) + '% Lucro';
-
-      // Estilo condicional para lucro negativo
-      if (lucroPercentual < 0) {
-        document.getElementById('lucro_percentual_' + index).style.color = 'red'; // cor de prejuízo
-      } else {
-        document.getElementById('lucro_percentual_' + index).style.color = 'black'; // cor de lucro
-      }
-
-      document.getElementById('lucro_percentual_' + index).innerText = lucroText;
-    } else {
-      document.getElementById('lucro_percentual_' + index).innerText = "N/A";
-    }
-  }
-
-  // Função para alternar a visibilidade dos campos adicionais
-  function toggleAdditionalFields() {
-    const additionalFields = document.getElementById('additionalFields');
-    const toggleButton = document.querySelector('.btn-link i');
-
-    if (additionalFields.style.display === 'none') {
-      additionalFields.style.display = 'block';
-      toggleButton.classList.remove('fa-chevron-down');
-      toggleButton.classList.add('fa-chevron-up');
-    } else {
-      additionalFields.style.display = 'none';
-      toggleButton.classList.remove('fa-chevron-up');
-      toggleButton.classList.add('fa-chevron-down');
-    }
-  }
-
-  // Validação do formulário
-  (function () {
-    'use strict';
-
-    // Seleciona todos os formulários com a classe .needs-validation
-    var forms = document.querySelectorAll('.needs-validation');
-
-    // Itera sobre os formulários e previne o envio se houver campos inválidos
-    Array.prototype.slice.call(forms).forEach(function (form) {
-      form.addEventListener('submit', function (event) {
-        if (!form.checkValidity()) {
-          event.preventDefault();
-          event.stopPropagation();
-        }
-
-        form.classList.add('was-validated');
-      }, false);
-    });
-  })();
-</script>
 @endsection

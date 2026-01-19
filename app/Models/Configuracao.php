@@ -23,6 +23,13 @@ class Configuracao extends Model
     ];
 
     /**
+     * Lista de configurações que são específicas por usuário
+     */
+    protected static $configuracoesPorUsuario = [
+        'produtos_edicao_inline'
+    ];
+
+    /**
      * Obtém o valor de uma configuração
      * @param string $chave Chave da configuração
      * @param mixed $default Valor padrão se não encontrar
@@ -31,24 +38,19 @@ class Configuracao extends Model
     public static function get($chave, $default = null, $userId = null)
     {
         try {
-            // Configurações que são por usuário
-            $configuracoesPorUsuario = ['produtos_edicao_inline'];
-            $ehConfiguracaoPorUsuario = in_array($chave, $configuracoesPorUsuario);
-            
+            // Verifica se é configuração por usuário
+            $ehConfiguracaoPorUsuario = in_array($chave, self::$configuracoesPorUsuario);
+
             // Se for configuração por usuário e userId não foi informado, tenta usar o usuário autenticado
             if ($ehConfiguracaoPorUsuario && $userId === null && auth()->check()) {
                 $userId = auth()->id();
             }
-            
+
             // Se não for configuração por usuário, força userId = null (global)
             if (!$ehConfiguracaoPorUsuario) {
                 $userId = null;
             }
-            
-            // Limpa cache antes de buscar
-            $cacheKey = $userId ? "configuracao_{$chave}_user_{$userId}" : "configuracao_{$chave}";
-            Cache::forget($cacheKey);
-            
+
             // Busca primeiro a configuração do usuário (se aplicável), depois a global
             $config = null;
             if ($userId) {
@@ -56,14 +58,39 @@ class Configuracao extends Model
                     ->where('user_id', $userId)
                     ->first();
             }
-            
+
             // Se não encontrou configuração do usuário, busca global (user_id = null)
             if (!$config) {
                 $config = self::where('chave', $chave)
                     ->whereNull('user_id')
                     ->first();
             }
-            
+
+            // FALLBACK: Se ainda não encontrou e não é configuração por usuário,
+            // tenta encontrar qualquer registro com essa chave (pode ter sido salvo com user_id indevidamente)
+            if (!$config && !$ehConfiguracaoPorUsuario) {
+                $configFallback = self::where('chave', $chave)
+                    ->orderBy('updated_at', 'desc')
+                    ->first();
+
+                if ($configFallback) {
+                    Log::warning("Configuracao::get: Chave '{$chave}' encontrada apenas com user_id definido (recuperação de falha).", [
+                        'chave' => $chave,
+                        'user_id_encontrado' => $configFallback->user_id
+                    ]);
+                    $config = $configFallback;
+                }
+            }
+
+            // Log específico para debug da senha do certificado
+            if ($chave === 'nfe_cert_password') {
+                if ($config) {
+                    // Log::info('Configuracao::get nfe_cert_password encontrada', ['valor_length' => strlen($config->valor), 'user_id_busca' => $userId]);
+                } else {
+                    Log::warning('Configuracao::get nfe_cert_password NÃO encontrada', ['user_id_busca' => $userId, 'eh_por_usuario' => $ehConfiguracaoPorUsuario]);
+                }
+            }
+
             if ($config && $config->valor !== null) {
                 // Para senhas, retorna mesmo se vazio (pode ser senha vazia válida)
                 if ($config->tipo === 'password') {
@@ -96,11 +123,37 @@ class Configuracao extends Model
     public static function set($chave, $valor, $grupo = 'geral', $tipo = 'text', $descricao = null, $userId = null)
     {
         try {
-            // Se userId não foi informado, tenta usar o usuário autenticado
-            if ($userId === null && auth()->check()) {
+            // Verifica se é configuração por usuário
+            $ehConfiguracaoPorUsuario = in_array($chave, self::$configuracoesPorUsuario);
+
+            // Se for configuração por usuário e userId não foi informado, tenta usar o usuário autenticado
+            if ($ehConfiguracaoPorUsuario && $userId === null && auth()->check()) {
                 $userId = auth()->id();
             }
-            
+
+            // Se NÃO for configuração por usuário, força userId = null (global)
+            if (!$ehConfiguracaoPorUsuario) {
+                $userId = null;
+            }
+
+            // Log específico para debug da senha do certificado
+            if ($chave === 'nfe_cert_password') {
+                Log::info('Configuracao::set nfe_cert_password', [
+                    'valor_length' => strlen($valor),
+                    'user_id' => $userId,
+                    'grupo' => $grupo,
+                    'backtrace' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3)
+                ]);
+
+                // PREVENÇÃO DE PERDA DE SENHA: Não permite salvar senha vazia para certificado
+                if (empty($valor)) {
+                    Log::error('BLOQUEIO: Tentativa de salvar senha do certificado vazia impedida.', [
+                        'backtrace' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10)
+                    ]);
+                    return null;
+                }
+            }
+
             $resultado = self::updateOrCreate(
                 [
                     'chave' => $chave,
@@ -113,11 +166,11 @@ class Configuracao extends Model
                     'descricao' => $descricao,
                 ]
             );
-            
+
             // Limpa cache se existir
             $cacheKey = $userId ? "configuracao_{$chave}_user_{$userId}" : "configuracao_{$chave}";
             Cache::forget($cacheKey);
-            
+
             return $resultado;
         } catch (\Exception $e) {
             Log::error('Erro ao salvar configuração', [

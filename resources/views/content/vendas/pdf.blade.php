@@ -1,229 +1,339 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relatório de Venda #{{ $venda->id }}</title>
+    <title>Venda #{{ str_pad($venda->id, 5, '0', STR_PAD_LEFT) }}</title>
     <style>
+        @page {
+            margin: 1cm 1cm 3.5cm 1cm;
+        }
+
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #fff;
+            font-size: 12px;
             color: #333;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            position: relative;
+            line-height: 1.4;
         }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #fff;
-            flex: 1;
-            padding-bottom: 100px; /* Reduzido para aproximar o rodapé */
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 15px; /* Reduzido */
-        }
-        .header img {
-            max-width: 120px; /* Reduzido */
-            margin-bottom: 5px; /* Reduzido */
-        }
-        .header h1 {
-            font-size: 20px; /* Reduzido */
-            color: #333;
-            margin: 0;
-        }
-        .info-section {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px; /* Reduzido */
-            margin-bottom: 15px; /* Reduzido */
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 10px; /* Reduzido */
-        }
-        .info-section p {
-            margin: 3px 0; /* Reduzido */
-            font-size: 13px; /* Reduzido */
-        }
-        h2 {
-            font-size: 16px; /* Reduzido */
-            margin-bottom: 10px; /* Reduzido */
-            color: #007bff;
-            border-bottom: 2px solid #007bff;
-            padding-bottom: 3px; /* Reduzido */
-        }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 15px; /* Reduzido */
         }
-        table th, table td {
-            border: 1px solid #ddd;
-            padding: 8px; /* Reduzido */
+
+        .header-center {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            max-width: 150px;
+            max-height: 80px;
+        }
+
+        .document-title {
+            text-align: center;
+            margin: 10px 0;
+            padding: 5px;
+            background-color: #f5f5f5;
+            border-top: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .document-title h1 {
+            margin: 0;
+            font-size: 18px;
+            text-transform: uppercase;
+        }
+
+        .document-title p {
+            margin: 5px 0 0;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .box {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 20px;
+            background-color: #fff;
+        }
+
+        .box-title {
+            font-weight: bold;
+            font-size: 13px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .info-table {
+            line-height: 1.2;
+        }
+
+        .info-table td {
+            padding: 1px 0;
+            vertical-align: top;
+        }
+
+        .items-table {
+            margin-bottom: 20px;
+        }
+
+        .items-table th {
+            background-color: #eee;
+            border: 1px solid #ccc;
+            padding: 8px;
             text-align: left;
-            font-size: 13px; /* Reduzido */
-        }
-        table th {
-            background-color: #f9f9f9;
             font-weight: bold;
+            font-size: 11px;
         }
-        .summary {
+
+        .items-table td {
+            border: 1px solid #ccc;
+            padding: 8px;
+        }
+
+        .text-right {
             text-align: right;
-            margin-top: 15px; /* Reduzido */
         }
-        .summary p {
-            margin: 3px 0; /* Reduzido */
-            font-size: 13px; /* Reduzido */
+
+        .text-center {
+            text-align: center;
         }
-        .summary .total {
-            font-size: 14px; /* Reduzido */
+
+        .totals-table {
+            width: 40%;
+            float: right;
+        }
+
+        .totals-table td {
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .total-final {
             font-weight: bold;
-            color: #007bff;
+            font-size: 14px;
+            background-color: #eee;
         }
-        .observacao {
-            margin-top: 15px; /* Reduzido */
-            padding: 10px; /* Reduzido */
-            background-color: #f9f9f9;
-            border: 1px solid #ddd;
-            border-radius: 6px;
+
+        .footer {
+            position: fixed;
+            bottom: -3cm;
+            left: 0;
+            right: 0;
+            height: 90px;
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+            text-align: center;
+            font-size: 10px;
+            color: #777;
+            background-color: #fff;
         }
-        .observacao h2 {
-            margin-top: 0;
+
+        .clearfix::after {
+            content: "";
+            clear: both;
+            display: table;
         }
-        .payment-methods {
-            margin-top: 15px; /* Reduzido */
-            font-size: 13px; /* Reduzido */
-        }
+
         .payment-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 15px; /* Reduzido */
+            margin-bottom: 20px;
         }
-        .payment-table th, .payment-table td {
-            border: 1px solid #ddd;
-            padding: 8px; /* Reduzido */
+
+        .payment-table th,
+        .payment-table td {
+            border: 1px solid #ccc;
+            padding: 8px;
             text-align: left;
-            font-size: 13px; /* Reduzido */
+            font-size: 11px;
         }
+
         .payment-table th {
-            background-color: #f9f9f9;
-        }
-        .footer {
-            text-align: center;
-            font-size: 11px; /* Reduzido */
-            color: #666;
-            padding: 8px 0; /* Reduzido */
-            border-top: 1px solid #ddd;
-            background-color: #fff;
-            position: absolute;
-            bottom: 10px; /* Reduzido */
-            width: 100%;
+            background-color: #eee;
+            font-weight: bold;
         }
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <!-- Cabeçalho -->
-        <div class="header">
-            <img src="https://jbtechresende.com.br/assets/img/front-pages/landing-page/jblogo_black.png" alt="JBTECH Logo">
-            <h1>Relatório de Venda #{{ $venda->id }}</h1>
-        </div>
 
-        <!-- Informações do Cliente -->
-        <div class="info-section">
-            <p><strong>Cliente:</strong> {{ $venda->cliente->nome ?? 'N/A' }}</p>
-            <p><strong>CPF/CNPJ:</strong> {{ $venda->cliente->cpf_cnpj ?? 'N/A' }}</p>
-            <p><strong>Data de Venda:</strong> {{ \Carbon\Carbon::parse($venda->data_venda)->format('d/m/Y') }}</p>
-            <p><strong>Vendedor:</strong> {{ $venda->user->name ?? 'N/A' }}</p>
-        </div>
+    <!-- Footer -->
+    <div class="footer">
+        <p style="margin-bottom: 5px; font-weight: bold;">
+            {{ \App\Models\Configuracao::get('empresa_nome', 'JB Tech Soluções') }} -
+            CNPJ: {{ formatarCpfCnpj(\App\Models\Configuracao::get('empresa_cnpj', '00.000.000/0001-00')) }}
+        </p>
+        <p style="margin-bottom: 5px;">
+            {{ \App\Models\Configuracao::get('empresa_endereco') }}, {{ \App\Models\Configuracao::get('empresa_numero') }} -
+            {{ \App\Models\Configuracao::get('empresa_bairro') }} -
+            {{ \App\Models\Configuracao::get('empresa_cidade') }}/{{ \App\Models\Configuracao::get('empresa_uf') }}
+        </p>
+        <p style="margin-bottom: 5px;">
+            Tel: {{ \App\Helpers\FormatacaoHelper::telefone(\App\Models\Configuracao::get('empresa_telefone')) }} -
+            Email: {{ \App\Models\Configuracao::get('empresa_email') }}
+        </p>
+        <p style="margin-top: 10px; font-size: 9px;">Obrigado pela preferência!</p>
+    </div>
 
-        <!-- Produtos -->
-        <h2>Produtos</h2>
-        <table>
+    <!-- Header -->
+    <div class="header-center">
+        @if(isset($logoBase64))
+            <img src="data:image/png;base64,{{ $logoBase64 }}" class="logo" alt="Logo">
+        @else
+            <img src="{{ public_path('assets/img/front-pages/landing-page/jblogo_black.png') }}" class="logo" alt="Logo">
+        @endif
+    </div>
+
+    <!-- Title -->
+    <div class="document-title">
+        <h1>Venda Nº {{ str_pad($venda->id, 5, '0', STR_PAD_LEFT) }}</h1>
+        <p>Data de Emissão: {{ \Carbon\Carbon::parse($venda->data_venda)->format('d/m/Y') }}</p>
+    </div>
+
+    <!-- Client Info -->
+    <div class="box">
+        <span class="box-title">DADOS DO CLIENTE</span>
+        <table class="info-table">
+            <tr>
+                <td width="15%"><strong>Nome:</strong></td>
+                <td width="45%">{{ $venda->cliente->nome }}</td>
+                <td width="15%"><strong>CPF/CNPJ:</strong></td>
+                <td width="25%">{{ formatarCpfCnpj($venda->cliente->cpf_cnpj) }}</td>
+            </tr>
+            <tr>
+                <td><strong>Telefone:</strong></td>
+                <td>{{ $venda->cliente->telefone ?? '-' }}</td>
+                <td><strong>Emissão:</strong></td>
+                <td>{{ \Carbon\Carbon::parse($venda->data_venda)->format('d/m/Y') }}</td>
+            </tr>
+            @if($venda->cliente->endereco)
+            <tr>
+                <td><strong>Endereço:</strong></td>
+                <td colspan="3">
+                    {{ $venda->cliente->endereco->endereco }}, {{ $venda->cliente->endereco->numero }}
+                    {{ $venda->cliente->endereco->complemento ? ' - ' . $venda->cliente->endereco->complemento : '' }}
+                    - {{ $venda->cliente->endereco->bairro }}, {{ $venda->cliente->endereco->cidade }}/{{ $venda->cliente->endereco->estado }}
+                </td>
+            </tr>
+            @endif
+        </table>
+    </div>
+
+    <!-- Items -->
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th width="5%" class="text-center">#</th>
+                <th width="50%">Descrição</th>
+                <th width="10%" class="text-center">Qtd</th>
+                <th width="15%" class="text-right">Vlr. Unit.</th>
+                <th width="20%" class="text-right">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @php
+            $subtotalProdutos = 0;
+            $valorServico = 0;
+            @endphp
+            @foreach($venda->produtos as $index => $produto)
+            @php
+            // Ajuste para pegar valor da pivot se existir, senão calcula
+            $valorUnitario = $produto->pivot->valor_unitario ?? 0;
+            $quantidade = $produto->pivot->quantidade ?? 0;
+            $valorTotalProduto = $produto->pivot->valor_total ?? ($valorUnitario * $quantidade);
+            
+            // Lógica para separar serviços (Assumindo ID 1 como serviço, conforme orçamentos)
+            if ($produto->id == 1) {
+                $valorServico += $valorTotalProduto;
+            } else {
+                $subtotalProdutos += $valorTotalProduto;
+            }
+            @endphp
+            <tr>
+                <td class="text-center">{{ $index + 1 }}</td>
+                <td>
+                    <strong>{{ $produto->nome }}</strong>
+                    @if($produto->descricao)
+                    <br><small style="color: #666;">{{ $produto->descricao }}</small>
+                    @endif
+                </td>
+                <td class="text-center">{{ $quantidade }}</td>
+                <td class="text-right">R$ {{ number_format($valorUnitario, 2, ',', '.') }}</td>
+                <td class="text-right">R$ {{ number_format($valorTotalProduto, 2, ',', '.') }}</td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+
+    <!-- Totals -->
+    <div class="clearfix">
+        <table class="totals-table">
+            @if($subtotalProdutos > 0)
+            <tr>
+                <td class="text-right"><strong>Total Produtos:</strong></td>
+                <td class="text-right">R$ {{ number_format($subtotalProdutos, 2, ',', '.') }}</td>
+            </tr>
+            @endif
+            @if($valorServico > 0)
+            <tr>
+                <td class="text-right"><strong>Total Serviços:</strong></td>
+                <td class="text-right">R$ {{ number_format($valorServico, 2, ',', '.') }}</td>
+            </tr>
+            @endif
+            <tr class="total-final">
+                <td class="text-right">TOTAL GERAL:</td>
+                <td class="text-right">R$ {{ number_format($subtotalProdutos + $valorServico, 2, ',', '.') }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Observations -->
+    @if (!empty($venda->observacoes))
+    <div class="box" style="margin-top: 20px; background-color: #fff;">
+        <span class="box-title">OBSERVAÇÕES</span>
+        <p style="margin: 0; font-size: 11px;">{{ $venda->observacoes }}</p>
+    </div>
+    @endif
+
+    <!-- Payment Methods -->
+    <div class="box" style="margin-top: 20px; background-color: #fff;">
+        <span class="box-title">FORMAS DE PAGAMENTO</span>
+        <table class="payment-table">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Nome</th>
-                    <th>Quantidade</th>
-                    <th>Valor Unitário</th>
-                    <th>Valor Total</th>
+                    <th>Forma</th>
+                    <th>Condição</th>
+                    <th>Taxa</th>
+                    <th>Valor Final</th>
                 </tr>
             </thead>
             <tbody>
                 @php
-                    $subtotalProdutos = 0; // Inicializa a variável
-                @endphp
-                @foreach ($venda->produtos as $produto)
-                @php
-                    $subtotalProdutos += $produto->pivot->valor_total; // Soma o valor total de cada produto
+                $totalGeral = $subtotalProdutos + $valorServico;
+                $valorPix = $totalGeral;
+                $valor10x = $totalGeral * (1 + 0.12436);
                 @endphp
                 <tr>
-                    <td>{{ $produto->id }}</td>
-                    <td>{{ $produto->nome }}</td>
-                    <td>{{ $produto->pivot->quantidade }}</td>
-                    <td>R$ {{ number_format($produto->pivot->valor_unitario, 2, ',', '.') }}</td>
-                    <td>R$ {{ number_format($produto->pivot->valor_total, 2, ',', '.') }}</td>
+                    <td>Pix</td>
+                    <td>À vista</td>
+                    <td>0%</td>
+                    <td>R$ {{ number_format($valorPix, 2, ',', '.') }}</td>
                 </tr>
-                @endforeach
+                <tr>
+                    <td>Cartão</td>
+                    <td>10x</td>
+                    <td>12,44%</td>
+                    <td>R$ {{ number_format($valor10x, 2, ',', '.') }}</td>
+                </tr>
             </tbody>
-            <tfoot>
-                <tr>
-                    <td colspan="4" class="text-end fw-bold">Total</td>
-                    <td><strong>R$ {{ number_format($subtotalProdutos, 2, ',', '.') }}</strong></td>
-                </tr>
-            </tfoot>
         </table>
-
-        <!-- Observação -->
-        <div class="observacao">
-            <h2>Observações</h2>
-            <p>{{ $venda->observacoes ?? 'Nenhuma observação informada.' }}</p>
-        </div>
-
-        <!-- Formas de Pagamento -->
-        <div class="payment-methods">
-            <h2>Formas de Pagamento</h2>
-            <table class="payment-table">
-                <thead>
-                    <tr>
-                        <th>Forma</th>
-                        <th>Condição</th>
-                        <th>Taxa</th>
-                        <th>Valor Final</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @php
-                        $valorPix = $subtotalProdutos; // Valor total para Pix
-                        $valor10x = $subtotalProdutos * (1 + 0.12436); // Valor total para Cartão (10x com taxa)
-                    @endphp
-                    <tr>
-                        <td>Pix</td>
-                        <td>À vista</td>
-                        <td>0%</td>
-                        <td>R$ {{ number_format($valorPix, 2, ',', '.') }}</td>
-                    </tr>
-                    <tr>
-                        <td>Cartão</td>
-                        <td>10x</td>
-                        <td>12,44%</td>
-                        <td>R$ {{ number_format($valor10x, 2, ',', '.') }}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
     </div>
 
-    <!-- Rodapé -->
-    <div class="footer">
-        <p>JBTECH Informática - Tecnologia ao Seu Alcance</p>
-        <p>Rua Willy Faulstich, 252, Resende, RJ | CNPJ: 54.819.910/0001-20</p>
-        <p>Telefone: +55 (24) 98113-2097 | E-mail: informatica.jbtech@gmail.com</p>
-    </div>
 </body>
+
 </html>

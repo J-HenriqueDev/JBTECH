@@ -1,256 +1,352 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orçamento #{{ $orcamento->id }}</title>
+    <title>Orçamento #{{ str_pad($orcamento->id, 5, '0', STR_PAD_LEFT) }}</title>
     <style>
+        @page {
+            margin: 1cm 1cm 3.5cm 1cm;
+        }
+
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #fff;
+            font-size: 12px;
             color: #333;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            position: relative;
+            line-height: 1.4;
         }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #fff;
-            flex: 1;
-            padding-bottom: 100px; /* Reduzido para aproximar o rodapé */
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 15px; /* Reduzido */
-        }
-        .header img {
-            max-width: 120px; /* Reduzido */
-            margin-bottom: 5px; /* Reduzido */
-        }
-        .header h1 {
-            font-size: 20px; /* Reduzido */
-            color: #333;
-            margin: 0;
-        }
-        .info-section {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px; /* Reduzido */
-            margin-bottom: 15px; /* Reduzido */
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 10px; /* Reduzido */
-        }
-        .info-section p {
-            margin: 3px 0; /* Reduzido */
-            font-size: 13px; /* Reduzido */
-        }
-        h2 {
-            font-size: 16px; /* Reduzido */
-            margin-bottom: 10px; /* Reduzido */
-            color: #007bff;
-            border-bottom: 2px solid #007bff;
-            padding-bottom: 3px; /* Reduzido */
-        }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 15px; /* Reduzido */
         }
-        table th, table td {
-            border: 1px solid #ddd;
-            padding: 8px; /* Reduzido */
-            text-align: left;
-            font-size: 13px; /* Reduzido */
+
+        .header-center {
+            text-align: center;
+            margin-bottom: 20px;
         }
-        table th {
-            background-color: #f9f9f9;
+
+        .logo {
+            max-width: 150px;
+            max-height: 80px;
+        }
+
+        .company-info {
+            text-align: right;
+            font-size: 11px;
+            color: #555;
+            padding: 5px 0;
+        }
+
+        .company-name {
+            font-size: 16px;
             font-weight: bold;
+            color: #000;
+            margin-bottom: 5px;
+            display: block;
         }
-        .divider {
-            margin: 10px 0; /* Reduzido */
+
+        .document-title {
+            text-align: center;
+            margin: 10px 0;
+            padding: 5px;
+            background-color: #f5f5f5;
+            border-top: 1px solid #ddd;
             border-bottom: 1px solid #ddd;
         }
-        .payment-methods {
-            margin-top: 15px; /* Reduzido */
-            font-size: 13px; /* Reduzido */
+
+        .document-title h1 {
+            margin: 0;
+            font-size: 18px;
+            text-transform: uppercase;
         }
+
+        .document-title p {
+            margin: 5px 0 0;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .box {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 20px;
+            background-color: #fff;
+        }
+
+        .box-title {
+            font-weight: bold;
+            font-size: 13px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .info-table {
+            line-height: 1.2;
+        }
+
+        .info-table td {
+            padding: 1px 0;
+            vertical-align: top;
+        }
+
+        .items-table {
+            margin-bottom: 20px;
+        }
+
+        .items-table th {
+            background-color: #eee;
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 11px;
+        }
+
+        .items-table td {
+            border: 1px solid #ccc;
+            padding: 8px;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .totals-table {
+            width: 40%;
+            float: right;
+        }
+
+        .totals-table td {
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .total-final {
+            font-weight: bold;
+            font-size: 14px;
+            background-color: #eee;
+        }
+
+        .footer {
+            position: fixed;
+            bottom: -3cm;
+            left: 0;
+            right: 0;
+            height: 90px;
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+            text-align: center;
+            font-size: 10px;
+            color: #777;
+            background-color: #fff;
+        }
+
+        .clearfix::after {
+            content: "";
+            clear: both;
+            display: table;
+        }
+
         .payment-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 15px; /* Reduzido */
+            margin-bottom: 20px;
         }
-        .payment-table th, .payment-table td {
-            border: 1px solid #ddd;
-            padding: 8px; /* Reduzido */
+
+        .payment-table th,
+        .payment-table td {
+            border: 1px solid #ccc;
+            padding: 8px;
             text-align: left;
-            font-size: 13px; /* Reduzido */
+            font-size: 11px;
         }
+
         .payment-table th {
-            background-color: #f9f9f9;
-        }
-        .summary {
-            text-align: right;
-            margin-top: 15px; /* Reduzido */
-        }
-        .summary p {
-            margin: 3px 0; /* Reduzido */
-            font-size: 13px; /* Reduzido */
-        }
-        .summary .total {
-            font-size: 14px; /* Reduzido */
+            background-color: #eee;
             font-weight: bold;
-            color: #007bff;
-        }
-        .observacao {
-            margin-top: 15px; /* Reduzido */
-            padding: 10px; /* Reduzido */
-            background-color: #f9f9f9;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-        }
-        .observacao h2 {
-            margin-top: 0;
-        }
-        .footer {
-            text-align: center;
-            font-size: 11px; /* Reduzido */
-            color: #666;
-            padding: 8px 0; /* Reduzido */
-            border-top: 1px solid #ddd;
-            background-color: #fff;
-            position: absolute;
-            bottom: 10px; /* Reduzido */
-            width: 100%;
         }
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <!-- Cabeçalho -->
-        <div class="header">
-            <img src="https://jbtechresende.com.br/assets/img/front-pages/landing-page/jblogo_black.png" alt="JBTECH Logo">
-            <h1>Orçamento #{{ $orcamento->id }}</h1>
-        </div>
 
-        <!-- Informações do Cliente -->
-        <div class="info-section">
-            <p><strong>Cliente:</strong> {{ $orcamento->cliente->nome }}</p>
-            <p><strong>CPF/CNPJ:</strong> {{ formatarCpfCnpj($orcamento->cliente->cpf_cnpj) }}</p>
-            <div style="display: flex; justify-content: space-between;">
-                <p><strong>Data de Emissão:</strong> {{ Carbon\Carbon::parse($orcamento->data)->translatedFormat('d \d\e F \d\e Y') }}</p>
-                <p><strong>Validade:</strong> {{ Carbon\Carbon::parse($orcamento->validade)->translatedFormat('d \d\e F \d\e Y') }}</p>
-            </div>
-        </div>
+    <!-- Footer -->
+    <div class="footer">
+        <p style="margin-bottom: 5px; font-weight: bold;">
+            {{ \App\Models\Configuracao::get('empresa_nome', 'JB Tech Soluções') }} -
+            CNPJ: {{ formatarCpfCnpj(\App\Models\Configuracao::get('empresa_cnpj', '00.000.000/0001-00')) }}
+        </p>
+        <p style="margin-bottom: 5px;">
+            {{ \App\Models\Configuracao::get('empresa_endereco') }}, {{ \App\Models\Configuracao::get('empresa_numero') }} -
+            {{ \App\Models\Configuracao::get('empresa_bairro') }} -
+            {{ \App\Models\Configuracao::get('empresa_cidade') }}/{{ \App\Models\Configuracao::get('empresa_uf') }}
+        </p>
+        <p style="margin-bottom: 5px;">
+            Tel: {{ \App\Helpers\FormatacaoHelper::telefone(\App\Models\Configuracao::get('empresa_telefone')) }} -
+            Email: {{ \App\Models\Configuracao::get('empresa_email') }}
+        </p>
+        <p style="margin-top: 10px; font-size: 9px;">Obrigado pela preferência!</p>
+    </div>
 
-        <!-- Produtos e Serviços -->
-        <h2>Produtos e Serviços</h2>
-        <table>
+    <!-- Header -->
+    <div class="header-center">
+        <img src="{{ public_path('assets/img/front-pages/landing-page/jblogo_black.png') }}" class="logo" alt="Logo">
+    </div>
+
+    <!-- Title -->
+    <div class="document-title">
+        <h1>Orçamento Nº {{ str_pad($orcamento->id, 5, '0', STR_PAD_LEFT) }}</h1>
+        <p>Data de Emissão: {{ \Carbon\Carbon::parse($orcamento->data)->format('d/m/Y') }}</p>
+    </div>
+
+    <!-- Client Info -->
+    <div class="box">
+        <span class="box-title">DADOS DO CLIENTE</span>
+        <table class="info-table">
+            <tr>
+                <td width="15%"><strong>Nome:</strong></td>
+                <td width="45%">{{ $orcamento->cliente->nome }}</td>
+                <td width="15%"><strong>CPF/CNPJ:</strong></td>
+                <td width="25%">{{ formatarCpfCnpj($orcamento->cliente->cpf_cnpj) }}</td>
+            </tr>
+            <tr>
+                <td><strong>Telefone:</strong></td>
+                <td>{{ $orcamento->cliente->telefone ?? '-' }}</td>
+                <td><strong>Data de Emissão:</strong></td>
+                <td>{{ \Carbon\Carbon::parse($orcamento->data)->format('d/m/Y') }}</td>
+            </tr>
+            <tr>
+                <td colspan="2"></td>
+                <td><strong>Validade:</strong></td>
+                <td>{{ \Carbon\Carbon::parse($orcamento->validade)->format('d/m/Y') }}</td>
+            </tr>
+            @if($orcamento->cliente->endereco)
+            <tr>
+                <td><strong>Endereço:</strong></td>
+                <td colspan="3">
+                    {{ $orcamento->cliente->endereco->endereco }}, {{ $orcamento->cliente->endereco->numero }}
+                    {{ $orcamento->cliente->endereco->complemento ? ' - ' . $orcamento->cliente->endereco->complemento : '' }}
+                    - {{ $orcamento->cliente->endereco->bairro }}, {{ $orcamento->cliente->endereco->cidade }}/{{ $orcamento->cliente->endereco->estado }}
+                </td>
+            </tr>
+            @endif
+        </table>
+    </div>
+
+    <!-- Items -->
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th width="5%" class="text-center">#</th>
+                <th width="50%">Descrição</th>
+                <th width="10%" class="text-center">Qtd</th>
+                <th width="15%" class="text-right">Vlr. Unit.</th>
+                <th width="20%" class="text-right">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @php
+            $subtotalProdutos = 0;
+            $valorServico = 0;
+            @endphp
+            @foreach($orcamento->produtos as $index => $produto)
+            @php
+            $valorTotalProduto = $produto->pivot->quantidade * $produto->pivot->valor_unitario;
+            // Lógica para separar serviços (Assumindo ID 1 ou categoria se houvesse)
+            // Mantendo lógica anterior: ID 1 é serviço
+            if ($produto->id == 1) {
+            $valorServico += $valorTotalProduto;
+            } else {
+            $subtotalProdutos += $valorTotalProduto;
+            }
+            @endphp
+            <tr>
+                <td class="text-center">{{ $index + 1 }}</td>
+                <td>
+                    <strong>{{ $produto->nome }}</strong>
+                    @if($produto->descricao)
+                    <br><small style="color: #666;">{{ $produto->descricao }}</small>
+                    @endif
+                </td>
+                <td class="text-center">{{ $produto->pivot->quantidade }}</td>
+                <td class="text-right">R$ {{ number_format($produto->pivot->valor_unitario, 2, ',', '.') }}</td>
+                <td class="text-right">R$ {{ number_format($valorTotalProduto, 2, ',', '.') }}</td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+
+    <!-- Totals -->
+    <div class="clearfix">
+        <table class="totals-table">
+            @if($subtotalProdutos > 0)
+            <tr>
+                <td class="text-right"><strong>Total Produtos:</strong></td>
+                <td class="text-right">R$ {{ number_format($subtotalProdutos, 2, ',', '.') }}</td>
+            </tr>
+            @endif
+            @if($valorServico > 0)
+            <tr>
+                <td class="text-right"><strong>Total Serviços:</strong></td>
+                <td class="text-right">R$ {{ number_format($valorServico, 2, ',', '.') }}</td>
+            </tr>
+            @endif
+            <tr class="total-final">
+                <td class="text-right">TOTAL GERAL:</td>
+                <td class="text-right">R$ {{ number_format($subtotalProdutos + $valorServico, 2, ',', '.') }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Observations -->
+    @if (!empty($orcamento->observacoes))
+    <div class="box" style="margin-top: 20px; background-color: #fff;">
+        <span class="box-title">OBSERVAÇÕES</span>
+        <p style="margin: 0; font-size: 11px;">{{ $orcamento->observacoes }}</p>
+    </div>
+    @endif
+
+    <!-- Payment Methods -->
+    <div class="box" style="margin-top: 20px; background-color: #fff;">
+        <span class="box-title">FORMAS DE PAGAMENTO</span>
+        <table class="payment-table">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Nome</th>
-                    <th>Quantidade</th>
-                    <th>Valor Unitário</th>
-                    <th>Valor Total</th>
+                    <th>Forma</th>
+                    <th>Condição</th>
+                    <th>Taxa</th>
+                    <th>Valor Final</th>
                 </tr>
             </thead>
             <tbody>
                 @php
-                    $subtotalProdutos = 0;
-                    $valorServico = $orcamento->produtos->firstWhere('id', 1)?->pivot?->valor_unitario ?? 0;
+                $totalGeral = $subtotalProdutos + $valorServico;
+                $valorPix = $totalGeral;
+                $valor10x = $totalGeral * (1 + 0.12436);
                 @endphp
-
-                @foreach($orcamento->produtos as $produto)
-                    @php
-                        $valorTotalProduto = $produto->pivot->quantidade * $produto->pivot->valor_unitario;
-                        if ($produto->id != 1) {
-                            $subtotalProdutos += $valorTotalProduto;
-                        }
-                    @endphp
-                    <tr>
-                        <td>{{ $produto->id }}</td>
-                        <td>{{ $produto->nome }}</td>
-                        <td>{{ $produto->pivot->quantidade }}</td>
-                        <td>R$ {{ number_format($produto->pivot->valor_unitario, 2, ',', '.') }}</td>
-                        <td>R$ {{ number_format($valorTotalProduto, 2, ',', '.') }}</td>
-                    </tr>
-                @endforeach
+                <tr>
+                    <td>Pix</td>
+                    <td>À vista</td>
+                    <td>0%</td>
+                    <td>R$ {{ number_format($valorPix, 2, ',', '.') }}</td>
+                </tr>
+                <tr>
+                    <td>Cartão</td>
+                    <td>10x</td>
+                    <td>12,44%</td>
+                    <td>R$ {{ number_format($valor10x, 2, ',', '.') }}</td>
+                </tr>
             </tbody>
         </table>
-
-        <!-- Resumo Financeiro -->
-        <div class="summary">
-            <p><strong>Subtotal de Produtos (sem serviço):</strong> R$ {{ number_format($subtotalProdutos, 2, ',', '.') }}</p>
-            <p><strong>Valor do Serviço:</strong> R$ {{ number_format($valorServico, 2, ',', '.') }}</p>
-            <p class="total">Total Geral: R$ {{ number_format($subtotalProdutos + $valorServico, 2, ',', '.') }}</p>
-        </div>
-
-        <!-- Observação -->
-        @if (!empty($orcamento->observacoes))
-        <div class="observacao">
-            <h2>Descrição do Orçamento</h2>
-            <p>{{ $orcamento->observacoes }}</p>
-        </div>
-        @endif
-
-        <!-- Formas de Pagamento -->
-        <div class="payment-methods">
-            <h2>Formas de Pagamento</h2>
-            <table class="payment-table">
-                <thead>
-                    <tr>
-                        <th>Forma</th>
-                        <th>Condição</th>
-                        <th>Taxa</th>
-                        <th>Valor Final</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @php
-                        $valorPix = $subtotalProdutos + $valorServico;
-                        $valor10x = $valorPix * (1 + 0.12436);
-                    @endphp
-                    <tr>
-                        <td>Pix</td>
-                        <td>À vista</td>
-                        <td>0%</td>
-                        <td>R$ {{ number_format($valorPix, 2, ',', '.') }}</td>
-                    </tr>
-                    <tr>
-                        <td>Cartão</td>
-                        <td>10x</td>
-                        <td>12,44%</td>
-                        <td>R$ {{ number_format($valor10x, 2, ',', '.') }}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
     </div>
 
-    <!-- Rodapé -->
-    @php
-        $empresa = [
-            'nome' => \App\Models\Configuracao::get('empresa_nome', 'JBTECH Informática'),
-            'cnpj' => \App\Models\Configuracao::get('empresa_cnpj', '54.819.910/0001-20'),
-            'telefone' => \App\Models\Configuracao::get('empresa_telefone', '+55 (24) 98113-2097'),
-            'email' => \App\Models\Configuracao::get('empresa_email', 'informatica.jbtech@gmail.com'),
-            'endereco' => \App\Models\Configuracao::get('empresa_endereco', 'Rua Willy Faulstich'),
-            'numero' => \App\Models\Configuracao::get('empresa_numero', '252'),
-            'bairro' => \App\Models\Configuracao::get('empresa_bairro', 'Centro'),
-            'cidade' => \App\Models\Configuracao::get('empresa_cidade', 'Resende'),
-            'uf' => \App\Models\Configuracao::get('empresa_uf', 'RJ'),
-        ];
-    @endphp
-    <div class="footer">
-        <p>{{ $empresa['nome'] }} - Tecnologia ao Seu Alcance</p>
-        <p>{{ $empresa['endereco'] }}, {{ $empresa['numero'] }}, {{ $empresa['bairro'] }}, {{ $empresa['cidade'] }}, {{ $empresa['uf'] }} | CNPJ: {{ $empresa['cnpj'] }}</p>
-        <p>Telefone: {{ $empresa['telefone'] }} | E-mail: {{ $empresa['email'] }}</p>
-    </div>
 </body>
+
 </html>

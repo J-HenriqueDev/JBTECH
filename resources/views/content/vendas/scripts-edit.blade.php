@@ -238,6 +238,17 @@
           width: '100%'
       });
 
+      $('#select2Cliente').on('select2:opening', function (e) {
+          const select = $(this);
+          const count = select.find('option').not('[value=""]').length;
+          if (count === 0) {
+              if (confirm('Nenhum cliente cadastrado. Deseja cadastrar agora?')) {
+                  window.location.href = '{{ route("clientes.create") }}';
+              }
+              e.preventDefault();
+          }
+      });
+
       // Lógica para o botão "Emitir NF-e"
       $('#emitirNFe').on('click', function () {
           const produtos = [];

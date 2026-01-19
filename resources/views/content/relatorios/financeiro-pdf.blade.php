@@ -2,161 +2,186 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Relatório Financeiro</title>
     <style>
+        @page {
+            margin: 1cm 1cm 3.5cm 1cm;
+        }
+
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #fff;
+            font-size: 12px;
             color: #333;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            position: relative;
+            line-height: 1.4;
         }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #fff;
-            flex: 1;
-            padding-bottom: 100px;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 15px;
-        }
-        .header img {
-            max-width: 120px;
-            margin-bottom: 5px;
-        }
-        .header h1 {
-            font-size: 20px;
-            color: #333;
-            margin: 0;
-        }
-        .info-section {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 10px;
-        }
-        .info-section p {
-            margin: 3px 0;
-            font-size: 13px;
-        }
-        h2 {
-            font-size: 16px;
-            margin-bottom: 10px;
-            color: #007bff;
-            border-bottom: 2px solid #007bff;
-            padding-bottom: 3px;
-        }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 15px;
         }
-        table th, table td {
-            border: 1px solid #ddd;
+
+        .header-center {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            max-width: 150px;
+            max-height: 80px;
+        }
+
+        .document-title {
+            text-align: center;
+            margin: 10px 0;
+            padding: 5px;
+            background-color: #f5f5f5;
+            border-top: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .document-title h1 {
+            margin: 0;
+            font-size: 18px;
+            text-transform: uppercase;
+        }
+
+        .document-title p {
+            margin: 5px 0 0;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .box {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 20px;
+            background-color: #fff;
+        }
+
+        .box-title {
+            font-weight: bold;
+            font-size: 13px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .items-table {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .items-table th, .items-table td {
+            border: 1px solid #ccc;
             padding: 8px;
             text-align: left;
-            font-size: 13px;
-        }
-        table th {
-            background-color: #f9f9f9;
-            font-weight: bold;
-        }
-        .summary {
-            text-align: right;
-            margin-top: 15px;
-        }
-        .summary p {
-            margin: 3px 0;
-            font-size: 13px;
-        }
-        .summary .total {
-            font-size: 14px;
-            font-weight: bold;
-            color: #007bff;
-        }
-        .footer {
-            text-align: center;
             font-size: 11px;
-            color: #666;
-            padding: 8px 0;
-            border-top: 1px solid #ddd;
+        }
+
+        .items-table th {
+            background-color: #eee;
+            font-weight: bold;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .footer {
+            position: fixed;
+            bottom: -3cm;
+            left: 0;
+            right: 0;
+            height: 90px;
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+            text-align: center;
+            font-size: 10px;
+            color: #777;
             background-color: #fff;
-            position: absolute;
-            bottom: 10px;
-            width: 100%;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Cabeçalho -->
-        <div class="header">
-            <img src="https://jbtechresende.com.br/assets/img/front-pages/landing-page/jblogo_black.png" alt="JBTECH Logo">
-            <h1>Relatório Financeiro</h1>
-        </div>
-
-        <!-- Informações do Relatório -->
-        <div class="info-section">
-            <p><strong>Data de Emissão:</strong> {{ Carbon\Carbon::now()->translatedFormat('d \d\e F \d\e Y') }}</p>
-            <p><strong>Total de Cobranças:</strong> {{ $cobrancas->count() }}</p>
-        </div>
-
-        <!-- Cobranças -->
-        <h2>Cobranças</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Cliente</th>
-                    <th>Método</th>
-                    <th>Valor</th>
-                    <th>Status</th>
-                    <th>Vencimento</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($cobrancas as $cobranca)
-                <tr>
-                    <td>#{{ $cobranca->id }}</td>
-                    <td>{{ $cobranca->venda->cliente->nome ?? 'N/A' }}</td>
-                    <td>{{ strtoupper($cobranca->metodo_pagamento) }}</td>
-                    <td>R$ {{ number_format($cobranca->valor, 2, ',', '.') }}</td>
-                    <td>{{ ucfirst($cobranca->status) }}</td>
-                    <td>{{ $cobranca->data_vencimento ? Carbon\Carbon::parse($cobranca->data_vencimento)->format('d/m/Y') : 'N/A' }}</td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="6" class="text-center">Nenhuma cobrança encontrada.</td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
-
-        <!-- Resumo Financeiro -->
-        <div class="summary">
-            <p><strong>Pendentes:</strong> R$ {{ number_format($totalPendente, 2, ',', '.') }}</p>
-            <p><strong>Pagas:</strong> R$ {{ number_format($totalPago, 2, ',', '.') }}</p>
-            <p><strong>Canceladas:</strong> R$ {{ number_format($totalCancelado, 2, ',', '.') }}</p>
-            <p class="total">Total: R$ {{ number_format($totalPendente + $totalPago + $totalCancelado, 2, ',', '.') }}</p>
-        </div>
-    </div>
-
-    <!-- Rodapé -->
+    <!-- Footer -->
     <div class="footer">
-        <p>{{ $empresa['nome'] ?? 'JBTECH Informática' }} - Tecnologia ao Seu Alcance</p>
-        <p>{{ $empresa['endereco'] ?? 'Rua Willy Faulstich' }}, {{ $empresa['numero'] ?? '252' }}, {{ $empresa['bairro'] ?? 'Centro' }}, {{ $empresa['cidade'] ?? 'Resende' }}, {{ $empresa['uf'] ?? 'RJ' }} | CNPJ: {{ $empresa['cnpj'] ?? '54.819.910/0001-20' }}</p>
-        <p>Telefone: {{ $empresa['telefone'] ?? '+55 (24) 98113-2097' }} | E-mail: {{ $empresa['email'] ?? 'informatica.jbtech@gmail.com' }}</p>
+        <p style="margin-bottom: 5px; font-weight: bold;">
+            {{ \App\Models\Configuracao::get('empresa_nome', 'JB Tech Soluções') }} -
+            CNPJ: {{ formatarCpfCnpj(\App\Models\Configuracao::get('empresa_cnpj', '00.000.000/0001-00')) }}
+        </p>
+        <p style="margin-bottom: 5px;">
+            {{ \App\Models\Configuracao::get('empresa_endereco') }}, {{ \App\Models\Configuracao::get('empresa_numero') }} -
+            {{ \App\Models\Configuracao::get('empresa_bairro') }} -
+            {{ \App\Models\Configuracao::get('empresa_cidade') }}/{{ \App\Models\Configuracao::get('empresa_uf') }}
+        </p>
+        <p style="margin-bottom: 5px;">
+            Tel: {{ \App\Helpers\FormatacaoHelper::telefone(\App\Models\Configuracao::get('empresa_telefone')) }} -
+            Email: {{ \App\Models\Configuracao::get('empresa_email') }}
+        </p>
+        <p style="margin-top: 10px; font-size: 9px;">Relatório gerado em {{ \Carbon\Carbon::now()->format('d/m/Y H:i') }}</p>
     </div>
+
+    <!-- Header -->
+    <div class="header-center">
+        <img src="{{ public_path('assets/img/front-pages/landing-page/jblogo_black.png') }}" class="logo" alt="Logo">
+    </div>
+
+    <!-- Title -->
+    <div class="document-title">
+        <h1>Relatório Financeiro</h1>
+        <p>Emissão: {{ \Carbon\Carbon::now()->format('d/m/Y H:i') }}</p>
+    </div>
+
+    <!-- Summary -->
+    <div class="box">
+        <span class="box-title">RESUMO</span>
+        <table style="width: 100%;">
+            <tr>
+                <td><strong>Período:</strong> {{ request('data_inicio') ? \Carbon\Carbon::parse(request('data_inicio'))->format('d/m/Y') : 'Início' }} até {{ request('data_fim') ? \Carbon\Carbon::parse(request('data_fim'))->format('d/m/Y') : 'Fim' }}</td>
+            </tr>
+            <tr>
+                <td><strong>Total Pendente:</strong> R$ {{ number_format($totalPendente, 2, ',', '.') }}</td>
+                <td><strong>Total Pago:</strong> R$ {{ number_format($totalPago, 2, ',', '.') }}</td>
+                <td class="text-right"><strong>Total Cancelado:</strong> R$ {{ number_format($totalCancelado, 2, ',', '.') }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Items -->
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th width="5%" class="text-center">ID</th>
+                <th width="30%">Cliente</th>
+                <th width="15%">Método</th>
+                <th width="15%" class="text-right">Valor</th>
+                <th width="15%" class="text-center">Status</th>
+                <th width="10%" class="text-center">Vencimento</th>
+                <th width="10%" class="text-center">Data</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($cobrancas as $cobranca)
+            <tr>
+                <td class="text-center">#{{ $cobranca->id }}</td>
+                <td>{{ $cobranca->venda->cliente->nome ?? 'N/A' }}</td>
+                <td>{{ ucfirst($cobranca->metodo_pagamento) }}</td>
+                <td class="text-right">R$ {{ number_format($cobranca->valor, 2, ',', '.') }}</td>
+                <td class="text-center">{{ ucfirst($cobranca->status) }}</td>
+                <td class="text-center">{{ $cobranca->data_vencimento ? \Carbon\Carbon::parse($cobranca->data_vencimento)->format('d/m/Y') : '-' }}</td>
+                <td class="text-center">{{ \Carbon\Carbon::parse($cobranca->created_at)->format('d/m/Y') }}</td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="7" class="text-center">Nenhuma cobrança encontrada no período.</td>
+            </tr>
+            @endforelse
+        </tbody>
+    </table>
 </body>
 </html>

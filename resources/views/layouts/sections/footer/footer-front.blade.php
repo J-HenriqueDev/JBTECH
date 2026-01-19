@@ -37,11 +37,15 @@
           <div class="footer-info">
             <div class="footer-address mb-2">
               <i class='bx bxs-map'></i>
-              <a href="https://www.google.com/maps/place/JBTech+Inform%C3%A1tica/@-22.479892,-44.5075574,17z/data=!4m15!1m8!3m7!1s0x9e78fa8d24076f:0x4936a60551b4e426!2sAv.+Tocantins,+470+-+Morada+do+Contorno,+Resende+-+RJ,+27525-662!3b1!8m2!3d-22.479897!4d-44.5049825!16s%2Fg%2F11fzbtkyqm!3m5!1s0x8a902102675f7d41:0x88a8ad6ae32c90b6!8m2!3d-22.479897!4d-44.5049825!16s%2Fg%2F11sw36gw63?entry=ttu&g_ep=EgoyMDI0MTAwOS4wIKXMDSoASAFQAw%3D%3D" target="_blank" class="address-text"> Avenida Tocantins 470, Sala 02 - Bairro Morada do Contorno, Resende - RJ<br>27525-662</a>
+              <a href="https://www.google.com/maps/place/JBTech+Inform%C3%A1tica/@-22.479892,-44.5075574,17z/data=!4m15!1m8!3m7!1s0x9e78fa8d24076f:0x4936a60551b4e426!2sAv.+Tocantins,+470+-+Morada+do+Contorno,+Resende+-+RJ,+27525-662!3b1!8m2!3d-22.479897!4d-44.5049825!16s%2Fg%2F11fzbtkyqm!3m5!1s0x8a902102675f7d41:0x88a8ad6ae32c90b6!8m2!3d-22.479897!4d-44.5049825!16s%2Fg%2F11sw36gw63?entry=ttu&g_ep=EgoyMDI0MTAwOS4wIKXMDSoASAFQAw%3D%3D" target="_blank" class="address-text">
+                  {{ \App\Models\Configuracao::get('empresa_endereco', 'Avenida Tocantins 470, Sala 02 - Bairro Morada do Contorno, Resende - RJ 27525-662') }}
+              </a>
             </div>
             <p class="footer-phone mb-0">
               <i class='bx bxs-phone'></i>
-              <a href="tel:+55249981132097" class="phone-text">Telefone: (24) 998113-2097</a>
+              <a href="tel:+{{ preg_replace('/[^0-9]/', '', \App\Models\Configuracao::get('empresa_telefone', '55249981132097')) }}" class="phone-text">
+                  Telefone: {{ \App\Models\Configuracao::get('empresa_telefone', '(24) 998113-2097') }}
+              </a>
             </p>
           </div>
         </div>

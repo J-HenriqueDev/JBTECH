@@ -6,21 +6,21 @@
 
 @if(session('success'))
 <div class="alert alert-primary alert-dismissible" role="alert">
-  <h6 class="alert-heading d-flex align-items-center fw-bold mb-1">
-    <i class="fas fa-check-circle me-1"></i> Sucesso!
-  </h6>
-  <p class="mb-0">{!! session('success') !!}</p>
-  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <h6 class="alert-heading d-flex align-items-center fw-bold mb-1">
+        <i class="fas fa-check-circle me-1"></i> Sucesso!
+    </h6>
+    <p class="mb-0">{!! session('success') !!}</p>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
 @endif
 
 <div class="d-flex justify-content-between align-items-center">
-  <h1 class="mb-4 text-primary" style="font-size: 2.5rem; font-weight: bold; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);">
-    <i class="fas fa-file-alt"></i> Ordens de Serviço
-  </h1>
-  <a href="{{ route('os.create') }}" class="btn btn-primary">
-      <i class="fas fa-plus-circle me-1"></i> Nova OS
-  </a>
+    <h1 class="mb-4 text-primary" style="font-size: 2.5rem; font-weight: bold; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);">
+        <i class="fas fa-file-alt"></i> Ordens de Serviço
+    </h1>
+    <a href="{{ route('os.create') }}" class="btn btn-primary">
+        <i class="fas fa-plus-circle me-1"></i> Nova OS
+    </a>
 </div>
 
 <div class="row">
@@ -55,55 +55,50 @@
                         </thead>
                         <tbody id="os-table" class="table-border-bottom-0">
                             @foreach($ordens as $os)
-                                <tr>
-                                    <td><strong>{{ $os->id }}</strong></td>
-                                    <td><strong>{{ $os->cliente->nome ?? 'Cliente não encontrado' }}</strong></td>
-                                    <td>
-                                        @switch($os->tipo_id)
-                                            @case('COMPUTADOR')
-                                                <i class="fas fa-desktop"></i> Computador
-                                                @break
-                                            @case('NOTEBOOK')
-                                                <i class="fas fa-laptop"></i> Notebook
-                                                @break
-                                            @case('IMPRESSORA')
-                                                <i class="fas fa-print"></i> Impressora
-                                                @break
-                                            @case('DVR')
-                                                <i class="fas fa-video"></i> DVR
-                                                @break
-                                            @case('CAMERA')
-                                                <i class="fas fa-camera"></i> Câmera
-                                                @break
-                                            @case('IMPRESSORA_TERMICA')
-                                                <i class="fas fa-print"></i> Impressora Térmica
-                                                @break
-                                            @case('MACBOOK')
-                                                <i class="fas fa-laptop"></i> MacBook
-                                                @break
-                                            @default
-                                                <i class="fas fa-tools"></i> Outros
-                                        @endswitch
-                                    </td>
-                                    <td>{{ \Carbon\Carbon::parse($os->data_de_entrada)->format('d/m/Y') }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($os->prazo_entrega)->format('d/m/Y') }}</td>
-                                    <td>{{ $os->status }}</td>
-                                    <td>
-                                        <div class="dropdown">
-                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                                                <i class="bx bx-dots-vertical-rounded"></i>
-                                            </button>
-                                            <div class="dropdown-menu">
-                                                <a class="dropdown-item" href="{{ route('os.edit', $os->id) }}">
-                                                    <i class="bx bx-edit-alt me-1"></i> Editar
-                                                </a>
-                                                <button class="dropdown-item btn-delete" data-bs-toggle="modal" data-bs-target="#confirmDelete" data-id="{{ $os->id }}">
-                                                    <i class="bx bx-trash me-1"></i> Excluir
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
+                            <tr>
+                                <td><strong>{{ $os->id }}</strong></td>
+                                <td><strong>{{ $os->cliente->nome ?? 'Cliente não encontrado' }}</strong></td>
+                                <td>
+                                    @switch($os->tipo_id)
+                                    @case('COMPUTADOR')
+                                    <i class="fas fa-desktop"></i> Computador
+                                    @break
+                                    @case('NOTEBOOK')
+                                    <i class="fas fa-laptop"></i> Notebook
+                                    @break
+                                    @case('IMPRESSORA')
+                                    <i class="fas fa-print"></i> Impressora
+                                    @break
+                                    @case('DVR')
+                                    <i class="fas fa-video"></i> DVR
+                                    @break
+                                    @case('CAMERA')
+                                    <i class="fas fa-camera"></i> Câmera
+                                    @break
+                                    @case('IMPRESSORA_TERMICA')
+                                    <i class="fas fa-print"></i> Impressora Térmica
+                                    @break
+                                    @case('MACBOOK')
+                                    <i class="fas fa-laptop"></i> MacBook
+                                    @break
+                                    @default
+                                    <i class="fas fa-tools"></i> Outros
+                                    @endswitch
+                                </td>
+                                <td>{{ \Carbon\Carbon::parse($os->data_de_entrada)->format('d/m/Y') }}</td>
+                                <td>{{ \Carbon\Carbon::parse($os->prazo_entrega)->format('d/m/Y') }}</td>
+                                <td>{{ $os->status }}</td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ route('os.edit', $os->id) }}" class="btn btn-sm btn-icon btn-outline-primary" title="Editar">
+                                            <i class="bx bx-edit-alt"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger btn-delete" data-bs-toggle="modal" data-bs-target="#confirmDelete" data-id="{{ $os->id }}" title="Excluir">
+                                            <i class="bx bx-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
                             @endforeach
                         </tbody>
                     </table>
@@ -139,21 +134,21 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    let searchInput = document.getElementById('search-input');
+    document.addEventListener('DOMContentLoaded', function() {
+        let searchInput = document.getElementById('search-input');
 
-    searchInput.addEventListener('keyup', function () {
-        let searchTerm = searchInput.value.trim();
+        searchInput.addEventListener('keyup', function() {
+            let searchTerm = searchInput.value.trim();
 
-        fetch(`{{ route('dashboard.os.search') }}?search=${searchTerm}`)
-            .then(response => response.json())
-            .then(data => {
-                let tableBody = document.getElementById('os-table');
-                tableBody.innerHTML = ''; // Limpar a tabela antes de adicionar novos dados
+            fetch(`{{ route('dashboard.os.search') }}?search=${searchTerm}`)
+                .then(response => response.json())
+                .then(data => {
+                    let tableBody = document.getElementById('os-table');
+                    tableBody.innerHTML = ''; // Limpar a tabela antes de adicionar novos dados
 
-                if (data.length > 0) {
-                    data.forEach(os => {
-                        tableBody.innerHTML += `
+                    if (data.length > 0) {
+                        data.forEach(os => {
+                            tableBody.innerHTML += `
                             <tr>
                                 <td><strong>${os.id}</strong></td>
                                 <td><strong>${os.cliente.nome ?? 'Cliente não encontrado'}</strong></td>
@@ -171,41 +166,36 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <td>${new Date(os.prazo_entrega).toLocaleDateString('pt-BR')}</td>
                                 <td>${os.status}</td>
                                 <td>
-                                    <div class="dropdown">
-                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                                            <i class="bx bx-dots-vertical-rounded"></i>
+                                    <div class="d-flex gap-2">
+                                        <a href="/dashboard/os/${os.id}/edit" class="btn btn-sm btn-icon btn-outline-primary" title="Editar">
+                                            <i class="bx bx-edit-alt"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger btn-delete" data-bs-toggle="modal" data-bs-target="#confirmDelete" data-id="${os.id}" title="Excluir">
+                                            <i class="bx bx-trash"></i>
                                         </button>
-                                        <div class="dropdown-menu">
-                                            <a class="dropdown-item" href="/os/edit/${os.id}">
-                                                <i class="bx bx-edit-alt me-1"></i> Editar
-                                            </a>
-                                            <button class="dropdown-item btn-delete" data-bs-toggle="modal" data-bs-target="#confirmDelete" data-id="${os.id}">
-                                                <i class="bx bx-trash me-1"></i> Excluir
-                                            </button>
-                                        </div>
                                     </div>
                                 </td>
                             </tr>
                         `;
-                    });
-                } else {
-                    tableBody.innerHTML = `
+                        });
+                    } else {
+                        tableBody.innerHTML = `
                         <tr>
                             <td colspan="7" class="text-center">Nenhuma ordem de serviço encontrada.</td>
                         </tr>
                     `;
-                }
-            })
-            .catch(error => console.error('Erro:', error));
-    });
+                    }
+                })
+                .catch(error => console.error('Erro:', error));
+        });
 
-    // Para o modal de exclusão
-    document.querySelectorAll('.btn-delete').forEach(button => {
-        button.addEventListener('click', function () {
-            const osId = this.getAttribute('data-id');
-            document.getElementById('deleteForm').action = `/os/${osId}`;
+        // Para o modal de exclusão
+        document.querySelectorAll('.btn-delete').forEach(button => {
+            button.addEventListener('click', function() {
+                const osId = this.getAttribute('data-id');
+                document.getElementById('deleteForm').action = `/os/${osId}`;
+            });
         });
     });
-});
 </script>
 @endsection

@@ -16,6 +16,7 @@ class CreateProdutosTable extends Migration
             $table->decimal('preco_venda', 10, 2);
             $table->string('codigo_barras', 13)->unique()->nullable();
             $table->string('ncm')->nullable();
+            $table->string('unidade_comercial')->default('UN');
             $table->unsignedInteger('estoque')->nullable();
             $table->unsignedBigInteger('usuario_id');
             $table->foreignId('categoria_id')->constrained()->onDelete('cascade');
@@ -32,7 +33,8 @@ class CreateProdutosTable extends Migration
             'preco_custo' => 0.00,
             'preco_venda' => 0.00,
             'codigo_barras' => '0000000000000',
-            'ncm' => '00',
+            'ncm' => '00000000',
+            'unidade_comercial' => 'UN',
             'estoque' => 0,
             'usuario_id' => 1, // Altere conforme necessário
             'categoria_id' => 6, // Altere conforme necessário

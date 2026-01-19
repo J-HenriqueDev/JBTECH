@@ -19,6 +19,8 @@ use App\Http\Controllers\LogController;
 use App\Http\Controllers\NFeController;
 use App\Http\Controllers\ConfiguracaoController;
 use App\Http\Controllers\RelatorioController;
+use App\Http\Controllers\FornecedorController;
+use App\Http\Controllers\ContaPagarController;
 
 
 // Rota principal "/" - acessível sem autenticação
@@ -36,6 +38,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
     Route::get('dashboard/os/search', [OSController::class, 'search'])->name('dashboard.os.search');
 
     Route::resource('dashboard/clientes', ClientesController::class);
+    Route::resource('dashboard/fornecedores', FornecedorController::class);
+    Route::resource('dashboard/contas-pagar', ContaPagarController::class);
     Route::resource('dashboard/os', OSController::class);
     Route::get('/dashboard/os/{id}/pdf', [OSController::class, 'gerarPdf'])->name('os.pdf');
 
@@ -51,16 +55,48 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
 
     Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
 
+    Route::resource('dashboard/users', UserController::class)->names([
+        'index' => 'users.index',
+        'create' => 'users.create',
+        'store' => 'users.store',
+        'show' => 'users.show',
+        'edit' => 'users.edit',
+        'update' => 'users.update',
+        'destroy' => 'users.destroy',
+    ]);
+
     // Rotas para Configurações
     Route::get('/dashboard/configuracoes', [ConfiguracaoController::class, 'index'])->name('configuracoes.index');
     Route::post('/dashboard/configuracoes', [ConfiguracaoController::class, 'store'])->name('configuracoes.store');
-    Route::post('/dashboard/configuracoes/testar-certificado', [ConfiguracaoController::class, 'testarCertificado'])->name('configuracoes.testarCertificado');
+    Route::get('/dashboard/util/consulta-cnpj/{cnpj}', [ConfiguracaoController::class, 'consultaCnpj'])->name('util.consulta-cnpj');
+
+    // Rotas para Natureza de Operação
+    Route::resource('dashboard/naturezas', \App\Http\Controllers\NaturezaOperacaoController::class);
 
     // Rotas para NF-e
+    // Rotas para Manifesto (Novo) - DEVE vir antes do resource nfe
+    Route::get('/dashboard/nfe/manifesto', [\App\Http\Controllers\ManifestoController::class, 'index'])->name('nfe.manifesto.index');
+    Route::post('/dashboard/nfe/manifesto/manifestar', [\App\Http\Controllers\ManifestoController::class, 'manifestar'])->name('nfe.manifesto.manifestar');
+    Route::post('/dashboard/nfe/manifesto/sincronizar', [\App\Http\Controllers\ManifestoController::class, 'sincronizar'])->name('nfe.manifesto.sincronizar');
+    Route::get('/dashboard/nfe/manifesto/baixar-xml/{id}', [\App\Http\Controllers\ManifestoController::class, 'baixarXml'])->name('nfe.manifesto.baixarXml');
+
+    // Rotas para NFe Avulsa (Antes do resource)
+    Route::get('/dashboard/nfe/avulsa', [NFeController::class, 'createAvulsa'])->name('nfe.create-avulsa');
+    Route::post('/dashboard/nfe/avulsa', [NFeController::class, 'storeAvulsa'])->name('nfe.store-avulsa');
+
+    Route::get('/dashboard/nfe/config', [\App\Http\Controllers\NFeConfigController::class, 'index'])->name('nfe.config');
+    Route::post('/dashboard/nfe/config', [\App\Http\Controllers\NFeConfigController::class, 'store'])->name('nfe.config.store');
+    Route::post('/dashboard/nfe/testar-certificado', [\App\Http\Controllers\NFeConfigController::class, 'testarCertificado'])->name('nfe.testarCertificado');
     Route::get('/dashboard/nfe/{id}/consultar-status', [NFeController::class, 'consultarStatus'])->name('nfe.consultarStatus');
     Route::get('/dashboard/nfe/{id}/download-xml', [NFeController::class, 'downloadXml'])->name('nfe.downloadXml');
+    Route::get('/dashboard/nfe/{id}/view-xml', [NFeController::class, 'viewXml'])->name('nfe.viewXml');
     Route::get('/dashboard/nfe/{id}/download-xml-cancelamento', [NFeController::class, 'downloadXmlCancelamento'])->name('nfe.downloadXmlCancelamento');
     Route::post('/dashboard/nfe/{id}/cancelar', [NFeController::class, 'cancelar'])->name('nfe.cancelar');
+    Route::post('/dashboard/nfe/{id}/carta-correcao', [NFeController::class, 'cartaCorrecao'])->name('nfe.cartaCorrecao');
+    Route::post('/dashboard/nfe/inutilizar', [NFeController::class, 'inutilizar'])->name('nfe.inutilizar');
+    Route::post('/dashboard/nfe/{id}/enviar-email', [NFeController::class, 'enviarEmail'])->name('nfe.enviarEmail');
+    Route::post('/dashboard/nfe/{id}/transmitir', [NFeController::class, 'transmitir'])->name('nfe.transmitir');
+    Route::get('/dashboard/nfe/{id}/danfe', [NFeController::class, 'gerarDanfe'])->name('nfe.gerarDanfe');
     Route::resource('/dashboard/nfe', NFeController::class)->names([
         'index' => 'nfe.index',
         'create' => 'nfe.create',
@@ -76,6 +112,9 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
 
     Route::get('dashboard/produtos/importar', [ProdutosController::class, 'importarView'])->name('produtos.importar');
     Route::post('dashboard/produtos/importar', [ProdutosController::class, 'import'])->name('produtos.import');
+    Route::post('dashboard/produtos/importar/chave', [ProdutosController::class, 'importarNFeChave'])->name('produtos.importar.chave');
+    Route::get('/dashboard/produtos/consultar-fiscal/{codigo_barras}', [ProdutosController::class, 'consultarFiscal'])->name('produtos.consultarFiscal');
+    Route::get('/dashboard/produtos/sugerir-categoria', [ProdutosController::class, 'sugerirCategoria'])->name('produtos.sugerirCategoria');
 
 
 
@@ -90,10 +129,13 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
 
 
 
-// Rota para processar o upload do XML
+    // Rota para processar o upload do XML
 
     Route::resource('dashboard/categorias', CategoriaController::class)->only([
-        'index', 'store', 'update', 'destroy'
+        'index',
+        'store',
+        'update',
+        'destroy'
     ]);
 
     Route::resource('dashboard/orcamentos', OrcamentoController::class);
@@ -114,7 +156,18 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
     Route::post('/dashboard/orcamentos/{id}/recusar', [OrcamentoController::class, 'recusar'])->name('orcamentos.recusar');
     Route::get('/orcamentos/{id}/verificar-estoque', [OrcamentoController::class, 'verificarEstoque'])->name('orcamentos.verificarEstoque');
 
-    // Rota para erro misc
+    // Rotas de Gerenciamento de Usuários
+    Route::resource('dashboard/users', \App\Http\Controllers\UserController::class);
+
+    // Rotas para Importação de Notas (Entrada)
+    Route::get('/dashboard/notas-entrada', [\App\Http\Controllers\NotaEntradaController::class, 'index'])->name('notas-entrada.index');
+    Route::post('/dashboard/notas-entrada/buscar', [\App\Http\Controllers\NotaEntradaController::class, 'buscarNovas'])->name('notas-entrada.buscar');
+    Route::post('/dashboard/notas-entrada/baixar-por-chave', [\App\Http\Controllers\NotaEntradaController::class, 'baixarPorChave'])->name('notas-entrada.baixar-por-chave');
+    Route::post('/dashboard/notas-entrada/upload-xml', [\App\Http\Controllers\NotaEntradaController::class, 'uploadXml'])->name('notas-entrada.upload-xml');
+    Route::get('/dashboard/notas-entrada/{id}/processar', [\App\Http\Controllers\NotaEntradaController::class, 'processar'])->name('notas-entrada.processar');
+    Route::post('/dashboard/notas-entrada/{id}/confirmar', [\App\Http\Controllers\NotaEntradaController::class, 'confirmarProcessamento'])->name('notas-entrada.confirmar');
+
+    // Rotas para erro misc
     Route::post('/pages/misc-error', [MiscError::class, 'index'])->name('pages-misc-error');
 });
 

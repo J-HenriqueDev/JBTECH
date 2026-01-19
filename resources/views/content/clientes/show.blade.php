@@ -70,12 +70,6 @@
                         <strong><i class="fas fa-id-card"></i> CPF/CNPJ:</strong><br>
                         <span class="text-muted">{{ formatarCpfCnpj($cliente->cpf_cnpj) }}</span>
                     </div>
-                    <div class="col-md-6">
-                        <strong><i class="fas fa-briefcase"></i> Tipo:</strong><br>
-                        <span class="badge bg-{{ $cliente->tipo_cliente == 1 ? 'info' : 'secondary' }}">
-                            {{ $cliente->tipo_cliente == 1 ? 'Empresarial' : 'Particular' }}
-                        </span>
-                    </div>
                 </div>
                 
                 @if($cliente->inscricao_estadual)

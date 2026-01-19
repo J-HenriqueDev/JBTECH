@@ -6,13 +6,13 @@ $configData = Helper::appClasses();
 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
 
   <!-- Esconde a marca do aplicativo se a navbar estiver em modo "full" (navbarFull) -->
-@if(!isset($navbarFull))
+  @if(!isset($navbarFull))
   <div class="app-brand demo">
     <a href="{{url('/')}}" class="app-brand-link">
       <span class="app-brand-logo demo">
         <!-- Exibe o logo da empresa JBTECH -->
         <img src="{{ asset('assets/img/front-pages/landing-page/jblogo_black.png') }}" alt="JBTECH Logo"
-             style="width: 190px; height: auto;">
+          style="width: 190px; height: auto;">
       </span>
     </a>
 
@@ -21,64 +21,70 @@ $configData = Helper::appClasses();
       <i class="bx bx-chevron-left bx-sm d-flex align-items-center justify-content-center"></i>
     </a>
   </div>
-@endif
+  @endif
 
   <div class="menu-inner-shadow"></div>
 
   <ul class="menu-inner py-1">
     @foreach ($menuData[0]->menu as $menu)
 
-      {{-- adding active and open class if child is active --}}
+    {{-- Check for admin-only menus --}}
+    @if(isset($menu->slug) && in_array($menu->slug, ['users', 'logs', 'nfe-config']) && !auth()->user()->isAdmin())
+    @continue
+    @endif
 
-      {{-- menu headers --}}
-      @if (isset($menu->menuHeader))
-        <li class="menu-header small text-uppercase">
-            <span class="menu-header-text">{{ __($menu->menuHeader) }}</span>
-        </li>
-      @else
+    {{-- adding active and open class if child is active --}}
 
-      {{-- active menu method --}}
-      @php
-      $activeClass = null;
-      $currentRouteName = Route::currentRouteName();
+    {{-- menu headers --}}
+    @if (isset($menu->menuHeader))
+    <li class="menu-header small text-uppercase">
+      <span class="menu-header-text">{{ __($menu->menuHeader) }}</span>
+    </li>
+    @else
 
-      if ($currentRouteName === $menu->slug) {
-        $activeClass = 'active';
-      }
-      elseif (isset($menu->submenu)) {
-        if (gettype($menu->slug) === 'array') {
-          foreach($menu->slug as $slug){
-            if (str_contains($currentRouteName,$slug) and strpos($currentRouteName,$slug) === 0) {
-              $activeClass = 'active open';
-            }
-          }
-        }
-        else{
-          if (str_contains($currentRouteName,$menu->slug) and strpos($currentRouteName,$menu->slug) === 0) {
-            $activeClass = 'active open';
-          }
-        }
-      }
-      @endphp
+    {{-- active menu method --}}
+    @php
+    $activeClass = null;
+    $currentRouteName = Route::currentRouteName();
 
-      {{-- main menu --}}
-      <li class="menu-item {{$activeClass}}">
-        <a href="{{ isset($menu->url) ? url($menu->url) : 'javascript:void(0);' }}" class="{{ isset($menu->submenu) ? 'menu-link menu-toggle' : 'menu-link' }}" @if (isset($menu->target) and !empty($menu->target)) target="_blank" @endif>
-          @isset($menu->icon)
-            <i class="{{ $menu->icon }}"></i>
-          @endisset
-          <div>{{ isset($menu->name) ? __($menu->name) : '' }}</div>
-          @isset($menu->badge)
-            <div class="badge bg-{{ $menu->badge[0] }} rounded-pill ms-auto">{{ $menu->badge[1] }}</div>
-          @endisset
-        </a>
+    if ($currentRouteName === $menu->slug) {
+    $activeClass = 'active';
+    } elseif (str_starts_with($currentRouteName, $menu->slug . '.')) {
+    $activeClass = 'active';
+    } elseif (isset($menu->submenu)) {
+    if (gettype($menu->slug) === 'array') {
+    foreach($menu->slug as $slug){
+    if (str_contains($currentRouteName,$slug) and strpos($currentRouteName,$slug) === 0) {
+    $activeClass = 'active open';
+    }
+    }
+    }
+    else{
+    if (str_contains($currentRouteName,$menu->slug) and strpos($currentRouteName,$menu->slug) === 0) {
+    $activeClass = 'active open';
+    }
+    }
+    }
+    @endphp
 
-        {{-- submenu --}}
-        @isset($menu->submenu)
-          @include('layouts.sections.menu.submenu',['menu' => $menu->submenu])
+    {{-- main menu --}}
+    <li class="menu-item {{$activeClass}}">
+      <a href="{{ isset($menu->url) ? url($menu->url) : 'javascript:void(0);' }}" class="{{ isset($menu->submenu) ? 'menu-link menu-toggle' : 'menu-link' }}" @if (isset($menu->target) and !empty($menu->target)) target="_blank" @endif>
+        @isset($menu->icon)
+        <i class="{{ $menu->icon }}"></i>
         @endisset
-      </li>
-      @endif
+        <div>{{ isset($menu->name) ? __($menu->name) : '' }}</div>
+        @isset($menu->badge)
+        <div class="badge bg-{{ $menu->badge[0] }} rounded-pill ms-auto">{{ $menu->badge[1] }}</div>
+        @endisset
+      </a>
+
+      {{-- submenu --}}
+      @isset($menu->submenu)
+      @include('layouts.sections.menu.submenu',['menu' => $menu->submenu])
+      @endisset
+    </li>
+    @endif
     @endforeach
   </ul>
 

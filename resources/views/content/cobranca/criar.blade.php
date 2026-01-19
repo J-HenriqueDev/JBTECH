@@ -41,8 +41,8 @@
                     <select id="venda_id" class="select2 form-select" name="venda_id" required onchange="carregarDadosVenda()">
                         <option value="" disabled selected>Selecione uma venda</option>
                         @foreach ($vendas as $venda)
-                        <option value="{{ $venda->id }}" data-valor="{{ $venda->valor_total }}" data-cliente="{{ $venda->cliente->nome ?? 'N/A' }}">
-                            Venda #{{ $venda->id }} - {{ $venda->cliente->nome ?? 'N/A' }} - R$ {{ number_format($venda->valor_total, 2, ',', '.') }}
+                        <option value="{{ $venda->id }}" data-valor="{{ $venda->valor_total }}" data-cliente="{{ $venda->cliente?->nome ?? 'N/A' }}" {{ old('venda_id') == $venda->id ? 'selected' : '' }}>
+                            Venda #{{ $venda->id }} - {{ $venda->cliente?->nome ?? 'N/A' }} - R$ {{ number_format($venda->valor_total, 2, ',', '.') }}
                         </option>
                         @endforeach
                     </select>

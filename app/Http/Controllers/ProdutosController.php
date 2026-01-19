@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Produto;
 use App\Models\Categoria;
+use App\Models\Fornecedor;
+use App\Models\ProdutoCodigo;
 use App\Models\Configuracao;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,8 +21,8 @@ class ProdutosController extends Controller
     {
         $produtos = Produto::with('categoria')->get(); // Obtém todos os produtos com categoria
         $categorias = Categoria::all(); // Obtém todas as categorias
-        
-        // Busca a configuração do usuário autenticado (o método get() já trata isso automaticamente)
+
+        // Busca a configuração do usuário autenticado
         $edicaoInline = \App\Models\Configuracao::get('produtos_edicao_inline', '0') == '1';
 
         // Registra um log
@@ -30,7 +32,94 @@ class ProdutosController extends Controller
             'Listou todos os produtos' // Detalhes
         );
 
-        return view('content.produtos.listar', compact('produtos', 'categorias', 'edicaoInline')); // Passa produtos e categorias para a view
+        return view('content.produtos.listar', compact('produtos', 'categorias', 'edicaoInline'));
+    }
+
+    /**
+     * Sugere uma categoria com base no nome do produto
+     */
+    public function sugerirCategoria(Request $request)
+    {
+        $nomeProduto = $request->input('nome');
+        if (!$nomeProduto) {
+            return response()->json(['success' => false, 'categoria_id' => null]);
+        }
+
+        // Normaliza o nome do produto (lowercase)
+        $nomeProduto = mb_strtolower($nomeProduto);
+        $palavrasProduto = explode(' ', $nomeProduto);
+
+        $melhorCategoriaId = null;
+        $maiorPontuacao = 0;
+
+        $categorias = Categoria::all();
+
+        foreach ($categorias as $categoria) {
+            $pontuacao = 0;
+            $nomeCategoria = mb_strtolower($categoria->nome);
+
+            // Verifica se o nome da categoria está contido no nome do produto
+            if (str_contains($nomeProduto, $nomeCategoria)) {
+                $pontuacao += 10;
+            }
+
+            // Verifica palavras-chave
+            if ($categoria->palavras_chave) {
+                $palavrasChave = explode(',', mb_strtolower($categoria->palavras_chave));
+                foreach ($palavrasChave as $chave) {
+                    $chave = trim($chave);
+                    if ($chave && str_contains($nomeProduto, $chave)) {
+                        $pontuacao += 5;
+                    }
+                }
+            }
+
+            if ($pontuacao > $maiorPontuacao) {
+                $maiorPontuacao = $pontuacao;
+                $melhorCategoriaId = $categoria->id;
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'categoria_id' => $melhorCategoriaId
+        ]);
+    }
+
+    /**
+     * Consulta dados fiscais de um produto via API externa (Service).
+     */
+    public function consultarFiscal($codigoBarras, \App\Services\FiscalService $fiscalService)
+    {
+        try {
+            $dados = $fiscalService->consultarPorCodigoBarras($codigoBarras);
+
+            if ($dados) {
+                // Registra um log
+                LogService::registrar(
+                    'Produto',
+                    'Consultar Fiscal',
+                    "Consulta fiscal realizada para o código: {$codigoBarras}"
+                );
+
+                return response()->json([
+                    'success' => true,
+                    'data' => $dados
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Produto não encontrado na base fiscal.'
+                ], 404);
+            }
+        } catch (\Exception $e) {
+            Log::error("Erro na consulta fiscal: " . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao consultar dados fiscais: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function listar()
@@ -51,7 +140,7 @@ class ProdutosController extends Controller
             }
 
             // Formata os produtos para incluir estoque
-            $produtosFormatados = $produtos->map(function($produto) {
+            $produtosFormatados = $produtos->map(function ($produto) {
                 return [
                     'id' => $produto->id,
                     'nome' => $produto->nome,
@@ -68,7 +157,6 @@ class ProdutosController extends Controller
             );
 
             return response()->json($produtosFormatados);
-
         } catch (\Exception $e) {
             // Registra um log de erro
             LogService::registrar(
@@ -87,6 +175,7 @@ class ProdutosController extends Controller
     public function create(Request $request)
     {
         $categorias = Categoria::all(); // Obtém todas as categorias
+        $fornecedores = Fornecedor::all(); // Obtém todos os fornecedores
 
         // Registra um log
         LogService::registrar(
@@ -95,7 +184,7 @@ class ProdutosController extends Controller
             'Acessou o formulário de criação de produto' // Detalhes
         );
 
-        return view('content.produtos.criar', compact('categorias')); // Retorna a view de criação
+        return view('content.produtos.criar', compact('categorias', 'fornecedores')); // Retorna a view de criação
     }
 
     /**
@@ -128,11 +217,9 @@ class ProdutosController extends Controller
             'xml_file' => 'required|file|mimes:xml',
         ]);
 
-        $productsData = [];
-        $fornecedor = []; // Array para armazenar os dados do fornecedor
-
         try {
-            $xml = simplexml_load_file($request->file('xml_file')->getRealPath());
+            $xmlContent = file_get_contents($request->file('xml_file')->getRealPath());
+            $xml = simplexml_load_string($xmlContent);
         } catch (\Exception $e) {
             Log::error('Erro ao ler o arquivo XML: ' . $e->getMessage());
 
@@ -143,35 +230,79 @@ class ProdutosController extends Controller
                 "Erro ao ler o arquivo XML: {$e->getMessage()}" // Detalhes
             );
 
-            return redirect()->route('produtos.importarView')->withErrors('Erro ao ler o arquivo XML.');
+            return redirect()->route('produtos.importar')->withErrors('Erro ao ler o arquivo XML.');
         }
+
+        return $this->processarImportacao($xml, $categorias);
+    }
+
+    /**
+     * Importa produtos via Chave de Acesso (download da SEFAZ).
+     */
+    public function importarNFeChave(Request $request, \App\Services\NFeService $nfeService)
+    {
+        $request->validate([
+            'chave_acesso' => 'required|string|size:44',
+        ]);
+
+        $categorias = Categoria::all();
+
+        try {
+            // Tenta baixar o XML da SEFAZ
+            $xmlContent = $nfeService->downloadPorChave($request->chave_acesso);
+            $xml = simplexml_load_string($xmlContent);
+
+            // Registra um log
+            LogService::registrar(
+                'Produto',
+                'Importar',
+                "Download de NFe via chave realizado: {$request->chave_acesso}"
+            );
+
+            return $this->processarImportacao($xml, $categorias);
+        } catch (\Exception $e) {
+            Log::error('Erro ao importar por chave: ' . $e->getMessage());
+
+            return redirect()->route('produtos.importar')
+                ->withErrors('Erro ao buscar NFe na SEFAZ: ' . $e->getMessage() . ' Tente baixar o XML manualmente e importar.');
+        }
+    }
+
+    /**
+     * Processa o objeto XML e retorna a view
+     */
+    private function processarImportacao($xml, $categorias)
+    {
+        $productsData = [];
+        $fornecedor = [];
 
         // Verifica se o XML tem a estrutura esperada
         if (!isset($xml->NFe->infNFe->det)) {
-            Log::warning('Estrutura do XML inválida.');
-
-            // Registra um log de aviso
-            LogService::registrar(
-                'Produto', // Categoria
-                'Aviso', // Ação
-                'Estrutura do XML inválida' // Detalhes
-            );
-
-            return redirect()->route('produtos.importarView')->withErrors('Estrutura do XML inválida.');
+            // Tenta verificar se é um procNFe (XML distribuído)
+            if (isset($xml->protNFe) && isset($xml->NFe)) {
+                // Estrutura procNFe, ajusta o ponteiro se necessário, mas geralmente simplexml acessa direto
+                // Se for procNFe, o infNFe está dentro de NFe
+            } elseif (!isset($xml->infNFe->det)) {
+                Log::warning('Estrutura do XML inválida.');
+                return redirect()->route('produtos.importar')->withErrors('Estrutura do XML inválida.');
+            }
         }
 
+        // Ajuste para pegar infNFe corretamente dependendo da raiz
+        $infNFe = isset($xml->NFe->infNFe) ? $xml->NFe->infNFe : $xml->infNFe;
+
         // Extrai os dados do fornecedor do XML
-        if (isset($xml->NFe->infNFe->emit)) {
+        if (isset($infNFe->emit)) {
             $fornecedor = [
-                'cnpj' => (string) $xml->NFe->infNFe->emit->CNPJ,
-                'nome' => (string) $xml->NFe->infNFe->emit->xNome,
-                'telefone' => (string) $xml->NFe->infNFe->emit->enderEmit->fone,
+                'cnpj' => (string) $infNFe->emit->CNPJ,
+                'nome' => (string) $infNFe->emit->xNome,
+                'telefone' => (string) $infNFe->emit->enderEmit->fone,
                 'email' => '', // O email do fornecedor geralmente não está no XML
             ];
         }
 
         // Percorre os produtos dentro do XML
-        foreach ($xml->NFe->infNFe->det as $produto) {
+        foreach ($infNFe->det as $produto) {
             $productsData[] = [
                 'nome' => (string) $produto->prod->xProd,
                 'preco_custo' => (float) $produto->prod->vProd, // Valor original do XML
@@ -181,10 +312,22 @@ class ProdutosController extends Controller
                 'estoque' => (int) $produto->prod->qCom,
                 'categoria_id' => null, // Categoria não está no XML, será selecionada manualmente
             ];
+
+            // Tenta pré-identificar produto existente para facilitar a vida do usuário
+            $match = Produto::where('codigo_barras', $produto->prod->cEAN)->first();
+            if (!$match) {
+                $match = Produto::where('nome', $produto->prod->xProd)->first();
+            }
+
+            if ($match) {
+                $productsData[count($productsData) - 1]['id'] = $match->id;
+                $productsData[count($productsData) - 1]['match_type'] = 'existente';
+            } else {
+                $productsData[count($productsData) - 1]['match_type'] = 'novo';
+            }
         }
 
         Log::info('Produtos extraídos do XML:', ['productsData' => $productsData]);
-        Log::info('Dados do fornecedor extraídos do XML:', ['fornecedor' => $fornecedor]);
 
         // Registra um log
         LogService::registrar(
@@ -234,6 +377,10 @@ class ProdutosController extends Controller
                 $produto['estoque'] = 1;
             }
 
+            if (!isset($produto['unidade_comercial']) || $produto['unidade_comercial'] === '') {
+                $produto['unidade_comercial'] = 'UN';
+            }
+
             // Verifique se os campos existem e são strings antes de processar
             if (isset($produto['preco_custo']) && is_string($produto['preco_custo'])) {
                 $produto['preco_custo'] = str_replace(',', '.', str_replace('.', '', $produto['preco_custo']));
@@ -245,6 +392,14 @@ class ProdutosController extends Controller
                 $produto['preco_venda'] = str_replace(',', '.', str_replace('.', '', $produto['preco_venda']));
             } else {
                 $produto['preco_venda'] = 0.00; // Valor padrão se não for válido
+            }
+
+            // Trata preços avançados
+            if (isset($produto['preco_atacado']) && is_string($produto['preco_atacado'])) {
+                $produto['preco_atacado'] = str_replace(',', '.', str_replace('.', '', $produto['preco_atacado']));
+            }
+            if (isset($produto['preco_promocional']) && is_string($produto['preco_promocional'])) {
+                $produto['preco_promocional'] = str_replace(',', '.', str_replace('.', '', $produto['preco_promocional']));
             }
 
             // Define categoria_id como 6 se não for fornecido
@@ -263,15 +418,33 @@ class ProdutosController extends Controller
             // Gera código de barras automaticamente se configurado
             if (Configuracao::get('produtos_gerar_codigo_barras', '1') == '1') {
                 if (empty($produto['codigo_barras']) || !isset($produto['codigo_barras'])) {
-                    // Gera um código de barras único baseado no timestamp e ID do usuário
-                    $produto['codigo_barras'] = str_pad(time() . Auth::user()->id . rand(100, 999), 13, '0', STR_PAD_LEFT);
+                    // Gera um código de barras único com no máximo 13 caracteres
+                    // Formato: time() (10) + user_id + rand
+                    // Cortamos para 13 caracteres para garantir compatibilidade EAN-13
+                    $baseCode = time() . Auth::user()->id . rand(100, 999);
+                    $produto['codigo_barras'] = substr($baseCode, 0, 13);
                 }
             }
 
             try {
                 $validated = $this->validateProduto($produto);
 
-                $produtoExistente = Produto::where('nome', $validated['nome'])->first();
+                $produtoExistente = null;
+
+                // 0. Se o ID foi passado explicitamente (vido da importação)
+                if (isset($produto['id']) && !empty($produto['id'])) {
+                    $produtoExistente = Produto::find($produto['id']);
+                }
+
+                // 1. Busca por código de barras (mais preciso)
+                if (!$produtoExistente && !empty($validated['codigo_barras'])) {
+                    $produtoExistente = Produto::where('codigo_barras', $validated['codigo_barras'])->first();
+                }
+
+                // 2. Se não achou, busca por nome
+                if (!$produtoExistente) {
+                    $produtoExistente = Produto::where('nome', $validated['nome'])->first();
+                }
 
                 if ($produtoExistente) {
                     $produtoExistente->update(array_merge($validated, [
@@ -287,6 +460,8 @@ class ProdutosController extends Controller
                         'Atualizar', // Ação
                         "Produto ID: {$produtoExistente->id} atualizado" // Detalhes
                     );
+
+                    $produtoSalvo = $produtoExistente;
                 } else {
                     $novoProduto = Produto::create(array_merge($validated, [
                         'fornecedor_cnpj' => $request->fornecedor_cnpj,
@@ -302,6 +477,27 @@ class ProdutosController extends Controller
                         'Criar', // Ação
                         "Produto ID: {$novoProduto->id} criado" // Detalhes
                     );
+
+                    $produtoSalvo = $novoProduto;
+                }
+
+                // Salvar relacionamentos (Fornecedores e Códigos Extras)
+                if (isset($produto['fornecedores']) && is_array($produto['fornecedores'])) {
+                    $produtoSalvo->fornecedores()->sync($produto['fornecedores']);
+                }
+
+                if (isset($produto['codigos_adicionais']) && is_array($produto['codigos_adicionais'])) {
+                    // Remove anteriores para evitar duplicação/lixo (estratégia simples de substituição)
+                    $produtoSalvo->codigosAdicionais()->delete();
+
+                    foreach ($produto['codigos_adicionais'] as $codigoItem) {
+                        if (!empty($codigoItem['codigo'])) {
+                            $produtoSalvo->codigosAdicionais()->create([
+                                'codigo' => $codigoItem['codigo'],
+                                'descricao' => $codigoItem['descricao'] ?? null,
+                            ]);
+                        }
+                    }
                 }
             } catch (\Exception $e) {
                 Log::error('Erro ao salvar o produto: ' . $e->getMessage());
@@ -339,6 +535,39 @@ class ProdutosController extends Controller
             'categoria_id' => 'nullable|exists:categorias,id',
             'fabricante' => 'nullable|string|max:255',
             'usuario_id' => 'required|exists:users,id',
+            // Novos campos (Tabs)
+            'ativo' => 'boolean',
+            'tipo_item' => 'nullable|string|max:2',
+            'estoque_minimo' => 'nullable|integer',
+            'estoque_maximo' => 'nullable|integer',
+            'localizacao' => 'nullable|string|max:255',
+            'peso_liquido' => 'nullable|numeric',
+            'peso_bruto' => 'nullable|numeric',
+            'largura' => 'nullable|numeric',
+            'altura' => 'nullable|numeric',
+            'comprimento' => 'nullable|numeric',
+            'observacoes_internas' => 'nullable|string',
+            // Campos Fiscais
+            'cest' => 'nullable|string|max:7',
+            'cfop_interno' => 'nullable|string|max:4',
+            'cfop_externo' => 'nullable|string|max:4',
+            'unidade_comercial' => 'nullable|string|max:6',
+            'unidade_tributavel' => 'nullable|string|max:6',
+            'origem' => 'nullable|integer',
+            'csosn_icms' => 'nullable|string|max:4',
+            'cst_icms' => 'nullable|string|max:3',
+            'cst_pis' => 'nullable|string|max:3',
+            'cst_cofins' => 'nullable|string|max:3',
+            'aliquota_icms' => 'nullable|numeric',
+            'aliquota_pis' => 'nullable|numeric',
+            'aliquota_cofins' => 'nullable|numeric',
+            'perc_icms_fcp' => 'nullable|numeric',
+            // Campos de Preços Avançados
+            'preco_atacado' => 'nullable|numeric',
+            'qtd_min_atacado' => 'nullable|integer',
+            'preco_promocional' => 'nullable|numeric',
+            'inicio_promocao' => 'nullable|date',
+            'fim_promocao' => 'nullable|date',
         ])->validate();
     }
 
@@ -377,10 +606,11 @@ class ProdutosController extends Controller
     {
         try {
             // Busca o produto pelo ID
-            $produto = Produto::findOrFail($id);
+            $produto = Produto::with(['fornecedores', 'codigosAdicionais'])->findOrFail($id);
 
             // Busca as categorias para o dropdown
             $categorias = Categoria::all();
+            $fornecedores = Fornecedor::all();
 
             // Registra um log
             LogService::registrar(
@@ -390,7 +620,7 @@ class ProdutosController extends Controller
             );
 
             // Retorna a view de edição com os dados do produto e categorias
-            return view('content.produtos.editar', compact('produto', 'categorias'));
+            return view('content.produtos.editar', compact('produto', 'categorias', 'fornecedores'));
         } catch (\Exception $e) {
             Log::error("Erro ao acessar a página de edição do produto ID: {$id}", [
                 'error' => $e->getMessage(),
@@ -429,11 +659,36 @@ class ProdutosController extends Controller
                 'fornecedor_nome' => 'nullable|string|max:255',
                 'fornecedor_telefone' => 'nullable|string|max:15',
                 'fornecedor_email' => 'nullable|email',
+                // Campos Fiscais
+                'cest' => 'nullable|string|max:7',
+                'cfop_interno' => 'nullable|string|max:4',
+                'cfop_externo' => 'nullable|string|max:4',
+                'unidade_comercial' => 'nullable|string|max:6',
+                'unidade_tributavel' => 'nullable|string|max:6',
+                'origem' => 'nullable|integer',
+                'csosn_icms' => 'nullable|string|max:4',
+                'cst_icms' => 'nullable|string|max:3',
+                'cst_pis' => 'nullable|string|max:3',
+                'cst_cofins' => 'nullable|string|max:3',
+                'aliquota_icms' => 'nullable|numeric',
+                'aliquota_pis' => 'nullable|numeric',
+                'aliquota_cofins' => 'nullable|numeric',
+                'perc_icms_fcp' => 'nullable|numeric',
+                // Campos de Preços Avançados
+                'preco_atacado' => 'nullable|string',
+                'qtd_min_atacado' => 'nullable|integer',
+                'preco_promocional' => 'nullable|string',
+                'inicio_promocao' => 'nullable|date',
+                'fim_promocao' => 'nullable|date',
             ]);
 
             // Converte os valores de preço para o formato numérico
             $preco_custo = str_replace(['.', ','], ['', '.'], $request->preco_custo);
             $preco_venda = str_replace(['.', ','], ['', '.'], $request->preco_venda);
+
+            // Trata preços avançados
+            $precoAtacado = $request->preco_atacado ? str_replace(['.', ','], ['', '.'], $request->preco_atacado) : null;
+            $precoPromocional = $request->preco_promocional ? str_replace(['.', ','], ['', '.'], $request->preco_promocional) : null;
 
             // Gera código de barras automaticamente se configurado e não informado
             $codigoBarras = $request->codigo_barras;
@@ -455,6 +710,26 @@ class ProdutosController extends Controller
                 'fornecedor_nome' => $request->fornecedor_nome,
                 'fornecedor_telefone' => $request->fornecedor_telefone,
                 'fornecedor_email' => $request->fornecedor_email,
+                'cest' => $request->cest,
+                'cfop_interno' => $request->cfop_interno,
+                'cfop_externo' => $request->cfop_externo,
+                'unidade_comercial' => $request->unidade_comercial,
+                'unidade_tributavel' => $request->unidade_tributavel,
+                'origem' => $request->origem,
+                'csosn_icms' => $request->csosn_icms,
+                'cst_icms' => $request->cst_icms,
+                'cst_pis' => $request->cst_pis,
+                'cst_cofins' => $request->cst_cofins,
+                'aliquota_icms' => $request->aliquota_icms,
+                'aliquota_pis' => $request->aliquota_pis,
+                'aliquota_cofins' => $request->aliquota_cofins,
+                'perc_icms_fcp' => $request->perc_icms_fcp,
+                // Campos Preços Avançados
+                'preco_atacado' => $precoAtacado,
+                'qtd_min_atacado' => $request->qtd_min_atacado,
+                'preco_promocional' => $precoPromocional,
+                'inicio_promocao' => $request->inicio_promocao,
+                'fim_promocao' => $request->fim_promocao,
             ]);
 
             // Registra um log

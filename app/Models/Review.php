@@ -17,4 +17,8 @@ class Review extends Model
         'text',
         'time',
     ];
+
+    protected $casts = [
+        'time' => 'datetime',
+    ];
 }

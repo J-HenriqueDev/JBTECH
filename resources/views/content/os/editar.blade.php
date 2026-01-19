@@ -43,7 +43,7 @@
                                 <select id="select2Basic" class="select2 form-select" data-live-search="true" name="cliente_id" disabled>
                                     @foreach ($clientes as $cliente)
                                     <option value="{{ $cliente->id }}" {{ $cliente->id == $os->cliente_id ? 'selected' : '' }}>
-                                        {{ $cliente->nome }}
+                                        #{{ $cliente->id }} - {{ $cliente->nome }} - {{ $cliente->cpf_cnpj }}
                                     </option>
                                     @endforeach
                                 </select>

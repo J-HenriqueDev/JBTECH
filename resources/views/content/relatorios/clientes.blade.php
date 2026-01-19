@@ -20,17 +20,9 @@
     <div class="card-body">
         <form method="GET" action="{{ route('relatorios.clientes') }}">
             <div class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label">Tipo de Cliente</label>
-                    <select name="tipo_cliente" class="form-select">
-                        <option value="">Todos</option>
-                        <option value="0" {{ request('tipo_cliente') == '0' ? 'selected' : '' }}>Particular</option>
-                        <option value="1" {{ request('tipo_cliente') == '1' ? 'selected' : '' }}>Empresarial</option>
-                    </select>
-                </div>
                 <div class="col-md-4 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-search"></i> Filtrar
+                        <i class="fas fa-search"></i> Atualizar Lista
                     </button>
                 </div>
             </div>
@@ -67,7 +59,6 @@
                         <th>CPF/CNPJ</th>
                         <th>Email</th>
                         <th>Telefone</th>
-                        <th>Tipo</th>
                         <th>Cidade</th>
                     </tr>
                 </thead>
@@ -79,11 +70,6 @@
                         <td>{{ formatarCpfCnpj($cliente->cpf_cnpj) }}</td>
                         <td>{{ $cliente->email }}</td>
                         <td>{{ $cliente->telefone }}</td>
-                        <td>
-                            <span class="badge bg-{{ $cliente->tipo_cliente == 1 ? 'info' : 'secondary' }}">
-                                {{ $cliente->tipo_cliente == 1 ? 'Empresarial' : 'Particular' }}
-                            </span>
-                        </td>
                         <td>{{ $cliente->endereco->cidade ?? 'N/A' }}</td>
                     </tr>
                     @empty

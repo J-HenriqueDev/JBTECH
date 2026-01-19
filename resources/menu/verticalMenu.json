@@ -1,16 +1,40 @@
 {
   "menu": [
     {
+      "menuHeader": "Principal"
+    },
+    {
       "url": "/dashboard",
       "name": "Dashboard",
       "icon": "menu-icon tf-icons fas fa-chart-line text-success",
       "slug": "dashboard"
     },
     {
-      "url": "/",
-      "name": "Landing Page",
-      "icon": "menu-icon tf-icons fas fa-globe text-primary",
-      "slug": "home"
+      "url": "/dashboard/vendas",
+      "name": "Vendas",
+      "icon": "menu-icon tf-icons fas fa-cash-register text-warning",
+      "slug": "vendas"
+    },
+    {
+      "url": "/dashboard/orcamentos",
+      "name": "Orçamentos",
+      "icon": "menu-icon tf-icons fas fa-file-invoice text-danger",
+      "slug": "orcamentos"
+    },
+    {
+      "url": "/dashboard/os",
+      "name": "Ordens de Serviço",
+      "icon": "menu-icon tf-icons fas fa-tools text-secondary",
+      "slug": "os"
+    },
+    {
+      "menuHeader": "Cadastros"
+    },
+    {
+      "url": "/dashboard/produtos",
+      "name": "Produtos",
+      "icon": "menu-icon tf-icons fas fa-box text-success",
+      "slug": "produtos"
     },
     {
       "url": "/dashboard/categorias",
@@ -25,22 +49,61 @@
       "slug": "clientes"
     },
     {
-      "url": "/dashboard/orcamentos",
-      "name": "Orçamentos",
-      "icon": "menu-icon tf-icons fas fa-file-invoice text-danger",
-      "slug": "orcamentos"
+      "url": "/dashboard/fornecedores",
+      "name": "Fornecedores",
+      "icon": "menu-icon tf-icons bx bx-building-house text-primary",
+      "slug": "fornecedores"
     },
     {
-      "url": "/dashboard/os",
-      "name": "Ordens de Serviço",
-      "icon": "menu-icon tf-icons fas fa-tools text-secondary",
-      "slug": "ordens-servico"
+      "menuHeader": "Financeiro"
     },
     {
-      "url": "/dashboard/produtos",
-      "name": "Produtos",
-      "icon": "menu-icon tf-icons fas fa-box text-success",
-      "slug": "produtos"
+      "url": "/dashboard/cobrancas",
+      "name": "Contas a Receber",
+      "icon": "menu-icon tf-icons fas fa-money-check-alt text-success",
+      "slug": "cobrancas"
+    },
+    {
+      "url": "/dashboard/contas-pagar",
+      "name": "Contas a Pagar",
+      "icon": "menu-icon tf-icons bx bx-money-withdraw text-danger",
+      "slug": "contas-pagar"
+    },
+    {
+      "menuHeader": "Fiscal"
+    },
+    {
+      "url": "/dashboard/naturezas",
+      "name": "Naturezas Operação",
+      "icon": "menu-icon tf-icons bx bx-category text-success",
+      "slug": "naturezas"
+    },
+    {
+      "url": "/dashboard/nfe",
+      "name": "NFe (Saída)",
+      "icon": "menu-icon tf-icons bx bx-receipt text-info",
+      "slug": "nfe"
+    },
+    {
+      "url": "/dashboard/notas-entrada",
+      "name": "NFe (Entrada)",
+      "icon": "menu-icon tf-icons fas fa-file-download text-primary",
+      "slug": "notas-entrada"
+    },
+    {
+      "url": "/dashboard/nfe/manifesto",
+      "name": "Manifesto (Monitor)",
+      "icon": "menu-icon tf-icons bx bx-list-check text-warning",
+      "slug": "nfe.manifesto.index"
+    },
+    {
+      "url": "/dashboard/nfe/config",
+      "name": "Configurações NFe",
+      "icon": "menu-icon tf-icons bx bx-cog text-secondary",
+      "slug": "nfe.config"
+    },
+    {
+      "menuHeader": "Sistema"
     },
     {
       "url": "/dashboard/relatorios",
@@ -49,22 +112,16 @@
       "slug": "relatorios"
     },
     {
-      "url": "/dashboard/vendas",
-      "name": "Vendas",
-      "icon": "menu-icon tf-icons fas fa-cash-register text-warning",
-      "slug": "vendas"
+      "url": "/dashboard/users",
+      "name": "Usuários",
+      "icon": "menu-icon tf-icons bx bx-user text-primary",
+      "slug": "users"
     },
     {
-      "url": "/dashboard/cobrancas",
-      "name": "Cobranças",
-      "icon": "menu-icon tf-icons fas fa-money-check-alt text-primary",
-      "slug": "cobrancas"
-    },
-    {
-      "url": "/dashboard/nfe",
-      "name": "Notas Fiscais",
-      "icon": "menu-icon tf-icons bx bx-receipt text-info",
-      "slug": "nfe"
+      "url": "/dashboard/configuracoes",
+      "name": "Configurações",
+      "icon": "menu-icon tf-icons bx bx-cog text-warning",
+      "slug": "configuracoes"
     },
     {
       "url": "/logs",
@@ -73,10 +130,10 @@
       "slug": "logs"
     },
     {
-      "url": "/dashboard/configuracoes",
-      "name": "Configurações",
-      "icon": "menu-icon tf-icons bx bx-cog text-warning",
-      "slug": "configuracoes"
+      "url": "/",
+      "name": "Landing Page",
+      "icon": "menu-icon tf-icons fas fa-globe text-primary",
+      "slug": "home"
     }
   ]
 }

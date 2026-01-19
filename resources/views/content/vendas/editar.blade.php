@@ -4,9 +4,9 @@
 
 @section('vendor-style')
 @vite([
-  'resources/assets/vendor/libs/select2/select2.scss',
-  'resources/assets/vendor/libs/typeahead-js/typeahead.scss',
-  'resources/assets/vendor/libs/swiper/swiper.scss'
+'resources/assets/vendor/libs/select2/select2.scss',
+'resources/assets/vendor/libs/typeahead-js/typeahead.scss',
+'resources/assets/vendor/libs/swiper/swiper.scss'
 ])
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
@@ -14,31 +14,31 @@
 
 @section('vendor-script')
 @vite([
-  'resources/assets/vendor/libs/select2/select2.js',
-  'resources/assets/vendor/libs/swiper/swiper.js'
+'resources/assets/vendor/libs/select2/select2.js',
+'resources/assets/vendor/libs/swiper/swiper.js'
 ])
 @endsection
 
 @section('page-script')
 @vite([
-  'resources/assets/js/forms-selects.js'
+'resources/assets/js/forms-selects.js'
 ])
 @endsection
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-  <h1 class="mb-0 text-primary" style="font-size: 2.5rem; font-weight: bold; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);">
-      <i class="bx bx-edit"></i> Pedido de Venda #{{ $venda->id }}
-      <span class="badge bg-success ms-2">
-          <i class="bx bx-check-circle"></i> Ativa
-      </span>
-  </h1>
-  <div>
-      <!-- Botão para Emitir NF-e -->
-      <a href="{{ route('nfe.create', ['venda_id' => $venda->id]) }}" class="btn btn-primary">
-          <i class="bx bx-receipt"></i> Emitir NF-e
-      </a>
-  </div>
+    <h1 class="mb-0 text-primary" style="font-size: 2.5rem; font-weight: bold; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);">
+        <i class="bx bx-edit"></i> Pedido de Venda #{{ $venda->id }}
+        <span class="badge bg-success ms-2">
+            <i class="bx bx-check-circle"></i> Ativa
+        </span>
+    </h1>
+    <div>
+        <!-- Botão para Emitir NF-e -->
+        <a href="{{ route('nfe.create', ['venda_id' => $venda->id]) }}" class="btn btn-primary">
+            <i class="bx bx-receipt"></i> Emitir NF-e
+        </a>
+    </div>
 </div>
 
 <div class="card mb-4">
@@ -54,14 +54,19 @@
                     <!-- Primeira Linha: Cliente e Data -->
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label for="cliente_id" class="form-label">
-                                <i class="bx bx-id-card"></i> Cliente
-                            </label>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <label for="select2Cliente" class="form-label">
+                                    <i class="bx bx-id-card"></i> Cliente
+                                </label>
+                                <a href="{{ route('clientes.create') }}" class="small" target="_blank">
+                                    <i class="bx bx-plus"></i> Novo
+                                </a>
+                            </div>
                             <select id="select2Cliente" class="select2 form-select" name="cliente_id" required>
                                 <option value="" disabled>Selecione um cliente</option>
                                 @foreach ($clientes as $cliente)
                                 <option value="{{ $cliente->id }}" data-email="{{ $cliente->email }}" {{ $venda->cliente_id == $cliente->id ? 'selected' : '' }}>
-                                    {{ $cliente->nome }}
+                                    #{{ $cliente->id }} - {{ $cliente->nome }} - {{ $cliente->cpf_cnpj }}
                                 </option>
                                 @endforeach
                             </select>
@@ -97,32 +102,32 @@
                             </thead>
                             <tbody>
                                 @if ($venda->produtos->isEmpty())
-                                    <tr id="tabelaVazia">
-                                        <td colspan="6" class="text-center">
-                                            <div class="alert alert-info" role="alert">
-                                                Nenhum produto adicionado.
-                                            </div>
-                                        </td>
-                                    </tr>
+                                <tr id="tabelaVazia">
+                                    <td colspan="6" class="text-center">
+                                        <div class="alert alert-info" role="alert">
+                                            Nenhum produto adicionado.
+                                        </div>
+                                    </td>
+                                </tr>
                                 @else
-                                    @foreach ($venda->produtos as $produto)
-                                        <tr data-produto-id="{{ $produto->id }}">
-                                            <td>{{ $produto->id }}</td>
-                                            <td>{{ $produto->nome }}</td>
-                                            <td class="text-center">
-                                                <input type="number" class="form-control quantidade" value="{{ $produto->pivot->quantidade }}" min="1">
-                                            </td>
-                                            <td class="text-center">
-                                                <input type="text" class="form-control valor-unitario" value="R$ {{ number_format($produto->pivot->valor_unitario, 2, ',', '.') }}">
-                                            </td>
-                                            <td class="valor-total">R$ {{ number_format($produto->pivot->valor_total, 2, ',', '.') }}</td>
-                                            <td>
-                                                <button type="button" class="btn btn-danger btn-remover-produto">
-                                                    <i class="bx bx-trash"></i> Remover
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    @endforeach
+                                @foreach ($venda->produtos as $produto)
+                                <tr data-produto-id="{{ $produto->id }}">
+                                    <td>{{ $produto->id }}</td>
+                                    <td>{{ $produto->nome }}</td>
+                                    <td class="text-center">
+                                        <input type="number" class="form-control quantidade" value="{{ $produto->pivot->quantidade }}" min="1">
+                                    </td>
+                                    <td class="text-center">
+                                        <input type="text" class="form-control valor-unitario" value="R$ {{ number_format($produto->pivot->valor_unitario, 2, ',', '.') }}">
+                                    </td>
+                                    <td class="valor-total">R$ {{ number_format($produto->pivot->valor_total, 2, ',', '.') }}</td>
+                                    <td>
+                                        <button type="button" class="btn btn-danger btn-remover-produto">
+                                            <i class="bx bx-trash"></i> Remover
+                                        </button>
+                                    </td>
+                                </tr>
+                                @endforeach
                                 @endif
                             </tbody>
                             <tfoot>

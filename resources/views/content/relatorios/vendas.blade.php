@@ -2,6 +2,26 @@
 
 @section('title', 'Relatório de Vendas')
 
+@section('vendor-style')
+@vite(['resources/assets/vendor/libs/select2/select2.scss'])
+@endsection
+
+@section('vendor-script')
+@vite(['resources/assets/vendor/libs/select2/select2.js'])
+@endsection
+
+@section('page-script')
+<script>
+    $(document).ready(function() {
+        $('.select2').select2({
+            width: '100%',
+            placeholder: 'Selecione um cliente',
+            allowClear: true
+        });
+    });
+</script>
+@endsection
+
 @section('content')
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -30,11 +50,11 @@
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Cliente</label>
-                    <select name="cliente_id" class="form-select">
+                    <select name="cliente_id" class="form-select select2">
                         <option value="">Todos</option>
                         @foreach(\App\Models\Clientes::all() as $cliente)
                         <option value="{{ $cliente->id }}" {{ request('cliente_id') == $cliente->id ? 'selected' : '' }}>
-                            {{ $cliente->nome }}
+                            #{{ $cliente->id }} - {{ $cliente->nome }} - {{ $cliente->cpf_cnpj }}
                         </option>
                         @endforeach
                     </select>

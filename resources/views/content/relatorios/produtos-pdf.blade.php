@@ -2,156 +2,178 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Relatório de Produtos</title>
     <style>
+        @page {
+            margin: 1cm 1cm 3.5cm 1cm;
+        }
+
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #fff;
+            font-size: 12px;
             color: #333;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            position: relative;
+            line-height: 1.4;
         }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #fff;
-            flex: 1;
-            padding-bottom: 100px;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 15px;
-        }
-        .header img {
-            max-width: 120px;
-            margin-bottom: 5px;
-        }
-        .header h1 {
-            font-size: 20px;
-            color: #333;
-            margin: 0;
-        }
-        .info-section {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 10px;
-        }
-        .info-section p {
-            margin: 3px 0;
-            font-size: 13px;
-        }
-        h2 {
-            font-size: 16px;
-            margin-bottom: 10px;
-            color: #007bff;
-            border-bottom: 2px solid #007bff;
-            padding-bottom: 3px;
-        }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 15px;
         }
-        table th, table td {
-            border: 1px solid #ddd;
+
+        .header-center {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            max-width: 150px;
+            max-height: 80px;
+        }
+
+        .document-title {
+            text-align: center;
+            margin: 10px 0;
+            padding: 5px;
+            background-color: #f5f5f5;
+            border-top: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .document-title h1 {
+            margin: 0;
+            font-size: 18px;
+            text-transform: uppercase;
+        }
+
+        .document-title p {
+            margin: 5px 0 0;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .box {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 20px;
+            background-color: #fff;
+        }
+
+        .box-title {
+            font-weight: bold;
+            font-size: 13px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .items-table {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .items-table th, .items-table td {
+            border: 1px solid #ccc;
             padding: 8px;
             text-align: left;
-            font-size: 13px;
-        }
-        table th {
-            background-color: #f9f9f9;
-            font-weight: bold;
-        }
-        .summary {
-            text-align: right;
-            margin-top: 15px;
-        }
-        .summary p {
-            margin: 3px 0;
-            font-size: 13px;
-        }
-        .summary .total {
-            font-size: 14px;
-            font-weight: bold;
-            color: #007bff;
-        }
-        .footer {
-            text-align: center;
             font-size: 11px;
-            color: #666;
-            padding: 8px 0;
-            border-top: 1px solid #ddd;
+        }
+
+        .items-table th {
+            background-color: #eee;
+            font-weight: bold;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .footer {
+            position: fixed;
+            bottom: -3cm;
+            left: 0;
+            right: 0;
+            height: 90px;
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+            text-align: center;
+            font-size: 10px;
+            color: #777;
             background-color: #fff;
-            position: absolute;
-            bottom: 10px;
-            width: 100%;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Cabeçalho -->
-        <div class="header">
-            <img src="https://jbtechresende.com.br/assets/img/front-pages/landing-page/jblogo_black.png" alt="JBTECH Logo">
-            <h1>Relatório de Produtos</h1>
-        </div>
-
-        <!-- Informações do Relatório -->
-        <div class="info-section">
-            <p><strong>Data de Emissão:</strong> {{ Carbon\Carbon::now()->translatedFormat('d \d\e F \d\e Y') }}</p>
-            <p><strong>Total de Produtos:</strong> {{ $produtos->count() }}</p>
-        </div>
-
-        <!-- Produtos -->
-        <h2>Produtos Cadastrados</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nome</th>
-                    <th>Categoria</th>
-                    <th>Estoque</th>
-                    <th>Preço Venda</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($produtos as $produto)
-                <tr>
-                    <td>#{{ $produto->id }}</td>
-                    <td>{{ $produto->nome }}</td>
-                    <td>{{ $produto->categoria->nome ?? 'N/A' }}</td>
-                    <td>{{ $produto->estoque ?? 0 }}</td>
-                    <td>R$ {{ number_format($produto->preco_venda, 2, ',', '.') }}</td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="5" class="text-center">Nenhum produto encontrado.</td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
-
-        <!-- Resumo Financeiro -->
-        <div class="summary">
-            <p><strong>Valor Total em Estoque:</strong> R$ {{ number_format($valorTotalEstoque, 2, ',', '.') }}</p>
-        </div>
-    </div>
-
-    <!-- Rodapé -->
+    <!-- Footer -->
     <div class="footer">
-        <p>{{ $empresa['nome'] ?? 'JBTECH Informática' }} - Tecnologia ao Seu Alcance</p>
-        <p>{{ $empresa['endereco'] ?? 'Rua Willy Faulstich' }}, {{ $empresa['numero'] ?? '252' }}, {{ $empresa['bairro'] ?? 'Centro' }}, {{ $empresa['cidade'] ?? 'Resende' }}, {{ $empresa['uf'] ?? 'RJ' }} | CNPJ: {{ $empresa['cnpj'] ?? '54.819.910/0001-20' }}</p>
-        <p>Telefone: {{ $empresa['telefone'] ?? '+55 (24) 98113-2097' }} | E-mail: {{ $empresa['email'] ?? 'informatica.jbtech@gmail.com' }}</p>
+        <p style="margin-bottom: 5px; font-weight: bold;">
+            {{ \App\Models\Configuracao::get('empresa_nome', 'JB Tech Soluções') }} -
+            CNPJ: {{ formatarCpfCnpj(\App\Models\Configuracao::get('empresa_cnpj', '00.000.000/0001-00')) }}
+        </p>
+        <p style="margin-bottom: 5px;">
+            {{ \App\Models\Configuracao::get('empresa_endereco') }}, {{ \App\Models\Configuracao::get('empresa_numero') }} -
+            {{ \App\Models\Configuracao::get('empresa_bairro') }} -
+            {{ \App\Models\Configuracao::get('empresa_cidade') }}/{{ \App\Models\Configuracao::get('empresa_uf') }}
+        </p>
+        <p style="margin-bottom: 5px;">
+            Tel: {{ \App\Helpers\FormatacaoHelper::telefone(\App\Models\Configuracao::get('empresa_telefone')) }} -
+            Email: {{ \App\Models\Configuracao::get('empresa_email') }}
+        </p>
+        <p style="margin-top: 10px; font-size: 9px;">Relatório gerado em {{ \Carbon\Carbon::now()->format('d/m/Y H:i') }}</p>
     </div>
+
+    <!-- Header -->
+    <div class="header-center">
+        <img src="{{ public_path('assets/img/front-pages/landing-page/jblogo_black.png') }}" class="logo" alt="Logo">
+    </div>
+
+    <!-- Title -->
+    <div class="document-title">
+        <h1>Relatório de Produtos</h1>
+        <p>Emissão: {{ \Carbon\Carbon::now()->format('d/m/Y H:i') }}</p>
+    </div>
+
+    <!-- Summary -->
+    <div class="box">
+        <span class="box-title">RESUMO</span>
+        <table style="width: 100%;">
+            <tr>
+                <td><strong>Total de Produtos:</strong> {{ $produtos->count() }}</td>
+                <td class="text-right"><strong>Valor Total em Estoque:</strong> R$ {{ number_format($valorTotalEstoque, 2, ',', '.') }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Items -->
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th width="10%" class="text-center">ID</th>
+                <th width="40%">Nome</th>
+                <th width="20%">Categoria</th>
+                <th width="15%" class="text-center">Estoque</th>
+                <th width="15%" class="text-right">Preço Venda</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($produtos as $produto)
+            <tr>
+                <td class="text-center">#{{ $produto->id }}</td>
+                <td>{{ $produto->nome }}</td>
+                <td>{{ $produto->categoria->nome ?? 'N/A' }}</td>
+                <td class="text-center">{{ $produto->estoque ?? 0 }}</td>
+                <td class="text-right">R$ {{ number_format($produto->preco_venda, 2, ',', '.') }}</td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="5" class="text-center">Nenhum produto encontrado.</td>
+            </tr>
+            @endforelse
+        </tbody>
+    </table>
 </body>
 </html>

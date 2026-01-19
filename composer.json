@@ -9,14 +9,15 @@
   "license": "MIT",
   "require": {
     "php": "^8.2",
-    "barryvdh/laravel-dompdf": "^3.0",
     "ext-gd": "*",
+    "barryvdh/laravel-dompdf": "^3.0",
     "guzzlehttp/guzzle": "^7.9",
     "laravel/framework": "^11.0",
     "laravel/jetstream": "^5.2",
     "laravel/sanctum": "^4.0",
     "laravel/tinker": "^2.9",
     "livewire/livewire": "^3.0",
+    "nfephp-org/sped-da": "^1.1",
     "nfephp-org/sped-nfe": "^5.1",
     "pagseguro/pagseguro-php-sdk": "^4.2",
     "php-extended/php-simple-cache-filesystem": "^7.0"

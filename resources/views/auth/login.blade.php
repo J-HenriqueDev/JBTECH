@@ -106,15 +106,7 @@ $customizerHidden = 'customizer-hide';
 
           </form>
 
-          <!-- Link para registro -->
-          <p class="text-center">
-            <span>Novo na nossa plataforma?</span>
-            @if (Route::has('register'))
-            <a href="{{ route('register') }}">
-              <span>Criar uma conta</span>
-            </a>
-            @endif
-          </p>
+
 
         </div>
       </div>

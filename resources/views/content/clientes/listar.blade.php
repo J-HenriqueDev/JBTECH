@@ -6,19 +6,19 @@
 
 @if(session('noti'))
 <div class="alert alert-primary alert-dismissible" role="alert">
-  <h6 class="alert-heading d-flex align-items-center fw-bold mb-1">
-    <i class="fas fa-check-circle me-1"></i> Sucesso!
-  </h6>
-  <p class="mb-0">{!! session('noti') !!}</p>
-  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <h6 class="alert-heading d-flex align-items-center fw-bold mb-1">
+        <i class="fas fa-check-circle me-1"></i> Sucesso!
+    </h6>
+    <p class="mb-0">{!! session('noti') !!}</p>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
 @endif
 
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-  <h1 class="text-primary" style="font-size: 2.5rem; font-weight: bold; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);">
-    <i class="fas fa-users"></i> Clientes
-  </h1>
+    <h1 class="text-primary" style="font-size: 2.5rem; font-weight: bold; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);">
+        <i class="fas fa-users"></i> Clientes
+    </h1>
     <a href="{{ route('clientes.create') }}" class="btn btn-primary">
         <i class="fas fa-plus-circle me-1"></i> Novo Cliente
     </a>
@@ -27,7 +27,7 @@
 <!-- Estatísticas -->
 @if(isset($stats))
 <div class="row mb-4">
-    <div class="col-md-3">
+    <div class="col-md-6">
         <div class="card bg-primary text-white">
             <div class="card-body">
                 <h6 class="card-title">Total de Clientes</h6>
@@ -35,23 +35,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card bg-secondary text-white">
-            <div class="card-body">
-                <h6 class="card-title">Particulares</h6>
-                <h3>{{ $stats['particulares'] }}</h3>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-info text-white">
-            <div class="card-body">
-                <h6 class="card-title">Empresariais</h6>
-                <h3>{{ $stats['empresariais'] }}</h3>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
+    <div class="col-md-6">
         <div class="card bg-success text-white">
             <div class="card-body">
                 <h6 class="card-title">Total em Vendas</h6>
@@ -71,18 +55,11 @@
             </div>
 
             <div class="card-body">
-              <!-- Formulário de pesquisa e filtros -->
+                <!-- Formulário de pesquisa e filtros -->
                 <form method="GET" class="mb-4">
                     <div class="row g-3">
                         <div class="col-md-4">
                             <input type="text" name="search" class="form-control" id="search-input" placeholder="Pesquisar por Nome, CPF/CNPJ, Email ou Telefone" value="{{ request('search') }}">
-                        </div>
-                        <div class="col-md-3">
-                            <select name="tipo_cliente" class="form-select">
-                                <option value="">Todos os Tipos</option>
-                                <option value="0" {{ request('tipo_cliente') == '0' ? 'selected' : '' }}>Particular</option>
-                                <option value="1" {{ request('tipo_cliente') == '1' ? 'selected' : '' }}>Empresarial</option>
-                            </select>
                         </div>
                         <div class="col-md-3">
                             <input type="text" name="cidade" class="form-control" placeholder="Filtrar por Cidade" value="{{ request('cidade') }}">
@@ -98,6 +75,7 @@
                     <table class="table table-striped">
                         <thead>
                             <tr>
+                                <th>ID</th>
                                 <th>CPF/CNPJ</th>
                                 <th>Nome</th>
                                 <th>Email</th>
@@ -107,47 +85,37 @@
                         </thead>
                         <tbody id="clientes-table" class="table-border-bottom-0">
                             @forelse($clientes as $cliente)
-                                <tr>
-                                    <td><strong>{{ formatarCpfCnpj($cliente->cpf_cnpj) }}</strong></td>
-                                    <td>
-                                        <strong>{{\Illuminate\Support\Str::limit($cliente->nome, 40, '...') }}</strong>
-                                        <br>
-                                        <small class="text-muted">
-                                            <span class="badge bg-{{ $cliente->tipo_cliente == 1 ? 'info' : 'secondary' }}">
-                                                {{ $cliente->tipo_cliente == 1 ? 'Empresarial' : 'Particular' }}
-                                            </span>
-                                        </small>
-                                    </td>
-                                    <td>{{ $cliente->email }}</td>
-                                    <td>{{ $cliente->telefone }}</td>
-                                    <td>
-                                        <div class="dropdown">
-                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                                                <i class="bx bx-dots-vertical-rounded"></i>
-                                            </button>
-                                            <div class="dropdown-menu">
-                                                <a class="dropdown-item" href="{{ route('clientes.show', $cliente->id) }}">
-                                                    <i class="bx bx-show me-1"></i> Ver Detalhes
-                                                </a>
-                                                <a class="dropdown-item" href="{{ route('clientes.edit', $cliente->id) }}">
-                                                    <i class="bx bx-edit-alt me-1"></i> Editar
-                                                </a>
-                                                <button class="dropdown-item btn-delete" data-bs-toggle="modal" data-bs-target="#confirmDelete" data-id="{{ $cliente->id }}">
-                                                    <i class="bx bx-trash me-1"></i> Excluir
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
+                            <tr>
+                                <td>{{ $cliente->id }}</td>
+                                <td><strong>{{ formatarCpfCnpj($cliente->cpf_cnpj) }}</strong></td>
+                                <td>
+                                    <strong>{{\Illuminate\Support\Str::limit($cliente->nome, 40, '...') }}</strong>
+                                </td>
+                                <td>{{ $cliente->email }}</td>
+                                <td>{{ $cliente->telefone }}</td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ route('clientes.show', $cliente->id) }}" class="btn btn-sm btn-icon btn-outline-info" title="Ver Detalhes">
+                                            <i class="bx bx-show"></i>
+                                        </a>
+                                        <a href="{{ route('clientes.edit', $cliente->id) }}" class="btn btn-sm btn-icon btn-outline-primary" title="Editar">
+                                            <i class="bx bx-edit-alt"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger btn-delete" data-bs-toggle="modal" data-bs-target="#confirmDelete" data-id="{{ $cliente->id }}" title="Excluir">
+                                            <i class="bx bx-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
                             @empty
-                                <tr>
-                                    <td colspan="5" class="text-center">Nenhum cliente encontrado.</td>
-                                </tr>
+                            <tr>
+                                <td colspan="5" class="text-center">Nenhum cliente encontrado.</td>
+                            </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
-                
+
                 <!-- Paginação -->
                 <div class="mt-4">
                     {{ $clientes->links() }}
@@ -183,99 +151,95 @@
 </div>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    let searchInput = document.getElementById('search-input');
+    document.addEventListener('DOMContentLoaded', function() {
+        let searchInput = document.getElementById('search-input');
 
-    searchInput.addEventListener('keyup', function () {
-        let searchTerm = searchInput.value.trim();
+        searchInput.addEventListener('keyup', function() {
+            let searchTerm = searchInput.value.trim();
 
-        if (searchTerm.length === 0) {
-            fetch(`{{ route('dashboard.clientes.search') }}?search=all`)
-                .then(response => response.json())
-                .then(data => {
-                    let tableBody = document.getElementById('clientes-table');
-                    tableBody.innerHTML = ''; // Limpar a tabela
+            if (searchTerm.length === 0) {
+                fetch(`{{ route('dashboard.clientes.search') }}?search=all`)
+                    .then(response => response.json())
+                    .then(data => {
+                        let tableBody = document.getElementById('clientes-table');
+                        tableBody.innerHTML = ''; // Limpar a tabela
 
-                    if (data.length > 0) {
-                        data.forEach(cliente => {
-                            tableBody.innerHTML += `
+                        if (data.length > 0) {
+                            data.forEach(cliente => {
+                                tableBody.innerHTML += `
                                 <tr>
                                     <td>${cliente.cpf_cnpj}</td>
                                     <td>${cliente.nome}</td>
                                     <td>${cliente.email}</td>
                                     <td>${cliente.telefone}</td>
                                     <td>
-                                        <div class="dropdown">
-                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                                                <i class="bx bx-dots-vertical-rounded"></i>
+                                        <div class="d-flex gap-2">
+                                            <a href="/dashboard/clientes/${cliente.id}" class="btn btn-sm btn-icon btn-outline-info" title="Ver Detalhes">
+                                                <i class="bx bx-show"></i>
+                                            </a>
+                                            <a href="/dashboard/clientes/${cliente.id}/edit" class="btn btn-sm btn-icon btn-outline-primary" title="Editar">
+                                                <i class="bx bx-edit-alt"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-icon btn-outline-danger btn-delete" data-bs-toggle="modal" data-bs-target="#confirmDelete" data-id="${cliente.id}" title="Excluir">
+                                                <i class="bx bx-trash"></i>
                                             </button>
-                                            <div class="dropdown-menu">
-                                                <a class="dropdown-item" href="/dashboard/clientes/${cliente.id}/edit">
-                                                    <i class="bx bx-edit-alt me-1"></i> Editar
-                                                </a>
-                                                <button class="dropdown-item btn-delete" data-bs-toggle="modal" data-bs-target="#confirmDelete" data-id="${cliente.id}">
-                                                    <i class="bx bx-trash me-1"></i> Excluir
-                                                </button>
-                                            </div>
                                         </div>
                                     </td>
                                 </tr>
                             `;
-                        });
-                    } else {
-                        tableBody.innerHTML = `
+                            });
+                        } else {
+                            tableBody.innerHTML = `
                             <tr>
                                 <td colspan="5" class="text-center">Nenhum cliente encontrado.</td>
                             </tr>
                         `;
-                    }
-                })
-                .catch(error => console.error('Erro na busca:', error));
-        } else {
-            fetch(`{{ route('dashboard.clientes.search') }}?search=${searchTerm}`)
-                .then(response => response.json())
-                .then(data => {
-                    let tableBody = document.getElementById('clientes-table');
-                    tableBody.innerHTML = ''; // Limpar a tabela antes de adicionar novos dados
+                        }
+                    })
+                    .catch(error => console.error('Erro na busca:', error));
+            } else {
+                fetch(`{{ route('dashboard.clientes.search') }}?search=${searchTerm}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        let tableBody = document.getElementById('clientes-table');
+                        tableBody.innerHTML = ''; // Limpar a tabela antes de adicionar novos dados
 
-                    if (data.length > 0) {
-                        data.forEach(cliente => {
-                            tableBody.innerHTML += `
+                        if (data.length > 0) {
+                            data.forEach(cliente => {
+                                tableBody.innerHTML += `
                                 <tr>
                                     <td>${cliente.cpf_cnpj}</td>
                                     <td>${cliente.nome}</td>
                                     <td>${cliente.email}</td>
                                     <td>${cliente.telefone}</td>
                                     <td>
-                                        <div class="dropdown">
-                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                                                <i class="bx bx-dots-vertical-rounded"></i>
+                                        <div class="d-flex gap-2">
+                                            <a href="/dashboard/clientes/${cliente.id}" class="btn btn-sm btn-icon btn-outline-info" title="Ver Detalhes">
+                                                <i class="bx bx-show"></i>
+                                            </a>
+                                            <a href="/dashboard/clientes/${cliente.id}/edit" class="btn btn-sm btn-icon btn-outline-primary" title="Editar">
+                                                <i class="bx bx-edit-alt"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-icon btn-outline-danger btn-delete" data-bs-toggle="modal" data-bs-target="#confirmDelete" data-id="${cliente.id}" title="Excluir">
+                                                <i class="bx bx-trash"></i>
                                             </button>
-                                            <div class="dropdown-menu">
-                                                <a class="dropdown-item" href="/dashboard/clientes/${cliente.id}/edit">
-                                                    <i class="bx bx-edit-alt me-1"></i> Editar
-                                                </a>
-                                                <button class="dropdown-item btn-delete" data-bs-toggle="modal" data-bs-target="#confirmDelete" data-id="${cliente.id}">
-                                                    <i class="bx bx-trash me-1"></i> Excluir
-                                                </button>
-                                            </div>
                                         </div>
                                     </td>
                                 </tr>
                             `;
-                        });
-                    } else {
-                        tableBody.innerHTML = `
+                            });
+                        } else {
+                            tableBody.innerHTML = `
                             <tr>
                                 <td colspan="5" class="text-center">Nenhum cliente encontrado.</td>
                             </tr>
                         `;
-                    }
-                })
-                .catch(error => console.error('Erro na busca:', error));
-        }
+                        }
+                    })
+                    .catch(error => console.error('Erro na busca:', error));
+            }
+        });
     });
-});
 </script>
 
 @endsection

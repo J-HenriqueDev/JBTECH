@@ -169,17 +169,17 @@
                                         <br><small>R$ {{ number_format($lucro, 2, ',', '.') }}</small>
                                     </td>
                                     <td>
-                                        <div class="btn-group" role="group">
+                                        <div class="d-flex gap-2">
                                             @if(!$edicaoInline)
-                                            <a href="{{ route('produtos.edit', $produto->id) }}" class="btn btn-sm btn-warning" title="Editar">
-                                                <i class="fas fa-edit"></i>
+                                            <a href="{{ route('produtos.edit', $produto->id) }}" class="btn btn-sm btn-icon btn-outline-primary" title="Editar">
+                                                <i class="bx bx-edit-alt"></i>
                                             </a>
                                             @endif
                                             <form action="{{ route('produtos.destroy', $produto->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja excluir este produto?');">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-danger" title="Excluir">
-                                                    <i class="fas fa-trash"></i>
+                                                <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" title="Excluir">
+                                                    <i class="bx bx-trash"></i>
                                                 </button>
                                             </form>
                                         </div>

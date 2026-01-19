@@ -47,7 +47,6 @@ return [
     // Configurações adicionais
     'csc' => env('NFE_CSC', ''),
     'csc_id' => env('NFE_CSC_ID', ''),
-    'token_ibpt' => env('NFE_TOKEN_IBPT', ''),
     'serie' => env('NFE_SERIE', '1'),
     'versao' => env('NFE_VERSAO', '4.00'),
 ];

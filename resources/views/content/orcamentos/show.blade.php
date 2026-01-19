@@ -37,9 +37,9 @@
     <ul class="mb-0">
         @foreach($produtosSemEstoque as $item)
         <li>
-            <strong>{{ $item['produto']->nome }}</strong> - 
-            Estoque disponível: <span class="badge bg-danger">{{ $item['estoque_disponivel'] }}</span> | 
-            Solicitado: <span class="badge bg-warning">{{ $item['quantidade_solicitada'] }}</span> | 
+            <strong>{{ $item['produto']->nome }}</strong> -
+            Estoque disponível: <span class="badge bg-danger">{{ $item['estoque_disponivel'] }}</span> |
+            Solicitado: <span class="badge bg-warning">{{ $item['quantidade_solicitada'] }}</span> |
             Faltam: <span class="badge bg-danger">{{ $item['faltam'] }}</span>
         </li>
         @endforeach
@@ -154,8 +154,8 @@
                                         {{ $produto->estoque }}
                                     </span>
                                     @if($produto->estoque < $produto->pivot->quantidade)
-                                    <small class="text-danger d-block">Faltam {{ $produto->pivot->quantidade - $produto->estoque }} unidades</small>
-                                    @endif
+                                        <small class="text-danger d-block">Faltam {{ $produto->pivot->quantidade - $produto->estoque }} unidades</small>
+                                        @endif
                                 </td>
                             </tr>
                             @endforeach
@@ -182,15 +182,15 @@
             <div class="card-body">
                 <div class="d-grid gap-2">
                     @if($orcamento->status == 'pendente')
-                    <form action="{{ route('orcamentos.autorizar', $orcamento->id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja autorizar este orçamento? Uma venda será criada automaticamente.');">
+                    <form id="formAutorizar" action="{{ route('orcamentos.autorizar', $orcamento->id) }}" method="POST">
                         @csrf
-                        <button type="submit" class="btn btn-success w-100" {{ !$podeAutorizar ? 'disabled' : '' }}>
+                        <button type="button" class="btn btn-success w-100" {{ !$podeAutorizar ? 'disabled' : '' }} onclick="confirmAutorizar()">
                             <i class="fas fa-check"></i> Autorizar Orçamento
                         </button>
                     </form>
-                    <form action="{{ route('orcamentos.recusar', $orcamento->id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja recusar este orçamento?');">
+                    <form id="formRecusar" action="{{ route('orcamentos.recusar', $orcamento->id) }}" method="POST">
                         @csrf
-                        <button type="submit" class="btn btn-danger w-100">
+                        <button type="button" class="btn btn-danger w-100" onclick="confirmRecusar()">
                             <i class="fas fa-times"></i> Recusar Orçamento
                         </button>
                     </form>
@@ -217,11 +217,13 @@
             </div>
             <div class="card-body">
                 <p><strong>Status:</strong><br>
-                <span class="badge bg-{{ $orcamento->status == 'autorizado' ? 'success' : ($orcamento->status == 'recusado' ? 'danger' : ($orcamento->status == 'apagado' ? 'secondary' : 'warning')) }}">
-                    {{ ucfirst($orcamento->status) }}
-                </span></p>
+                    <span class="badge bg-{{ $orcamento->status == 'autorizado' ? 'success' : ($orcamento->status == 'recusado' ? 'danger' : ($orcamento->status == 'apagado' ? 'secondary' : 'warning')) }}">
+                        {{ ucfirst($orcamento->status) }}
+                    </span>
+                </p>
                 <p><strong>Última atualização:</strong><br>
-                <small class="text-muted">{{ $orcamento->updated_at->format('d/m/Y H:i') }}</small></p>
+                    <small class="text-muted">{{ $orcamento->updated_at->format('d/m/Y H:i') }}</small>
+                </p>
                 @if($orcamento->isVencido() && $orcamento->status == 'pendente')
                 <p class="text-danger"><strong>⚠ Este orçamento está vencido!</strong></p>
                 @endif
@@ -230,7 +232,54 @@
     </div>
 </div>
 
+<!-- Modal Autorizar -->
+<div class="modal fade" id="modalAutorizar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Autorização</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja autorizar este orçamento? <strong>Uma venda será criada automaticamente.</strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="document.getElementById('formAutorizar').submit()">Sim, Autorizar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Recusar -->
+<div class="modal fade" id="modalRecusar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Recusa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja recusar este orçamento?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" onclick="document.getElementById('formRecusar').submit()">Sim, Recusar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function confirmAutorizar() {
+        var myModal = new bootstrap.Modal(document.getElementById('modalAutorizar'));
+        myModal.show();
+    }
+
+    function confirmRecusar() {
+        var myModal = new bootstrap.Modal(document.getElementById('modalRecusar'));
+        myModal.show();
+    }
+</script>
+
 @endsection
-
-
-

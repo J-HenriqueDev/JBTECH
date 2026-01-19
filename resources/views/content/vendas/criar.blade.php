@@ -44,7 +44,7 @@
                     <select id="select2Cliente" class="select2 form-select" name="cliente_id" required>
                         <option value="" disabled selected>Selecione um cliente</option>
                         @foreach ($clientes as $cliente)
-                        <option value="{{ $cliente->id }}" data-email="{{ $cliente->email }}">{{ $cliente->nome }}</option>
+                        <option value="{{ $cliente->id }}" data-email="{{ $cliente->email }}">#{{ $cliente->id }} - {{ $cliente->nome }} - {{ $cliente->cpf_cnpj }}</option>
                         @endforeach
                     </select>
                 </div>

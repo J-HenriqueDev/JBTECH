@@ -72,7 +72,9 @@
   .text-overlay {
     opacity: 0; /* Começa invisível */
     transform: translateY(20px); /* Move para baixo */
-    transition: opacity 0.5s ease, transform 0.5s ease; /* Transição suave */
+    transition:
+      opacity 0.5s ease,
+      transform 0.5s ease; /* Transição suave */
 
     .swiper-slide-active & {
       opacity: 1; /* Fica visível na slide ativa */
@@ -166,7 +168,9 @@
 }
 .custom-icon {
   font-size: 5rem; /* Aumenta o tamanho dos ícones */
-  transition: transform 0.3s ease, color 0.3s ease; /* Adiciona transição suave para animações */
+  transition:
+    transform 0.3s ease,
+    color 0.3s ease; /* Adiciona transição suave para animações */
 }
 
 .features-icon-box:hover .custom-icon {
@@ -181,7 +185,6 @@
 .features-icon-box p {
   font-size: 1rem; /* Aumenta o tamanho da descrição */
 }
-
 
 // Real customers reviews
 .landing-reviews {
@@ -383,7 +386,6 @@
         max-width: 20rem;
         width: 80%;
       }
-
     }
   }
 }

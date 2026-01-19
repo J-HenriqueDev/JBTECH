@@ -3,227 +3,207 @@
 @section('title', 'Editar Cliente')
 
 @section('content')
-<h1 class="mb-3">Editar Cliente</h1>
-{{-- Notificação --}}
-@if(session('noti'))
-    <!-- Toast Notification -->
-    <div class="position-relative">
-        <div class="bs-toast toast fade show bg-primary animate__animated animate__tada position-absolute end-0" role="alert" aria-live="assertive" aria-atomic="true" style="z-index: 1050; white-space: nowrap;">
-            <div class="toast-header">
-                <i class='bx bx-bell me-2'></i>
-                <div class="me-auto fw-medium">Notificação</div>
-                <small>Agora</small>
-                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-10">
+        <div class="card border-top border-primary border-3 shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center bg-transparent py-3">
+                <h4 class="mb-0 text-primary fw-bold">
+                    <i class="fas fa-user-edit me-2"></i>Editar Cliente
+                </h4>
+                <a href="{{ route('clientes.index') }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i> Voltar
+                </a>
             </div>
-            <div class="toast-body" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                <strong>{{ session('cliente_nome') }}</strong> {{ session('noti') }}
-            </div>
-        </div>
-    </div>
 
-    <script>
-        // Remove the toast after 3 seconds
-        setTimeout(() => {
-            const toastEl = document.querySelector('.bs-toast');
-            if (toastEl) {
-                const bsToast = new bootstrap.Toast(toastEl);
-                bsToast.hide();
-            }
-        }, 3000);
-    </script>
-@endif
-
-<div class="row">
-    <div class="col-md-12">
-        <div class="card mb-4">
             <form action="{{ route('clientes.update', $cliente->id) }}" method="POST">
                 @csrf
                 @method('PUT')
-                <div class="card-body">
-                    <!-- Primeira linha: CPF/CNPJ, Nome/Razão Social, Inscrição Estadual/Data de Nascimento -->
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="cpf">
-                                    <i class="fas fa-id-card"></i> CPF/CNPJ
-                                </label>
-                                <input type="text" class="form-control" id="cpf" name="cpf" value="{{ old('cpf', formatarCpfCnpj($cliente->cpf_cnpj)) }}" readonly>
-                                @error('cpf')
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-                        </div>
+                <div class="card-body p-4">
 
-                        <div class="col-md-5">
-                            <div class="form-group">
-                                <label for="nome">
-                                    <i class="fas fa-user"></i> Nome/Razão Social
-                                </label>
-                                <input type="text" class="form-control" id="nome" name="nome" value="{{ old('nome', $cliente->nome) }}" required>
-                                @error('nome')
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
+                    <!-- Seção: Dados Cadastrais -->
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-primary bg-opacity-10 rounded p-2 me-3 text-primary">
+                            <i class="fas fa-id-card fa-lg"></i>
                         </div>
-
-                        <div class="col-md-4">
-                            <div class="form-group" id="inscricao_estadual_container" style="{{ $cliente->cpf && strlen($cliente->cpf) === 11 ? 'display: none;' : '' }}">
-                                <label for="inscricao_estadual" id="inscricao_estadual_label">
-                                    <i class="fas fa-file-invoice"></i> Inscrição Estadual
-                                </label>
-                                <input type="text" class="form-control" id="inscricao_estadual" name="inscricao_estadual" value="{{ old('inscricao_estadual', $cliente->inscricao_estadual) }}">
-                                @error('inscricao_estadual')
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-
-                            <div class="form-group" id="data_nascimento_container" style="{{ $cliente->cpf && strlen($cliente->cpf) === 11 ? '' : 'display: none;' }}">
-                                <label for="data_nascimento">
-                                    <i class="fas fa-calendar-alt"></i> Data de Nascimento
-                                </label>
-                                <input type="date" class="form-control" id="data_nascimento" name="data_nascimento" value="{{ old('data_nascimento', $cliente->data_nascimento) }}">
-                                @error('data_nascimento')
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-                        </div>
+                        <h5 class="mb-0 fw-bold text-dark">Dados Cadastrais</h5>
                     </div>
 
-                    <!-- Outras linhas -->
-                    <div class="row">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold" for="id">ID</label>
+                            <input type="text" class="form-control" id="id" value="{{ $cliente->id }}" readonly disabled style="background-color: #e9ecef;">
+                        </div>
                         <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="telefone">
-                                    <i class="fas fa-phone"></i> Telefone
-                                </label>
-                                <input type="text" class="form-control" id="telefone" name="telefone" value="{{ old('telefone', $cliente->telefone) }}" placeholder="(00) 00000-0000" oninput="formatPhone(this)" required>
-                                @error('telefone')
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
+                            <label class="form-label fw-bold" for="cpf">CPF / CNPJ</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="cpf" name="cpf"
+                                    value="{{ old('cpf', formatarCpfCnpj($cliente->cpf_cnpj)) }}"
+                                    oninput="formatCPFCNPJ(this)" required>
+                                <button class="btn btn-primary" type="button" id="btn-buscar-cnpj"
+                                    onclick="validarEBuscarCNPJ()" title="Atualizar dados via Receita">
+                                    <i class="fas fa-search me-1"></i>
+                                </button>
                             </div>
+                            @error('cpf') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
                         </div>
 
                         <div class="col-md-8">
-                            <div class="form-group">
-                                <label for="email">
-                                    <i class="fas fa-envelope"></i> E-mail
-                                </label>
-                                <input type="email" class="form-control" id="email" name="email" value="{{ old('email', $cliente->email) }}" required>
-                                @error('email')
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Endereço -->
-                    <div class="row mt-4">
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="cep">
-                                    <i class="fas fa-map-marker-alt"></i> CEP
-                                </label>
-                                <div class="input-group">
-                                    <input type="text" name="cep" id="cep" class="form-control" value="{{ old('cep', $cliente->endereco->cep ? \Illuminate\Support\Str::substr($cliente->endereco->cep, 0, 5) . '-' . \Illuminate\Support\Str::substr($cliente->endereco->cep, 5) : '') }}" placeholder="00000-000" oninput="formatCEP(this)" required>
-                                    <button type="button" class="btn btn-outline-secondary" onclick="buscarCEP('cep', 'endereco', 'bairro', 'cidade', 'estado', 'numero')">
-                                        <i class="fas fa-search"></i>
-                                    </button>
-                                </div>
-                                @error('cep')
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
+                            <label class="form-label fw-bold" for="nome">Nome Completo / Razão Social</label>
+                            <input type="text" class="form-control" id="nome" name="nome"
+                                value="{{ old('nome', $cliente->nome) }}" required>
+                            @error('nome') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
                         </div>
 
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="endereco">
-                                    <i class="fas fa-road"></i> Endereço
-                                </label>
-                                <input type="text" class="form-control" id="endereco" name="endereco" value="{{ old('endereco', $cliente->endereco->endereco) }}" required>
-                                @error('endereco')
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
+                        <div class="col-md-3" id="data_nascimento_container" style="{{ strlen(preg_replace('/\D/', '', $cliente->cpf_cnpj)) > 11 ? 'display:none;' : '' }}">
+                            <label class="form-label fw-bold" for="data_nascimento">Data de Nascimento</label>
+                            <input type="date" class="form-control" id="data_nascimento" name="data_nascimento"
+                                value="{{ old('data_nascimento', $cliente->data_nascimento ? \Carbon\Carbon::parse($cliente->data_nascimento)->format('Y-m-d') : '') }}">
+                        </div>
+
+                        <!-- Dados Fiscais (CNPJ) -->
+                        <div class="col-md-3" id="inscricao_estadual_container">
+                            <label class="form-label fw-bold" for="inscricao_estadual">Inscrição Estadual</label>
+                            <input type="text" class="form-control" id="inscricao_estadual" name="inscricao_estadual"
+                                value="{{ old('inscricao_estadual', $cliente->inscricao_estadual) }}" placeholder="Isento ou Número">
                         </div>
 
                         <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="numero">
-                                    <i class="fas fa-home"></i> Número
-                                </label>
-                                <input type="text" class="form-control" id="numero" name="numero" value="{{ old('numero', $cliente->endereco->numero) }}" required>
-                                @error('numero')
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
+                            <label class="form-label fw-bold" for="inscricao_municipal">Inscrição Municipal</label>
+                            <input type="text" class="form-control" id="inscricao_municipal" name="inscricao_municipal"
+                                value="{{ old('inscricao_municipal', $cliente->inscricao_municipal) }}" placeholder="Opcional">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold" for="indicador_ie">Indicador da IE</label>
+                            <select class="form-select" id="indicador_ie" name="indicador_ie">
+                                <option value="1" {{ old('indicador_ie', $cliente->indicador_ie) == 1 ? 'selected' : '' }}>Contribuinte ICMS</option>
+                                <option value="2" {{ old('indicador_ie', $cliente->indicador_ie) == 2 ? 'selected' : '' }}>Contribuinte Isento</option>
+                                <option value="9" {{ old('indicador_ie', $cliente->indicador_ie) == 9 ? 'selected' : '' }}>Não Contribuinte</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold" for="suframa">Suframa</label>
+                            <input type="text" class="form-control" id="suframa" name="suframa"
+                                value="{{ old('suframa', $cliente->suframa) }}" placeholder="Se houver">
+                        </div>
+                    </div>
+
+                    <hr class="my-4 text-muted opacity-25">
+
+                    <!-- Seção: Contato -->
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-success bg-opacity-10 rounded p-2 me-3 text-success">
+                            <i class="fas fa-address-book fa-lg"></i>
+                        </div>
+                        <h5 class="mb-0 fw-bold text-dark">Informações de Contato</h5>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold" for="telefone">Telefone Principal</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-phone"></i></span>
+                                <input type="text" class="form-control" id="telefone" name="telefone"
+                                    value="{{ old('telefone', $cliente->telefone) }}"
+                                    placeholder="(00) 00000-0000" oninput="formatPhone(this)" required>
+                            </div>
+                            @error('telefone') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold" for="telefone_secundario">Telefone Secundário</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-phone-alt"></i></span>
+                                <input type="text" class="form-control" id="telefone_secundario" name="telefone_secundario"
+                                    value="{{ old('telefone_secundario', $cliente->telefone_secundario) }}"
+                                    placeholder="(00) 00000-0000" oninput="formatPhone(this)">
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold" for="email">E-mail Principal</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-envelope"></i></span>
+                                <input type="email" class="form-control" id="email" name="email"
+                                    value="{{ old('email', $cliente->email) }}" required>
+                            </div>
+                            @error('email') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold" for="email_secundario">E-mail Secundário</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-envelope-open"></i></span>
+                                <input type="email" class="form-control" id="email_secundario" name="email_secundario"
+                                    value="{{ old('email_secundario', $cliente->email_secundario) }}">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Bairro, Cidade, Estado -->
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="bairro">
-                                    <i class="fas fa-map-pin"></i> Bairro
-                                </label>
-                                <input type="text" class="form-control" id="bairro" name="bairro" value="{{ old('bairro', $cliente->endereco->bairro) }}" required>
-                                @error('bairro')
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-                        </div>
+                    <hr class="my-4 text-muted opacity-25">
 
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="cidade">
-                                    <i class="fas fa-city"></i> Cidade
-                                </label>
-                                <input type="text" class="form-control" id="cidade" name="cidade" value="{{ old('cidade', $cliente->endereco->cidade) }}" required>
-                                @error('cidade')
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
+                    <!-- Seção: Endereço -->
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-warning bg-opacity-10 rounded p-2 me-3 text-warning">
+                            <i class="fas fa-map-marker-alt fa-lg"></i>
                         </div>
-
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="estado">
-                                    <i class="fas fa-globe-americas"></i> Estado
-                                </label>
-                                <input type="text" class="form-control" id="estado" name="estado" value="{{ old('estado', $cliente->endereco->estado) }}" required>
-                                @error('estado')
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-                        </div>
+                        <h5 class="mb-0 fw-bold text-dark">Endereço Completo</h5>
                     </div>
 
-                    <!-- Tipo de Cliente -->
-                    <div class="divider my-6">
-                        <div class="divider-text"><i class="fas fa-briefcase"></i> Tipo de Cliente</div>
-                    </div>
-
-                    <div class="form-group col-sm-5">
-                        <label for="tipo_cliente" class="form-label d-block">
-                        </label>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="tipo_cliente" id="particular" value="0" {{ old('tipo_cliente', $cliente->tipo_cliente) == 0 ? 'checked' : '' }}>
-                            <label class="form-check-label" for="particular">Particular</label>
+                    <div class="row g-3">
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold" for="cep">CEP</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="cep" name="cep"
+                                    value="{{ old('cep', $cliente->endereco->cep) }}"
+                                    placeholder="00000-000" oninput="formatCEP(this)" required>
+                                <button class="btn btn-outline-secondary" type="button"
+                                    onclick="buscarCEP('cep', 'endereco', 'bairro', 'cidade', 'estado', 'numero')">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                            @error('cep') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
                         </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="tipo_cliente" id="empresarial" value="1" {{ old('tipo_cliente', $cliente->tipo_cliente) == 1 ? 'checked' : '' }}>
-                            <label class="form-check-label" for="empresarial">Empresarial</label>
+
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold" for="endereco">Rua / Avenida</label>
+                            <input type="text" class="form-control" id="endereco" name="endereco"
+                                value="{{ old('endereco', $cliente->endereco->endereco) }}" required>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold" for="numero">Número</label>
+                            <input type="text" class="form-control" id="numero" name="numero"
+                                value="{{ old('numero', $cliente->endereco->numero) }}" required>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold" for="bairro">Bairro</label>
+                            <input type="text" class="form-control" id="bairro" name="bairro"
+                                value="{{ old('bairro', $cliente->endereco->bairro) }}" required>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold" for="cidade">Cidade</label>
+                            <input type="text" class="form-control" id="cidade" name="cidade"
+                                value="{{ old('cidade', $cliente->endereco->cidade) }}" required>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold" for="estado">UF</label>
+                            <input type="text" class="form-control" id="estado" name="estado" maxlength="2"
+                                value="{{ old('estado', $cliente->endereco->estado) }}" required>
                         </div>
                     </div>
 
                 </div>
 
-                <div class="card-footer text-end">
-                    <button type="submit" class="btn btn-primary">Atualizar</button>
-                      <button type="button" class="btn btn-secondary me-2" onclick="window.history.back();">
-                        <i class="bx bx-x"></i> Cancelar
-                      </button>
+                <div class="card-footer bg-light px-4 py-3 d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-label-secondary" onclick="window.history.back()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary fw-bold px-4">
+                        <i class="fas fa-save me-2"></i> Atualizar
+                    </button>
                 </div>
             </form>
         </div>
@@ -232,8 +212,47 @@
 
 <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
 <script>
+    function validarEBuscarCNPJ() {
+        const cpfInput = document.getElementById('cpf');
+        const valor = cpfInput.value.replace(/\D/g, '');
+
+        if (!valor) {
+            alert('Por favor, digite um CNPJ antes de buscar.');
+            cpfInput.focus();
+            return;
+        }
+
+        if (valor.length !== 14) {
+             alert('Para realizar a busca, digite um CNPJ válido (14 dígitos).');
+             cpfInput.focus();
+             return;
+        }
+
+        buscarCNPJ('cpf', 'nome', 'cep', 'endereco', 'numero', 'bairro', 'cidade', 'estado', 'telefone', 'email');
+    }
+
     $(document).ready(function() {
-        // Auto-busca CEP ao sair do campo
+        $('#cpf').on('input', function() {
+            var cpfCnpj = $(this).val().replace(/\D/g, '');
+
+            if (cpfCnpj.length > 11) {
+                $('#data_nascimento_container').hide();
+                $('#btn-buscar-cnpj').prop('disabled', false);
+
+                // Busca automática se tiver 14 dígitos
+                if (cpfCnpj.length === 14) {
+                    buscarCNPJ('cpf', 'nome', 'cep', 'endereco', 'numero', 'bairro', 'cidade', 'estado', 'telefone', 'email');
+                }
+            } else {
+                $('#data_nascimento_container').show();
+                $('#btn-buscar-cnpj').prop('disabled', true);
+            }
+        });
+
+        // Trigger inicial
+        $('#cpf').trigger('input');
+
+        // Auto-busca CEP
         autoBuscarCEP('cep', 'endereco', 'bairro', 'cidade', 'estado', 'numero');
     });
 </script>

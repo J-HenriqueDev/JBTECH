@@ -5,9 +5,9 @@
 'use strict';
 
 $(function () {
-  // const selectPicker = $('.selectpicker'),
-  //   select2 = $('.select2'),
-  //   select2Icons = $('.select2-icons');
+  const selectPicker = $('.selectpicker'),
+    select2 = $('.select2'),
+    select2Icons = $('.select2-icons');
 
   // // Bootstrap Select
   // // --------------------------------------------------------------------
@@ -19,17 +19,17 @@ $(function () {
   // --------------------------------------------------------------------
 
   // Default
-// Default
-if (select2.length) {
-  select2.each(function () {
+  // Select2
+  if (select2.length) {
+    select2.each(function () {
       var $this = $(this);
       $this.wrap('<div class="position-relative"></div>').select2({
-          placeholder: 'Selecione um cliente',
-          dropdownParent: $this.parent(),
-          minimumResultsForSearch: Infinity // Opcional, se você não precisar de uma barra de pesquisa
+        dropdownParent: $this.parent(),
+        placeholder: $this.attr('placeholder') || 'Selecione',
+        allowClear: true
       });
-  });
-}
+    });
+  }
 
 
   // Select2 Icons

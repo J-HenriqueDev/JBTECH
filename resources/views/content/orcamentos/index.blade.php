@@ -132,7 +132,7 @@
                                     </label>
                                     <input type="text" name="search" id="search" class="form-control" placeholder="ID, Cliente ou CPF/CNPJ" value="{{ request('search') }}">
                                 </div>
-                                
+
                                 <!-- Status -->
                                 <div class="col-md-3">
                                     <label class="form-label fw-semibold">
@@ -146,7 +146,7 @@
                                     </select>
                                     <small class="text-muted">Segure Ctrl para múltipla seleção</small>
                                 </div>
-                                
+
                                 <!-- Data Início -->
                                 <div class="col-md-2">
                                     <label class="form-label fw-semibold">
@@ -154,7 +154,7 @@
                                     </label>
                                     <input type="date" name="data_inicio" class="form-control" value="{{ request('data_inicio') }}">
                                 </div>
-                                
+
                                 <!-- Data Fim -->
                                 <div class="col-md-2">
                                     <label class="form-label fw-semibold">
@@ -162,7 +162,7 @@
                                     </label>
                                     <input type="date" name="data_fim" class="form-control" value="{{ request('data_fim') }}">
                                 </div>
-                                
+
                                 <!-- Botões -->
                                 <div class="col-md-1 d-flex flex-column justify-content-end">
                                     <button type="submit" class="btn btn-primary mb-2" title="Aplicar Filtros">
@@ -173,10 +173,10 @@
                                     </a>
                                 </div>
                             </div>
-                            
+
                             <!-- Status Selecionados (Badges) -->
                             @php
-                                $statusSelecionados = request('status', []);
+                            $statusSelecionados = request('status', []);
                             @endphp
                             @if(!empty($statusSelecionados))
                             <div class="mt-3 pt-3 border-top">
@@ -186,13 +186,13 @@
                                 <div class="d-flex flex-wrap gap-2">
                                     @foreach($statusSelecionados as $status)
                                     @php
-                                        $statusArray = $statusSelecionados;
-                                        $key = array_search($status, $statusArray);
-                                        unset($statusArray[$key]);
-                                        $novoRequest = request()->except(['status']);
-                                        if (!empty($statusArray)) {
-                                            $novoRequest['status'] = array_values($statusArray);
-                                        }
+                                    $statusArray = $statusSelecionados;
+                                    $key = array_search($status, $statusArray);
+                                    unset($statusArray[$key]);
+                                    $novoRequest = request()->except(['status']);
+                                    if (!empty($statusArray)) {
+                                    $novoRequest['status'] = array_values($statusArray);
+                                    }
                                     @endphp
                                     <span class="badge bg-{{ $status == 'autorizado' ? 'success' : ($status == 'recusado' ? 'danger' : ($status == 'apagado' ? 'secondary' : 'warning')) }} d-inline-flex align-items-center">
                                         {{ ucfirst($status) }}
@@ -202,7 +202,7 @@
                                 </div>
                             </div>
                             @endif
-                            
+
                             <input type="hidden" name="ordenacao" value="{{ request('ordenacao', 'recentes') }}">
                         </form>
                     </div>
@@ -223,54 +223,44 @@
                         </thead>
                         <tbody>
                             @foreach ($orcamentos as $orcamento)
-                                <tr>
-                                    <td><strong>#{{ $orcamento->id }}</strong></td>
-                                    <td class="orcamento-cliente">
-                                        <strong>{{ \Illuminate\Support\Str::limit($orcamento->cliente->nome ?? 'Cliente não encontrado', 40, '...') }}</strong>
-                                    </td>
-                                    <td class="orcamento-data">{{ \Carbon\Carbon::parse($orcamento->data)->format('d/m/Y') }}</td>
-                                    <td class="orcamento-validade">
-                                        {{ \Carbon\Carbon::parse($orcamento->validade)->format('d/m/Y') }}
-                                        @if($orcamento->validade < now() && $orcamento->status == 'pendente')
+                            <tr>
+                                <td><strong>#{{ $orcamento->id }}</strong></td>
+                                <td class="orcamento-cliente">
+                                    <strong>{{ \Illuminate\Support\Str::limit($orcamento->cliente->nome ?? 'Cliente não encontrado', 40, '...') }}</strong>
+                                </td>
+                                <td class="orcamento-data">{{ \Carbon\Carbon::parse($orcamento->data)->format('d/m/Y') }}</td>
+                                <td class="orcamento-validade">
+                                    {{ \Carbon\Carbon::parse($orcamento->validade)->format('d/m/Y') }}
+                                    @if($orcamento->validade < now() && $orcamento->status == 'pendente')
                                         <span class="badge bg-danger ms-1">Vencido</span>
                                         @endif
-                                    </td>
-                                    <td class="orcamento-valor"><strong>R$ {{ number_format($orcamento->valor_total, 2, ',', '.') }}</strong></td>
-                                    <td class="orcamento-status">
-                                        <span class="badge bg-{{ $orcamento->status == 'autorizado' ? 'success' : ($orcamento->status == 'recusado' ? 'danger' : ($orcamento->status == 'apagado' ? 'secondary' : 'warning')) }}">
-                                            {{ ucfirst($orcamento->status) }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <small class="text-muted">{{ $orcamento->usuario->name ?? 'N/A' }}</small>
-                                    </td>
-                                    <td>
-                                        <div class="dropdown">
-                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                                                <i class="bx bx-dots-vertical-rounded"></i>
-                                            </button>
-                                            <div class="dropdown-menu">
-                                                <a class="dropdown-item" href="{{ route('orcamentos.show', $orcamento->id) }}">
-                                                    <i class="bx bx-show me-1"></i> Ver Detalhes
-                                                </a>
-                                                <a class="dropdown-item" href="{{ route('orcamentos.edit', $orcamento->id) }}">
-                                                    <i class="bx bx-edit-alt me-1"></i> Editar
-                                                </a>
-                                                <a class="dropdown-item" href="{{ route('orcamentos.gerarPdf', $orcamento->id) }}" target="_blank">
-                                                    <i class="bx bx-file me-1"></i> Gerar PDF
-                                                </a>
-                                                <div class="dropdown-divider"></div>
-                                                <form action="{{ route('orcamentos.destroy', $orcamento->id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir este orçamento?');">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="dropdown-item text-danger">
-                                                        <i class="bx bx-trash me-1"></i> Excluir
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
+                                </td>
+                                <td class="orcamento-valor"><strong>R$ {{ number_format($orcamento->valor_total, 2, ',', '.') }}</strong></td>
+                                <td class="orcamento-status">
+                                    <span class="badge bg-{{ $orcamento->status == 'autorizado' ? 'success' : ($orcamento->status == 'recusado' ? 'danger' : ($orcamento->status == 'apagado' ? 'secondary' : 'warning')) }}">
+                                        {{ ucfirst($orcamento->status) }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ $orcamento->usuario->name ?? 'N/A' }}</small>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ route('orcamentos.show', $orcamento->id) }}" class="btn btn-sm btn-icon btn-outline-info" title="Ver Detalhes">
+                                            <i class="bx bx-show"></i>
+                                        </a>
+                                        <a href="{{ route('orcamentos.edit', $orcamento->id) }}" class="btn btn-sm btn-icon btn-outline-primary" title="Editar">
+                                            <i class="bx bx-edit-alt"></i>
+                                        </a>
+                                        <a href="{{ route('orcamentos.gerarPdf', $orcamento->id) }}" target="_blank" class="btn btn-sm btn-icon btn-outline-secondary" title="Gerar PDF">
+                                            <i class="bx bx-file"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger" onclick="confirmDelete('{{ route('orcamentos.destroy', $orcamento->id) }}')" title="Excluir">
+                                            <i class="bx bx-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
                             @endforeach
                         </tbody>
                     </table>
@@ -285,10 +275,40 @@
     {{ $orcamentos->appends(request()->query())->links() }}
 </div>
 
-<!-- Script para Aplicar Filtros -->
+<!-- Modal de Confirmação de Exclusão -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCenterTitle">Confirmar Exclusão</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir este orçamento?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="deleteForm" method="POST" action="">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger">Excluir</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script para Aplicar Filtros e Modal -->
 <script>
     function aplicarFiltros() {
         document.getElementById('filtrosForm').submit();
+    }
+
+    function confirmDelete(url) {
+        var form = document.getElementById('deleteForm');
+        form.action = url;
+        var myModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        myModal.show();
     }
 </script>
 

@@ -23,18 +23,14 @@ class ClientesController extends Controller
             $search = $request->search;
             $query->where(function ($query) use ($search) {
                 $query->where('nome', 'LIKE', "%{$search}%")
-                      ->orWhere('cpf_cnpj', 'LIKE', "%{$search}%")
-                      ->orWhere('email', 'LIKE', "%{$search}%")
-                      ->orWhere('telefone', 'LIKE', "%{$search}%");
+                    ->orWhere('cpf_cnpj', 'LIKE', "%{$search}%")
+                    ->orWhere('email', 'LIKE', "%{$search}%")
+                    ->orWhere('telefone', 'LIKE', "%{$search}%");
             });
         }
-        
-        if ($request->has('tipo_cliente') && $request->tipo_cliente !== '') {
-            $query->where('tipo_cliente', $request->tipo_cliente);
-        }
-        
+
         if ($request->has('cidade') && $request->cidade != '') {
-            $query->whereHas('endereco', function($q) use ($request) {
+            $query->whereHas('endereco', function ($q) use ($request) {
                 $q->where('cidade', 'LIKE', "%{$request->cidade}%");
             });
         }
@@ -42,8 +38,6 @@ class ClientesController extends Controller
         // Estatísticas
         $stats = [
             'total' => Clientes::count(),
-            'particulares' => Clientes::where('tipo_cliente', 0)->count(),
-            'empresariais' => Clientes::where('tipo_cliente', 1)->count(),
             'total_vendas' => \App\Models\Venda::sum('valor_total'),
             'total_orcamentos' => \App\Models\Orcamento::count(),
         ];
@@ -52,25 +46,25 @@ class ClientesController extends Controller
 
         return view('content.clientes.listar', compact('clientes', 'stats'));
     }
-    
+
     public function show($id)
     {
         $cliente = Clientes::with([
             'endereco',
-            'vendas' => function($query) {
+            'vendas' => function ($query) {
                 $query->orderBy('created_at', 'desc')->limit(10);
             },
-            'orcamentos' => function($query) {
+            'orcamentos' => function ($query) {
                 $query->orderBy('created_at', 'desc')->limit(10);
             },
-            'ordensServico' => function($query) {
+            'ordensServico' => function ($query) {
                 $query->orderBy('created_at', 'desc')->limit(10);
             },
-            'cobrancas' => function($query) {
+            'cobrancas' => function ($query) {
                 $query->orderBy('created_at', 'desc')->limit(10);
             }
         ])->findOrFail($id);
-        
+
         // Estatísticas do cliente
         $statsCliente = [
             'total_vendas' => $cliente->vendas->sum('valor_total'),
@@ -80,7 +74,7 @@ class ClientesController extends Controller
             'cobrancas_pendentes' => $cliente->cobrancas->where('status', 'pendente')->sum('valor'),
             'cobrancas_pagas' => $cliente->cobrancas->where('status', 'pago')->sum('valor'),
         ];
-        
+
         return view('content.clientes.show', compact('cliente', 'statsCliente'));
     }
 
@@ -91,30 +85,30 @@ class ClientesController extends Controller
     }
 
     public function edit($id)
-{
-    // Busca o cliente pelo ID
-    $cliente = Clientes::with('endereco')->findOrFail($id);
+    {
+        // Busca o cliente pelo ID
+        $cliente = Clientes::with('endereco')->findOrFail($id);
 
-    // Retorna a view de edição com os dados do cliente
-    return view('content.clientes.editar', compact('cliente'));
-}
-
-public function search(Request $request)
-{
-    $search = $request->input('search');
-
-    if ($search === 'all') {
-        // Retorna todos os clientes
-        $clientes = Clientes::all();
-    } else {
-        // Realiza a busca
-        $clientes = Clientes::where('nome', 'like', "%{$search}%")
-                        ->orWhere('cpf_cnpj', 'like', "%{$search}%")
-                        ->get();
+        // Retorna a view de edição com os dados do cliente
+        return view('content.clientes.editar', compact('cliente'));
     }
 
-    return response()->json($clientes);
-}
+    public function search(Request $request)
+    {
+        $search = $request->input('search');
+
+        if ($search === 'all') {
+            // Retorna todos os clientes
+            $clientes = Clientes::all();
+        } else {
+            // Realiza a busca
+            $clientes = Clientes::where('nome', 'like', "%{$search}%")
+                ->orWhere('cpf_cnpj', 'like', "%{$search}%")
+                ->get();
+        }
+
+        return response()->json($clientes);
+    }
 
 
     public function store(Request $request)
@@ -130,30 +124,30 @@ public function search(Request $request)
         $exigirDocumento = \App\Models\Configuracao::get('clientes_exigir_documento', '0') == '1';
         $exigirEmail = \App\Models\Configuracao::get('clientes_exigir_email', '0') == '1';
         $exigirTelefone = \App\Models\Configuracao::get('clientes_exigir_telefone', '0') == '1';
-        
+
         $rules = [
             'nome' => 'required|string|max:255',
             'cpf' => [
                 $exigirDocumento ? 'required' : 'nullable',
                 'string',
-                function($attribute, $value, $fail) use ($cpfCnpj, $isCnpj, $exigirDocumento) {
+                function ($attribute, $value, $fail) use ($cpfCnpj, $isCnpj, $exigirDocumento) {
                     if ($exigirDocumento && empty($cpfCnpj)) {
                         $fail('O campo CPF/CNPJ é obrigatório.');
                         return;
                     }
-                    
+
                     if (!empty($cpfCnpj)) {
                         if ($isCnpj && strlen($cpfCnpj) !== 14) {
                             $fail('O campo CNPJ deve ter 14 dígitos.');
                         } elseif (!$isCnpj && strlen($cpfCnpj) !== 11) {
                             $fail('O campo CPF deve ter 11 dígitos.');
                         }
-                        
+
                         // Validação de CPF/CNPJ
                         if (!CpfCnpjValidator::validar($cpfCnpj)) {
                             $fail($isCnpj ? 'CNPJ inválido.' : 'CPF inválido.');
                         }
-                        
+
                         // Verifica se já existe
                         if (Clientes::where('cpf_cnpj', $cpfCnpj)->exists()) {
                             $fail($isCnpj ? 'Este CNPJ já está cadastrado.' : 'Este CPF já está cadastrado.');
@@ -166,7 +160,7 @@ public function search(Request $request)
             'cep' => [
                 'required',
                 'string',
-                function($attribute, $value, $fail) use ($cep) {
+                function ($attribute, $value, $fail) use ($cep) {
                     if (strlen($cep) !== 8) {
                         $fail('O campo CEP deve ter 8 dígitos.');
                     }
@@ -177,10 +171,21 @@ public function search(Request $request)
             'bairro' => 'required|string|max:255',
             'cidade' => 'required|string|max:255',
             'estado' => 'required|string|max:2',
-            'tipo_cliente' => 'required|string|max:50',
+            'email_secundario' => 'nullable|email|max:255',
+            'telefone_secundario' => 'nullable|string|max:255',
+            'inscricao_municipal' => 'nullable|string|max:50',
+            'indicador_ie' => 'nullable|integer',
         ];
-        
+
         $request->validate($rules);
+
+        $inscricaoEstadual = $request->inscricao_estadual;
+        $uf = strtoupper($request->estado);
+        if (!$this->validarInscricaoEstadualCliente($inscricaoEstadual, $uf)) {
+            return redirect()->back()
+                ->withErrors('A Inscrição Estadual é inválida para a UF informada. Use apenas números ou ISENTO.')
+                ->withInput();
+        }
 
         // Busca do endereço pelo CEP inserido (já sem pontuação)
         $endereco = $this->buscarEnderecoPorCep($cep);
@@ -208,19 +213,24 @@ public function search(Request $request)
         // dd($cpfCnpj);
         // Cadastra o cliente
         $cliente = Clientes::create([
-          'nome' => $request->nome,
-          'cpf_cnpj' => $cpfCnpj,
-          'telefone' => $request->telefone,
-          'email' => $request->email,
-          'endereco_id' => $endereco->id,
-          'tipo_cliente' => $request->tipo_cliente,
-          'inscricao_estadual' => $request->inscricao_estadual ?? null,
-          'data_nascimento' => $request->data_nascimento ?? null,
-          'created_at' => Carbon::now()
+            'nome' => $request->nome,
+            'cpf_cnpj' => $cpfCnpj,
+            'telefone' => $request->telefone,
+            'email' => $request->email,
+            'endereco_id' => $endereco->id,
+            'tipo_cliente' => $request->tipo_cliente ?? 0,
+            'inscricao_estadual' => $request->inscricao_estadual ?? null,
+            'data_nascimento' => $request->data_nascimento ?? null,
+            'email_secundario' => $request->email_secundario,
+            'telefone_secundario' => $request->telefone_secundario,
+            'inscricao_municipal' => $request->inscricao_municipal,
+            'indicador_ie' => $request->indicador_ie ?? 9,
+            'suframa' => $request->suframa,
+            'created_at' => Carbon::now()
         ]);
-        
+
         // Nota: Limite de crédito será implementado quando o campo for adicionado à tabela
-        
+
         LogService::registrar(
             'Cliente',
             'Criar',
@@ -236,97 +246,172 @@ public function search(Request $request)
         // Retorno com mensagem de sucesso
         // session(['noti' => 'Cliente ' . $cliente->nome . ' cadastrado com sucesso!']);
         return redirect()->route('clientes.index')->with('noti', 'Cliente ' . $cliente->nome . ' cadastrado com sucesso!');
-
     }
 
     public function update(Request $request, $id)
     {
-    // Remove a formatação do CPF antes de validar
-    // Remove a formatação do CPF antes de validar
-    $cpfCnpj = preg_replace('/[^0-9]/', '', $request->input('cpf'));
-    $isCnpj = strlen($cpfCnpj) === 14;
+        // Remove a formatação do CPF antes de validar
+        // Remove a formatação do CPF antes de validar
+        $cpfCnpj = preg_replace('/[^0-9]/', '', $request->input('cpf'));
+        $isCnpj = strlen($cpfCnpj) === 14;
 
 
-// Debug: verifique se o CPF foi desformatado corretamente
-// dd($cpfCnpj);
+        // Debug: verifique se o CPF foi desformatado corretamente
+        // dd($cpfCnpj);
 
 
-    // Validação dos dados recebidos
-    $request->validate([
-        'cpf' => [
+        // Validação dos dados recebidos
+        $request->validate([
+            'cpf' => [
                 'required',
                 'string',
-                function($attribute, $value, $fail) use ($cpfCnpj, $isCnpj, $id) {
+                function ($attribute, $value, $fail) use ($cpfCnpj, $isCnpj, $id) {
                     if ($isCnpj && strlen($cpfCnpj) !== 14) {
                         $fail('O campo CNPJ deve ter 14 dígitos.');
                     } elseif (!$isCnpj && strlen($cpfCnpj) !== 11) {
                         $fail('O campo CPF deve ter 11 dígitos.');
                     }
-                    
+
                     // Validação de CPF/CNPJ
                     if (!CpfCnpjValidator::validar($cpfCnpj)) {
                         $fail($isCnpj ? 'CNPJ inválido.' : 'CPF inválido.');
                     }
-                    
+
                     // Verifica se já existe (exceto o próprio registro)
                     if (Clientes::where('cpf_cnpj', $cpfCnpj)->where('id', '!=', $id)->exists()) {
                         $fail($isCnpj ? 'Este CNPJ já está cadastrado.' : 'Este CPF já está cadastrado.');
                     }
                 }
             ],
-        'nome' => 'required|string|max:255',
-        'inscricao_estadual' => 'nullable|string|max:20',
-        'data_nascimento' => 'nullable|date',
-        'telefone' => 'required|string|max:15',
-        'email' => 'required|email|max:255',
-        'cep' => 'required|string|max:10',
-        'endereco' => 'required|string|max:255',
-        'numero' => 'required|string|max:10',
-        'bairro' => 'required|string|max:255',
-        'cidade' => 'required|string|max:255',
-        'estado' => 'required|string|max:2',
-        'tipo_cliente' => 'required|boolean',
-    ]);
+            'nome' => 'required|string|max:255',
+            'inscricao_estadual' => 'nullable|string|max:20',
+            'data_nascimento' => 'nullable|date',
+            'telefone' => 'required|string|max:15',
+            'email' => 'required|email|max:255',
+            'cep' => 'required|string|max:10',
+            'endereco' => 'required|string|max:255',
+            'numero' => 'required|string|max:10',
+            'bairro' => 'required|string|max:255',
+            'cidade' => 'required|string|max:255',
+            'estado' => 'required|string|max:2',
+            'email_secundario' => 'nullable|email|max:255',
+            'telefone_secundario' => 'nullable|string|max:255',
+            'inscricao_municipal' => 'nullable|string|max:50',
+            'indicador_ie' => 'nullable|integer',
+        ]);
 
-    // Busca o cliente pelo ID
-    $cliente = Clientes::with('endereco')->findOrFail($id);
+        $inscricaoEstadual = $request->inscricao_estadual;
+        $uf = strtoupper($request->estado);
+        if (!$this->validarInscricaoEstadualCliente($inscricaoEstadual, $uf)) {
+            return redirect()->back()
+                ->withErrors('A Inscrição Estadual é inválida para a UF informada. Use apenas números ou ISENTO.')
+                ->withInput();
+        }
 
-    // Remove formatação do CEP
-    $cep = preg_replace('/\D/', '', $request->cep);
-    
-    // Busca endereço atualizado pelo CEP
-    $enderecoData = $this->buscarEnderecoPorCep($cep);
-    
-    // Atualiza os dados do cliente
-    $cliente->update([
-        'nome' => $request->nome,
-        'cpf_cnpj' => $cpfCnpj,
-        'telefone' => $request->telefone,
-        'email' => $request->email,
-        'tipo_cliente' => $request->tipo_cliente,
-        'inscricao_estadual' => $request->inscricao_estadual ?? null,
-        'data_nascimento' => $request->data_nascimento ?? null,
-    ]);
+        // Busca o cliente pelo ID
+        $cliente = Clientes::with('endereco')->findOrFail($id);
 
-    // Atualiza os dados do endereço
-    $cliente->endereco->update([
-        'cep' => $cep,
-        'endereco' => $request->endereco,
-        'numero' => $request->numero,
-        'bairro' => $request->bairro,
-        'cidade' => $enderecoData ? $enderecoData['localidade'] : $request->cidade,
-        'estado' => $enderecoData ? $enderecoData['uf'] : $request->estado,
-    ]);
-    
-    LogService::registrar(
-        'Cliente',
-        'Atualizar',
-        "Cliente '{$cliente->nome}' atualizado"
-    );
+        // Remove formatação do CEP
+        $cep = preg_replace('/\D/', '', $request->cep);
 
-    return redirect()->route('clientes.index')->with('noti', 'Cliente <strong>' . $cliente->nome . '</strong> atualizado com sucesso!');
+        // Busca endereço atualizado pelo CEP
+        $enderecoData = $this->buscarEnderecoPorCep($cep);
 
-}
+        // Atualiza os dados do cliente
+        $cliente->update([
+            'nome' => $request->nome,
+            'cpf_cnpj' => $cpfCnpj,
+            'telefone' => $request->telefone,
+            'email' => $request->email,
+            'tipo_cliente' => $request->tipo_cliente ?? 0,
+            'inscricao_estadual' => $request->inscricao_estadual ?? null,
+            'data_nascimento' => $request->data_nascimento ?? null,
+            'email_secundario' => $request->email_secundario,
+            'telefone_secundario' => $request->telefone_secundario,
+            'inscricao_municipal' => $request->inscricao_municipal,
+            'indicador_ie' => $request->indicador_ie ?? 9,
+            'suframa' => $request->suframa,
+        ]);
+
+        // Atualiza os dados do endereço
+        $cliente->endereco->update([
+            'cep' => $cep,
+            'endereco' => $request->endereco,
+            'numero' => $request->numero,
+            'bairro' => $request->bairro,
+            'cidade' => $enderecoData ? $enderecoData['localidade'] : $request->cidade,
+            'estado' => $enderecoData ? $enderecoData['uf'] : $request->estado,
+        ]);
+
+        LogService::registrar(
+            'Cliente',
+            'Atualizar',
+            "Cliente '{$cliente->nome}' atualizado"
+        );
+
+        return redirect()->route('clientes.index')->with('noti', 'Cliente <strong>' . $cliente->nome . '</strong> atualizado com sucesso!');
+    }
+
+    protected function validarInscricaoEstadualCliente($inscricao, $uf)
+    {
+        if ($inscricao === null || $inscricao === '') {
+            return true;
+        }
+
+        $valor = strtoupper(trim($inscricao));
+
+        if ($valor === 'ISENTO') {
+            return true;
+        }
+
+        $numeros = preg_replace('/[^0-9]/', '', $valor);
+
+        if ($numeros === '') {
+            return false;
+        }
+
+        $tamanho = strlen($numeros);
+
+        $tamanhosPorUf = [
+            'AC' => 13,
+            'AL' => 9,
+            'AP' => 9,
+            'AM' => 9,
+            'BA' => 8,
+            'CE' => 9,
+            'DF' => 13,
+            'ES' => 9,
+            'GO' => 9,
+            'MA' => 9,
+            'MT' => 11,
+            'MS' => 8,
+            'MG' => 13,
+            'PA' => 9,
+            'PB' => 9,
+            'PR' => 10,
+            'PE' => 14,
+            'PI' => 9,
+            'RJ' => 8,
+            'RN' => 9,
+            'RS' => 10,
+            'RO' => 14,
+            'RR' => 9,
+            'SC' => 9,
+            'SP' => 12,
+            'SE' => 9,
+            'TO' => 9,
+        ];
+
+        if (isset($tamanhosPorUf[$uf]) && $tamanho !== $tamanhosPorUf[$uf]) {
+            return false;
+        }
+
+        if ($tamanho < 2 || $tamanho > 14) {
+            return false;
+        }
+
+        return true;
+    }
 
 
     // Função para buscar endereço por CEP usando a API ViaCEP
@@ -357,21 +442,21 @@ public function search(Request $request)
     public function destroy($id)
     {
         $cliente = Clientes::findOrFail($id);
-        
+
         // Verifica se há vendas, orçamentos ou OS associados
         if ($cliente->vendas()->count() > 0 || $cliente->orcamentos()->count() > 0 || $cliente->ordensServico()->count() > 0) {
             return redirect()->back()->with('error', 'Não é possível excluir este cliente pois possui vendas, orçamentos ou ordens de serviço associadas!');
         }
-        
+
         $nome = $cliente->nome;
         $cliente->delete();
-        
+
         LogService::registrar(
             'Cliente',
             'Excluir',
             "Cliente '{$nome}' excluído"
         );
-        
+
         return redirect()->route('clientes.index')->with('noti', 'Cliente <strong>' . $nome . '</strong> excluído com sucesso!');
     }
 
@@ -383,5 +468,4 @@ public function search(Request $request)
             'alert-type' => $type
         ];
     }
-
 }

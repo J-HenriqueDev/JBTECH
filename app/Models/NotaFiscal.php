@@ -9,12 +9,17 @@ class NotaFiscal extends Model
 {
     use HasFactory;
 
+    protected $table = 'notas_fiscais';
+
     protected $fillable = [
         'venda_id',
         'cliente_id',
         'numero_nfe',
         'chave_acesso',
         'serie',
+        'natureza_operacao',
+        'tipo_documento',
+        'finalidade',
         'status',
         'xml',
         'xml_cancelamento',
@@ -22,19 +27,23 @@ class NotaFiscal extends Model
         'motivo_rejeicao',
         'valor_total',
         'data_emissao',
+        'data_saida',
         'data_vencimento',
         'observacoes',
         'dados_emitente',
         'dados_destinatario',
+        'dados_pagamento',
         'produtos',
     ];
 
     protected $casts = [
         'dados_emitente' => 'array',
         'dados_destinatario' => 'array',
+        'dados_pagamento' => 'array',
         'produtos' => 'array',
         'valor_total' => 'decimal:2',
-        'data_emissao' => 'date',
+        'data_emissao' => 'datetime',
+        'data_saida' => 'datetime',
         'data_vencimento' => 'date',
     ];
 

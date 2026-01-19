@@ -43,7 +43,7 @@
                                     <option value="" disabled selected>Selecione um cliente</option>
                                     @foreach ($clientes as $cliente)
                                     <option value="{{$cliente->id}}">
-                                        {{$cliente->nome}}
+                                        #{{$cliente->id}} - {{$cliente->nome}} - {{$cliente->cpf_cnpj}}
                                     </option>
                                     @endforeach
                                 </select>

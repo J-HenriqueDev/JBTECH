@@ -127,10 +127,6 @@ class RelatorioController extends Controller
     {
         $query = Clientes::with('endereco');
 
-        if ($request->filled('tipo_cliente')) {
-            $query->where('tipo_cliente', $request->tipo_cliente);
-        }
-
         $clientes = $query->orderBy('nome')->get();
         
         $totalVendas = Venda::whereIn('cliente_id', $clientes->pluck('id'))->sum('valor_total');

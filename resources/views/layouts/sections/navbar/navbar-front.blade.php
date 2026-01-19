@@ -48,7 +48,7 @@
         <li>
           <a href="{{url('/login')}}" class="btn btn-primary">
             <span class="tf-icons bx bx-log-in-circle scaleX-n1-rtl me-md-1"></span>
-            <span class="d-none d-md-block">Login/Cadastrar</span>
+            <span class="d-none d-md-block">Login</span>
           </a>
         </li>
         <!-- navbar button: End -->
