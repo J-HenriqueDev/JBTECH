@@ -54,6 +54,7 @@ class HomePage extends Controller
         // Orçamentos próximos da validade (últimos 7 dias)
         $orcamentosProximosValidade = Orcamento::where('validade', '>=', Carbon::now())
             ->where('validade', '<=', Carbon::now()->addDays(7))
+            ->where('status', 'pendente') // Apenas pendentes
             ->with('cliente') // Carrega o relacionamento com cliente
             ->orderBy('validade', 'asc')
             ->paginate(4, ['*'], 'validade_page'); // Paginação com 5 itens por página

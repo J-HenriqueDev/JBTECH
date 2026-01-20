@@ -28,6 +28,12 @@
       "slug": "os"
     },
     {
+      "url": "/dashboard/compras",
+      "name": "Compras",
+      "icon": "menu-icon tf-icons bx bx-cart-alt text-primary",
+      "slug": "compras"
+    },
+    {
       "menuHeader": "Cadastros"
     },
     {

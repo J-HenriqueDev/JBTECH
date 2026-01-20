@@ -147,8 +147,8 @@
                                 <td><strong>{{ $produto->nome }}</strong></td>
                                 <td>{{ $produto->categoria->nome ?? 'N/A' }}</td>
                                 <td>{{ $produto->pivot->quantidade }}</td>
-                                <td>R$ {{ number_format($produto->pivot->valor_unitario, 2, ',', '.') }}</td>
-                                <td><strong>R$ {{ number_format($produto->pivot->valor_total, 2, ',', '.') }}</strong></td>
+                                <td>R$ {{ number_format((float)$produto->pivot->valor_unitario, 2, ',', '.') }}</td>
+                                <td><strong>R$ {{ number_format((float)$produto->pivot->valor_total, 2, ',', '.') }}</strong></td>
                                 <td>
                                     <span class="badge bg-{{ $produto->estoque < $produto->pivot->quantidade ? 'danger' : ($produto->estoque <= 10 ? 'warning' : 'success') }}">
                                         {{ $produto->estoque }}
@@ -184,7 +184,20 @@
                     @if($orcamento->status == 'pendente')
                     <form id="formAutorizar" action="{{ route('orcamentos.autorizar', $orcamento->id) }}" method="POST">
                         @csrf
-                        <button type="button" class="btn btn-success w-100" {{ !$podeAutorizar ? 'disabled' : '' }} onclick="confirmAutorizar()">
+                        @if(!$podeAutorizar)
+                        <div class="alert alert-warning mb-2 p-2 small">
+                            <i class="fas fa-exclamation-triangle text-warning me-1"></i>
+                            <strong>Estoque Insuficiente!</strong><br>
+                            Verifique a lista de produtos no topo da página.
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="ignorar_estoque" id="ignorar_estoque" checked>
+                            <label class="form-check-label" for="ignorar_estoque">
+                                Ignorar falta de estoque
+                            </label>
+                        </div>
+                        @endif
+                        <button type="button" class="btn btn-success w-100" onclick="confirmAutorizar()">
                             <i class="fas fa-check"></i> Autorizar Orçamento
                         </button>
                     </form>
@@ -236,17 +249,42 @@
 <div class="modal fade" id="modalAutorizar" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirmar Autorização</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Tem certeza que deseja autorizar este orçamento? <strong>Uma venda será criada automaticamente.</strong></p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-success" onclick="document.getElementById('formAutorizar').submit()">Sim, Autorizar</button>
-            </div>
+            <form id="formAutorizar" action="{{ route('orcamentos.autorizar', $orcamento->id) }}" method="POST">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar Autorização</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Tem certeza que deseja autorizar este orçamento? <strong>Uma venda será criada automaticamente.</strong></p>
+
+                    @if(!$podeAutorizar)
+                    <div class="alert alert-warning mb-2 p-2 small">
+                        <i class="fas fa-exclamation-triangle text-warning me-1"></i>
+                        <strong>Estoque Insuficiente!</strong><br>
+                        Verifique a lista de produtos no topo da página.
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="ignorar_estoque" id="ignorar_estoque" checked>
+                        <label class="form-check-label" for="ignorar_estoque">
+                            Ignorar falta de estoque
+                        </label>
+                    </div>
+
+                    <div class="form-check mb-3 bg-light p-2 rounded border">
+                        <input class="form-check-input" type="checkbox" name="adicionar_compras" id="adicionar_compras" checked>
+                        <label class="form-check-label fw-bold" for="adicionar_compras">
+                            Adicionar itens faltantes à Lista de Compras?
+                        </label>
+                        <small class="d-block text-muted ms-1">Criará uma solicitação de compra automática para os itens sem estoque.</small>
+                    </div>
+                    @endif
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Sim, Autorizar</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

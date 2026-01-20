@@ -347,6 +347,7 @@
         </table>
     </div>
 
+    @include('layouts.pdf_footer')
 </body>
 
 </html>

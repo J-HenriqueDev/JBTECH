@@ -131,7 +131,123 @@
       let carregandoProdutos = false; // Indica se uma requisição está em andamento
 
 
+      // Função para adicionar produto na tabela (Reutilizável)
+      function adicionarProdutoNaTabela(id, nome, quantidade, precoUnitario) {
+          const valorTotal = precoUnitario * quantidade;
+
+          let produtoExiste = false;
+          $('#tabelaProdutos tbody tr').each(function() {
+              const idExistente = $(this).find('input[name*="[id]"]').val();
+              if (idExistente == id) {
+                  produtoExiste = true;
+                  return false;
+              }
+          });
+
+          if (produtoExiste) {
+              showFlashMessage('warning', 'Produto já adicionado. Remova-o primeiro se desejar alterar.');
+              return false;
+          }
+
+          $('#tabelaProdutos tbody').append(`
+            <tr>
+                <td>
+                    <input type="hidden" name="produtos[${id}][id]" value="${id}">${id}
+                </td>
+                <td><strong>${nome}</strong></td>
+                <td>
+                    <input type="number" class="form-control" name="produtos[${id}][quantidade]" value="${quantidade}" min="1" onchange="atualizarValorTotalTabela()">
+                </td>
+                <td>
+                    <input type="text" class="form-control" name="produtos[${id}][valor_unitario]" value="${formatMoney(precoUnitario)}" oninput="formatCurrencyService(this); atualizarValorTotalTabela()">
+                </td>
+                <td class="valor-total" data-valor="${valorTotal}"><strong>${formatMoney(valorTotal)}</strong></td>
+                <td>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removerProduto(this)">Remover</button>
+                </td>
+            </tr>
+        `);
+
+          atualizarMensagemTabela();
+          atualizarValorTotalTabela();
+          return true;
+      }
+
+      // Busca produto por código de barras
+      function buscarProdutoPorCodigo(barcode, qtd = 1, customPrice = null) {
+          $('#barcode-input').prop('disabled', true);
+
+          $.ajax({
+              url: '{{ route("produtos.buscar-codigo") }}',
+              method: 'POST',
+              data: {
+                  _token: '{{ csrf_token() }}',
+                  termo: barcode
+              },
+              success: function(response) {
+                  if (response.success) {
+                      const p = response.produto;
+                      let valor = parseFloat(p.preco_venda);
+                      if (customPrice !== null && !isNaN(customPrice)) {
+                          valor = customPrice;
+                      }
+
+                      if (adicionarProdutoNaTabela(p.id, p.nome, qtd, valor)) {
+                          // Sucesso
+                      }
+                      $('#barcode-input').val('').focus();
+                  } else {
+                      showFlashMessage('warning', response.message || 'Produto não encontrado');
+                      $('#barcode-input').val('').select();
+                  }
+              },
+              error: function(xhr) {
+                  console.error(xhr);
+                  showFlashMessage('danger', 'Erro ao buscar produto: ' + (xhr.responseJSON?.message || 'Erro desconhecido'));
+                  $('#barcode-input').val('').select();
+              },
+              complete: function() {
+                  $('#barcode-input').prop('disabled', false).focus();
+              }
+          });
+      }
+
       $(document).ready(function() {
+          // Evento do Scanner de Código de Barras
+          $('#barcode-input').on('keypress', function(e) {
+              if (e.which === 13) { // Enter key
+                  e.preventDefault();
+                  const input = $(this).val().trim();
+
+                  if (input) {
+                      let qtd = 1;
+                      let barcode = input;
+                      let price = null;
+
+                      // Check for Qtd * Code * Price pattern (e.g. 2*789*1,29)
+                      const parts = input.split('*');
+
+                      if (parts.length >= 3) {
+                          qtd = parseFloat(parts[0].trim()) || 1;
+                          barcode = parts[1].trim();
+                          let priceStr = parts[2].trim().replace(',', '.');
+                          price = parseFloat(priceStr);
+                      } else if (parts.length === 2) {
+                          qtd = parseFloat(parts[0].trim()) || 1;
+                          barcode = parts[1].trim();
+                      } else {
+                          const match = input.match(/^(\d+)\s*[xX]\s*(.+)$/);
+                          if (match) {
+                              qtd = parseFloat(match[1]);
+                              barcode = match[2];
+                          }
+                      }
+
+                      buscarProdutoPorCodigo(barcode, qtd, price);
+                  }
+              }
+          });
+
           // Inicializa o Select2 para o campo de clientes
           $('#select2Basic').select2({
               tags: false,

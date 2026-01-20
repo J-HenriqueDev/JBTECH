@@ -638,8 +638,7 @@ $configData = Helper::appClasses();
 </section>
 <!-- Avaliações de clientes reais: Fim -->
 
-<!-- Nossa Equipe Incrível: Início -->
-<section id="landingTeam" class="section-py landing-team">
+<!-- <section id="landingTeam" class="section-py landing-team">
   <div class="container">
     <div class="text-center mb-4">
       <span class="badge bg-label-primary">Quem somos nós?</span>
@@ -677,8 +676,8 @@ $configData = Helper::appClasses();
       </div>
     </div>
   </div>
-</section>
-<!-- Nossa Equipe Incrível: Fim -->
+</section> -->
+<!-- Nossa Equipe Incrível: Fim
 
 <!-- FAQ: Início -->
 <section id="landingFAQ" class="section-py bg-body landing-faq">

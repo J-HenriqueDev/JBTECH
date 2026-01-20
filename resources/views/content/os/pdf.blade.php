@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <title>Ordem de Serviço #{{ str_pad($os->id, 5, '0', STR_PAD_LEFT) }}</title>
@@ -77,22 +78,7 @@
             width: 140px;
             display: inline-block;
         }
-
-        .footer {
-            position: fixed;
-            bottom: -3cm;
-            left: 0;
-            right: 0;
-            height: 90px;
-            border-top: 1px solid #ccc;
-            padding-top: 10px;
-            text-align: center;
-            font-size: 10px;
-            color: #777;
-            background-color: #fff;
-        }
-
-        .signatures {
+    .signatures {
             margin-top: 50px;
             width: 100%;
         }
@@ -113,23 +99,8 @@
     </style>
 </head>
 <body>
-    <!-- Footer -->
-    <div class="footer">
-        <p style="margin-bottom: 5px; font-weight: bold;">
-            {{ \App\Models\Configuracao::get('empresa_nome', 'JB Tech Soluções') }} -
-            CNPJ: {{ formatarCpfCnpj(\App\Models\Configuracao::get('empresa_cnpj', '00.000.000/0001-00')) }}
-        </p>
-        <p style="margin-bottom: 5px;">
-            {{ \App\Models\Configuracao::get('empresa_endereco') }}, {{ \App\Models\Configuracao::get('empresa_numero') }} -
-            {{ \App\Models\Configuracao::get('empresa_bairro') }} -
-            {{ \App\Models\Configuracao::get('empresa_cidade') }}/{{ \App\Models\Configuracao::get('empresa_uf') }}
-        </p>
-        <p style="margin-bottom: 5px;">
-            Tel: {{ \App\Helpers\FormatacaoHelper::telefone(\App\Models\Configuracao::get('empresa_telefone')) }} -
-            Email: {{ \App\Models\Configuracao::get('empresa_email') }}
-        </p>
-        <p style="margin-top: 10px; font-size: 9px;">Ordem de Serviço gerada em {{ \Carbon\Carbon::now()->format('d/m/Y H:i') }}</p>
-    </div>
+    @include('layouts.pdf_footer')
+
 
     <!-- Header -->
     <div class="header-center">
@@ -238,4 +209,5 @@
         <p>Declaro que recebi o equipamento acima descrito nas condições informadas.</p>
     </div>
 </body>
+
 </html>

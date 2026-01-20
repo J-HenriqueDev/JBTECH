@@ -122,41 +122,46 @@ class ProdutosController extends Controller
         }
     }
 
-    public function listar()
+    public function listar(Request $request)
     {
         // Tente obter os produtos do banco
         try {
-            $produtos = Produto::all();  // Obtém todos os produtos
+            $query = Produto::query();
+
+            // Filtro de busca (para Select2)
+            if ($request->has('q')) {
+                $termo = $request->q;
+                $query->where(function($q) use ($termo) {
+                    $q->where('nome', 'LIKE', "%{$termo}%")
+                      ->orWhere('codigo_barras', 'LIKE', "%{$termo}%")
+                      ->orWhere('id', 'LIKE', "%{$termo}%");
+                });
+            }
+
+            // Limita os resultados para evitar sobrecarga
+            $produtos = $query->limit(50)->get();
 
             if ($produtos->isEmpty()) {
-                // Registra um log de aviso
-                LogService::registrar(
-                    'Produto', // Categoria
-                    'Listar', // Ação
-                    'Nenhum produto encontrado' // Detalhes
-                );
-
-                return response()->json(['error' => 'Nenhum produto encontrado'], 404);
+                 // Retorna array vazio em vez de erro 404 para o Select2 funcionar corretamente
+                 return response()->json([]);
             }
 
             // Formata os produtos para incluir estoque
             $produtosFormatados = $produtos->map(function ($produto) {
                 return [
                     'id' => $produto->id,
+                    'text' => $produto->nome . ' - (Cód: ' . ($produto->codigo_barras ?? $produto->id) . ')', // Formato para Select2
                     'nome' => $produto->nome,
                     'preco_venda' => $produto->preco_venda,
+                    'preco_custo' => $produto->preco_custo, // Adicionado custo
                     'estoque' => $produto->estoque ?? 0,
+                    'codigo_barras' => $produto->codigo_barras
                 ];
             });
 
-            // Registra um log
-            LogService::registrar(
-                'Produto', // Categoria
-                'Listar', // Ação
-                'Listou todos os produtos via API' // Detalhes
-            );
-
+            // Se for requisição AJAX do Select2, retorna no formato esperado ou array simples
             return response()->json($produtosFormatados);
+
         } catch (\Exception $e) {
             // Registra um log de erro
             LogService::registrar(
@@ -826,5 +831,42 @@ class ProdutosController extends Controller
                 'message' => 'Erro ao atualizar produto: ' . $e->getMessage()
             ], 400);
         }
+    }
+
+    /**
+     * Busca produto por código de barras ou ID
+     */
+    public function buscarPorCodigoBarras(Request $request)
+    {
+        $termo = $request->input('termo');
+
+        if (!$termo) {
+            return response()->json(['success' => false, 'message' => 'Termo de busca não informado.'], 400);
+        }
+
+        // Tenta buscar por código de barras exato
+        $produto = Produto::where('codigo_barras', $termo)->first();
+
+        // Se não encontrar, tenta pelo ID
+        if (!$produto && is_numeric($termo)) {
+            $produto = Produto::find($termo);
+        }
+
+        if ($produto) {
+            return response()->json([
+                'success' => true,
+                'produto' => [
+                    'id' => $produto->id,
+                    'nome' => $produto->nome,
+                    'preco_venda' => $produto->preco_venda,
+                    'unidade' => $produto->unidade_comercial,
+                    'ncm' => $produto->ncm,
+                    'codigo_barras' => $produto->codigo_barras,
+                    'cfop' => $produto->cfop_interno ?? '5102' // Fallback
+                ]
+            ]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Produto não encontrado.'], 404);
     }
 }

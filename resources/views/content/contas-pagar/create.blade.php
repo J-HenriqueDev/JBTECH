@@ -33,7 +33,6 @@
                             <input type="number" step="0.01" class="form-control" id="valor" name="valor" placeholder="0.00" required>
                             @error('valor') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
                         </div>
-
                         <div class="col-md-6">
                             <label class="form-label fw-bold" for="data_vencimento">Data de Vencimento</label>
                             <input type="date" class="form-control" id="data_vencimento" name="data_vencimento" required>
@@ -50,6 +49,34 @@
                                 <option value="{{ $fornecedor->id }}">#{{ $fornecedor->id }} - {{ $fornecedor->nome }} - {{ $fornecedor->cnpj }}</option>
                                 @endforeach
                             </select>
+                        </div>
+                    </div>
+
+                    <!-- Seção de Recorrência -->
+                    <div class="card bg-lighter border mb-4">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="form-check form-switch custom-option-basic">
+                                    <input class="form-check-input" type="checkbox" id="recorrente" name="recorrente" value="1">
+                                    <label class="form-check-label fw-bold ms-2" for="recorrente">Este é um pagamento recorrente?</label>
+                                </div>
+                            </div>
+
+                            <div id="recorrencia_options" class="row g-3 d-none animate__animated animate__fadeIn">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold" for="frequencia">Frequência</label>
+                                    <select class="form-select" id="frequencia" name="frequencia">
+                                        <option value="mensal" selected>Mensal</option>
+                                        <option value="semanal">Semanal</option>
+                                        <option value="anual">Anual</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold" for="dia_vencimento">Dia de Vencimento (Fixo)</label>
+                                    <input type="number" class="form-control" id="dia_vencimento" name="dia_vencimento" min="1" max="31" placeholder="Ex: 10">
+                                    <small class="text-muted">Se definido, o vencimento será sempre neste dia.</small>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -71,4 +98,28 @@
         </div>
     </div>
 </div>
+@endsection
+
+@section('page-script')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkboxRecorrente = document.getElementById('recorrente');
+        const optionsContainer = document.getElementById('recorrencia_options');
+
+        // Função para alternar visibilidade
+        function toggleRecorrencia() {
+            if (checkboxRecorrente.checked) {
+                optionsContainer.classList.remove('d-none');
+            } else {
+                optionsContainer.classList.add('d-none');
+            }
+        }
+
+        // Event listener
+        checkboxRecorrente.addEventListener('change', toggleRecorrencia);
+
+        // Verifica estado inicial (útil para old inputs em caso de erro de validação)
+        toggleRecorrencia();
+    });
+</script>
 @endsection

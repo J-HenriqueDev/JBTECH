@@ -94,6 +94,11 @@ class Orcamento extends Model
     public function podeSerAutorizado()
     {
         foreach ($this->produtos as $produto) {
+            // Ignorar serviços (tipo_item == '09')
+            if ($produto->tipo_item === '09') {
+                continue;
+            }
+
             if ($produto->estoque < $produto->pivot->quantidade) {
                 return false;
             }

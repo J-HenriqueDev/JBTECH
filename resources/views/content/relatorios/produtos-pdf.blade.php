@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <title>Relatório de Produtos</title>
@@ -72,7 +73,8 @@
             margin-bottom: 20px;
         }
 
-        .items-table th, .items-table td {
+        .items-table th,
+        .items-table td {
             border: 1px solid #ccc;
             padding: 8px;
             text-align: left;
@@ -107,24 +109,9 @@
         }
     </style>
 </head>
+
 <body>
-    <!-- Footer -->
-    <div class="footer">
-        <p style="margin-bottom: 5px; font-weight: bold;">
-            {{ \App\Models\Configuracao::get('empresa_nome', 'JB Tech Soluções') }} -
-            CNPJ: {{ formatarCpfCnpj(\App\Models\Configuracao::get('empresa_cnpj', '00.000.000/0001-00')) }}
-        </p>
-        <p style="margin-bottom: 5px;">
-            {{ \App\Models\Configuracao::get('empresa_endereco') }}, {{ \App\Models\Configuracao::get('empresa_numero') }} -
-            {{ \App\Models\Configuracao::get('empresa_bairro') }} -
-            {{ \App\Models\Configuracao::get('empresa_cidade') }}/{{ \App\Models\Configuracao::get('empresa_uf') }}
-        </p>
-        <p style="margin-bottom: 5px;">
-            Tel: {{ \App\Helpers\FormatacaoHelper::telefone(\App\Models\Configuracao::get('empresa_telefone')) }} -
-            Email: {{ \App\Models\Configuracao::get('empresa_email') }}
-        </p>
-        <p style="margin-top: 10px; font-size: 9px;">Relatório gerado em {{ \Carbon\Carbon::now()->format('d/m/Y H:i') }}</p>
-    </div>
+    @include('layouts.pdf_footer')
 
     <!-- Header -->
     <div class="header-center">
@@ -176,4 +163,5 @@
         </tbody>
     </table>
 </body>
+
 </html>

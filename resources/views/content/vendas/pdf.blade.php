@@ -183,9 +183,9 @@
     <!-- Header -->
     <div class="header-center">
         @if(isset($logoBase64))
-            <img src="data:image/png;base64,{{ $logoBase64 }}" class="logo" alt="Logo">
+        <img src="data:image/png;base64,{{ $logoBase64 }}" class="logo" alt="Logo">
         @else
-            <img src="{{ public_path('assets/img/front-pages/landing-page/jblogo_black.png') }}" class="logo" alt="Logo">
+        <img src="{{ public_path('assets/img/front-pages/landing-page/jblogo_black.png') }}" class="logo" alt="Logo">
         @endif
     </div>
 
@@ -246,12 +246,12 @@
             $valorUnitario = $produto->pivot->valor_unitario ?? 0;
             $quantidade = $produto->pivot->quantidade ?? 0;
             $valorTotalProduto = $produto->pivot->valor_total ?? ($valorUnitario * $quantidade);
-            
+
             // Lógica para separar serviços (Assumindo ID 1 como serviço, conforme orçamentos)
             if ($produto->id == 1) {
-                $valorServico += $valorTotalProduto;
+            $valorServico += $valorTotalProduto;
             } else {
-                $subtotalProdutos += $valorTotalProduto;
+            $subtotalProdutos += $valorTotalProduto;
             }
             @endphp
             <tr>
@@ -334,6 +334,7 @@
         </table>
     </div>
 
+    @include('layouts.pdf_footer')
 </body>
 
 </html>

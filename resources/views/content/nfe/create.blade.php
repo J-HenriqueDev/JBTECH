@@ -14,7 +14,7 @@
 <div class="alert alert-danger">
     <ul class="mb-0">
         @foreach($errors->all() as $error)
-            <li>{{ $error }}</li>
+        <li>{{ $error }}</li>
         @endforeach
     </ul>
 </div>
@@ -29,33 +29,29 @@
             <div class="card-body">
                 <form action="{{ route('nfe.store') }}" method="POST">
                     @csrf
-                    
+
                     @if($venda)
-                        <div class="alert alert-info">
-                            <h6>Venda Selecionada: #{{ $venda->id }}</h6>
-                            <p class="mb-0">
-                                <strong>Cliente:</strong> {{ $venda->cliente->nome }}<br>
-                                <strong>Valor Total:</strong> R$ {{ number_format($venda->valor_total, 2, ',', '.') }}<br>
-                                <strong>Produtos:</strong> {{ $venda->produtos->count() }} item(ns)
-                            </p>
-                        </div>
+                    <div class="alert alert-info">
+                        <strong>Venda Selecionada:</strong> #{{ $venda->id }} - {{ $venda->cliente->nome ?? 'Cliente N/A' }}<br>
+                        <strong>Data:</strong> {{ $venda->created_at->format('d/m/Y H:i') }}<br>
+                        <strong>Valor Total:</strong> R$ {{ number_format((float)$venda->valor_total, 2, ',', '.') }}<br>
                         <input type="hidden" name="venda_id" value="{{ $venda->id }}">
+                    </div>
                     @else
-                        <div class="mb-3">
-                            <label for="venda_id" class="form-label">Selecione uma Venda</label>
-                            <select name="venda_id" id="venda_id" class="form-select" required>
-                                <option value="">Selecione uma venda...</option>
-                                @foreach($vendas as $v)
-                                    <option value="{{ $v->id }}">
-                                        Venda #{{ $v->id }} - {{ $v->cliente->nome }} - 
-                                        R$ {{ number_format($v->valor_total, 2, ',', '.') }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <small class="form-text text-muted">
-                                Apenas vendas sem NF-e autorizada são exibidas.
-                            </small>
-                        </div>
+                    <div class="mb-3">
+                        <label for="venda_id" class="form-label">Selecionar Venda (Opcional)</label>
+                        <select name="venda_id" id="venda_id" class="form-select select2">
+                            <option value="">Selecione uma venda para importar</option>
+                            @foreach($vendas as $v)
+                            <option value="{{ $v->id }}">
+                                #{{ $v->id }} - {{ $v->cliente->nome ?? 'Cliente N/A' }} - R$ {{ number_format((float)$v->valor_total, 2, ',', '.') }} ({{ $v->created_at->format('d/m/Y') }})
+                            </option>
+                            @endforeach
+                        </select>
+                        <small class="form-text text-muted">
+                            Apenas vendas sem NF-e autorizada são exibidas.
+                        </small>
+                    </div>
                     @endif
 
                     <div class="card-footer d-flex justify-content-end">
@@ -85,15 +81,15 @@
                     </div>
                     <div class="col-md-6">
                         @if($venda->cliente->endereco)
-                            <strong>Endereço:</strong><br>
-                            {{ $venda->cliente->endereco->endereco }}, {{ $venda->cliente->endereco->numero }}<br>
-                            {{ $venda->cliente->endereco->bairro }}<br>
-                            {{ $venda->cliente->endereco->cidade }}/{{ $venda->cliente->endereco->estado }}<br>
-                            CEP: {{ $venda->cliente->endereco->cep }}
+                        <strong>Endereço:</strong><br>
+                        {{ $venda->cliente->endereco->endereco }}, {{ $venda->cliente->endereco->numero }}<br>
+                        {{ $venda->cliente->endereco->bairro }}<br>
+                        {{ $venda->cliente->endereco->cidade }}/{{ $venda->cliente->endereco->estado }}<br>
+                        CEP: {{ $venda->cliente->endereco->cep }}
                         @else
-                            <div class="alert alert-warning">
-                                <i class="bx bx-error"></i> Cliente não possui endereço cadastrado!
-                            </div>
+                        <div class="alert alert-warning">
+                            <i class="bx bx-error"></i> Cliente não possui endereço cadastrado!
+                        </div>
                         @endif
                     </div>
                 </div>
@@ -138,6 +134,3 @@
 </div>
 
 @endsection
-
-
-

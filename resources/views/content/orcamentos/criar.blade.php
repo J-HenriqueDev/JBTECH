@@ -133,11 +133,22 @@ $custoPorKm = \App\Models\Configuracao::get('vendas_custo_km', '1.50');
       <hr class="my-4">
 
       <!-- Itens do Orçamento -->
-      <div class="d-flex justify-content-between align-items-center mb-3">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <h5 class="mb-0">Itens do Orçamento</h5>
-        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalAdicionarProduto">
-          <i class="bx bx-plus-circle me-1"></i> Adicionar Produto
-        </button>
+        <div class="d-flex align-items-start gap-2">
+          <div>
+            <div class="input-group input-group-sm" style="width: 100%; max-width: 300px;">
+              <span class="input-group-text"><i class="bx bx-barcode"></i></span>
+              <input type="text" id="barcode-input" class="form-control" placeholder="Qtd * Código * Preço" autocomplete="off">
+            </div>
+            <small class="text-muted d-block mt-1" style="font-size: 11px;">
+              Ex: 2*Código*1,99 ou 10*Código
+            </small>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalAdicionarProduto">
+            <i class="bx bx-plus-circle me-1"></i> Adicionar Produto
+          </button>
+        </div>
       </div>
 
       <div class="table-responsive mb-4 border rounded p-2">

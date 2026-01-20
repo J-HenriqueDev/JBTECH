@@ -235,7 +235,7 @@
                                         <span class="badge bg-danger ms-1">Vencido</span>
                                         @endif
                                 </td>
-                                <td class="orcamento-valor"><strong>R$ {{ number_format($orcamento->valor_total, 2, ',', '.') }}</strong></td>
+                                <td class="orcamento-valor"><strong>R$ {{ number_format((float)$orcamento->valor_total, 2, ',', '.') }}</strong></td>
                                 <td class="orcamento-status">
                                     <span class="badge bg-{{ $orcamento->status == 'autorizado' ? 'success' : ($orcamento->status == 'recusado' ? 'danger' : ($orcamento->status == 'apagado' ? 'secondary' : 'warning')) }}">
                                         {{ ucfirst($orcamento->status) }}

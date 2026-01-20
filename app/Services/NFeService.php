@@ -7,6 +7,7 @@ use App\Models\Venda;
 use App\Models\Clientes;
 use App\Models\Produto;
 use App\Models\Configuracao;
+use App\Models\NaturezaOperacao;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\NFeEnviada;
@@ -525,7 +526,7 @@ INI;
             }
 
             // Carrega os dados necessários
-            $venda->load(['cliente.endereco', 'produtos']);
+            $venda->load(['cliente.endereco', 'produtos', 'user']);
             $cliente = $venda->cliente;
 
             if (!$cliente->endereco) {
@@ -545,7 +546,22 @@ INI;
                 $produtos[] = $this->getDadosProduto($produto, $venda, $itemIndex++);
             }
 
-            // Cria o registro da NF-e
+            $naturezaPadrao = NaturezaOperacao::where('tipo', 'saida')
+                ->where('padrao', true)
+                ->first();
+
+            $naturezaDescricao = $naturezaPadrao?->descricao ?? 'VENDA DE MERCADORIA';
+            $finalidade = $naturezaPadrao?->finNFe ?? 1;
+
+            // Prepara observações com ID da Venda e Nome do Vendedor
+            $vendedor = $venda->user->name ?? 'N/A';
+            $observacoes = "Venda: #{$venda->id} - Vendedor: {$vendedor}";
+
+            // Adiciona observações da venda se houver
+            if (!empty($venda->observacoes)) {
+                $observacoes .= " | Obs: " . $venda->observacoes;
+            }
+
             $notaFiscal = NotaFiscal::create([
                 'venda_id' => $venda->id,
                 'cliente_id' => $venda->cliente_id,
@@ -556,6 +572,10 @@ INI;
                 'data_emissao' => null,
                 'dados_destinatario' => $destinatario,
                 'produtos' => $produtos,
+                'natureza_operacao' => $naturezaDescricao,
+                'tipo_documento' => 1,
+                'finalidade' => $finalidade,
+                'observacoes' => $observacoes,
             ]);
 
             return $notaFiscal;
@@ -688,6 +708,16 @@ INI;
                 ];
             }
 
+            $natureza = !empty($dados['natureza_operacao'])
+                ? NaturezaOperacao::where('descricao', $dados['natureza_operacao'])->first()
+                : null;
+
+            $finalidade = $natureza?->finNFe ?? 1;
+
+            // Obtém nome do usuário atual (Vendedor)
+            $vendedor = auth()->user()->name ?? 'N/A';
+            $observacoes = 'Emissão Avulsa: ' . $dados['natureza_operacao'] . " - Vendedor: {$vendedor}";
+
             $notaFiscal = NotaFiscal::create([
                 'venda_id' => null,
                 'cliente_id' => $clienteId,
@@ -700,8 +730,8 @@ INI;
                 'produtos' => $produtos,
                 'natureza_operacao' => $dados['natureza_operacao'],
                 'tipo_documento' => $dados['tipo_documento'],
-                'finalidade' => 1,
-                'observacoes' => 'Emissão Avulsa: ' . $dados['natureza_operacao'],
+                'finalidade' => $finalidade,
+                'observacoes' => $observacoes,
                 'dados_pagamento' => $dados['pagamento'] ?? null,
             ]);
 
@@ -884,13 +914,28 @@ INI;
         $stdIde->cMunFG = Configuracao::get('nfe_endereco_codigo_municipio') ?: '3304508';
         $stdIde->tpImp = 1;
         $stdIde->tpEmis = 1;
-        $stdIde->cDV = 0; // Calculado automaticamente
+        $stdIde->cDV = 0;
         $stdIde->tpAmb = $this->config['tpAmb'];
         $stdIde->finNFe = $notaFiscal->finalidade ?? 1;
         $stdIde->indFinal = 1;
         $stdIde->indPres = 1;
         $stdIde->procEmi = 0;
         $stdIde->verProc = '4.0';
+
+        if (!empty($notaFiscal->natureza_operacao)) {
+            $naturezaModel = NaturezaOperacao::where('descricao', $notaFiscal->natureza_operacao)->first();
+            if ($naturezaModel) {
+                if (!is_null($naturezaModel->finNFe)) {
+                    $stdIde->finNFe = (int) $naturezaModel->finNFe;
+                }
+                if (!is_null($naturezaModel->consumidor_final)) {
+                    $stdIde->indFinal = $naturezaModel->consumidor_final ? 1 : 0;
+                }
+                if (!is_null($naturezaModel->indPres)) {
+                    $stdIde->indPres = (int) $naturezaModel->indPres;
+                }
+            }
+        }
 
         $make->tagide($stdIde);
         $make->tagemit($stdEmit);

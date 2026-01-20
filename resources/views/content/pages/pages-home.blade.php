@@ -25,6 +25,39 @@
   </div>
 </div>
 
+<!-- Pending Purchases & Orders Alert -->
+@php
+$comprasPendentes = \App\Models\Compra::where('status', 'solicitado')->count();
+$encomendasPendentes = \App\Models\Compra::whereNotNull('cliente_id')->where('status', '!=', 'recebido')->where('status', '!=', 'cancelado')->count();
+@endphp
+
+@if($comprasPendentes > 0 || $encomendasPendentes > 0)
+<div class="row mb-4">
+  @if($comprasPendentes > 0)
+  <div class="col-md-6">
+    <div class="alert alert-warning d-flex align-items-center" role="alert">
+      <i class="bx bx-cart me-2"></i>
+      <div>
+        Há <strong>{{ $comprasPendentes }}</strong> solicitações de compra aguardando análise.
+        <a href="{{ route('compras.index') }}" class="alert-link">Ver Compras</a>
+      </div>
+    </div>
+  </div>
+  @endif
+  @if($encomendasPendentes > 0)
+  <div class="col-md-6">
+    <div class="alert alert-info d-flex align-items-center" role="alert">
+      <i class="bx bx-package me-2"></i>
+      <div>
+        Há <strong>{{ $encomendasPendentes }}</strong> encomendas de clientes em andamento.
+        <a href="{{ route('compras.index') }}" class="alert-link">Ver Encomendas</a>
+      </div>
+    </div>
+  </div>
+  @endif
+</div>
+@endif
+
 <!-- Cards de Estatísticas (Estilo Clássico: Cores Sólidas) -->
 <div class="row mb-4">
   <!-- Vendas do Mês -->

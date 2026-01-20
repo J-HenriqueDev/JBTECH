@@ -294,11 +294,17 @@ class NotaEntradaController extends Controller
                 ->orWhere('codigo_barras', (string) $prod->cEANTrib)
                 ->first();
 
+            $ultimoCusto = 0;
+            if ($produtoExistente) {
+                $ultimoCusto = $produtoExistente->preco_custo;
+            }
+
             $itens[] = [
                 'nItem' => (int) $det['nItem'],
                 'cProd' => (string) $prod->cProd,
                 'xProd' => (string) $prod->xProd,
                 'NCM' => (string) $prod->NCM,
+                'CEST' => (string) ($prod->CEST ?? ''),
                 'CFOP' => (string) $prod->CFOP,
                 'uCom' => (string) $prod->uCom,
                 'qCom' => (float) $prod->qCom,
@@ -306,7 +312,8 @@ class NotaEntradaController extends Controller
                 'vProd' => (float) $prod->vProd,
                 'cEAN' => (string) $prod->cEAN,
                 'cEANTrib' => (string) $prod->cEANTrib,
-                'produto_existente' => $produtoExistente
+                'produto_existente' => $produtoExistente,
+                'ultimo_custo' => $ultimoCusto
             ];
         }
 
@@ -402,8 +409,11 @@ class NotaEntradaController extends Controller
                 }
             }
 
+            $categorizer = new \App\Services\CategorizerService();
+
             foreach ($request->itens as $item) {
-                $acao = $item['acao'] ?? 'ignorar';
+                // Ação 'ignorar' foi removida, mas mantemos verificação de segurança
+                $acao = $item['acao'] ?? 'criar';
 
                 if ($acao === 'ignorar') {
                     continue;
@@ -412,7 +422,9 @@ class NotaEntradaController extends Controller
                 $quantidade = (float) $item['quantidade'];
                 $precoCusto = (float) $item['preco_custo'];
                 $precoVenda = (float) $item['preco_venda'];
-                $atualizarEstoque = isset($item['atualizar_estoque']) && $item['atualizar_estoque'] == '1';
+
+                // Atualização de estoque é OBRIGATÓRIA na entrada
+                $atualizarEstoque = true;
 
                 $produto = null;
 
@@ -421,10 +433,17 @@ class NotaEntradaController extends Controller
                 } elseif ($acao === 'criar') {
                     $produto = new \App\Models\Produto();
                     $produto->nome = $item['nome_novo'] ?? $item['xProd'];
-                    $produto->codigo_barras = $item['cEAN'] !== 'SEM GTIN' ? $item['cEAN'] : null;
+                    $produto->codigo_barras = ($item['cEAN'] !== 'SEM GTIN' && $item['cEAN'] !== '') ? $item['cEAN'] : null;
                     $produto->ncm = $item['NCM'];
-                    $produto->unidade = $item['uCom'] ?? 'UN'; // Ajuste conforme seu campo de unidade
-                    $produto->estoque = 0; // Será somado abaixo se atualizar_estoque for true, ou inicializado
+                    $produto->cest = $item['CEST'] ?? null;
+                    $produto->unidade_comercial = $item['uCom'] ?? 'UN';
+                    $produto->unidade_tributavel = $item['uCom'] ?? 'UN'; // Assume a mesma por padrão
+                    $produto->cfop_externo = $item['CFOP'] ?? null;
+                    $produto->categoria_id = $categorizer->sugerirCategoria($produto->nome); // Categorização Inteligente
+                    $produto->estoque = 0; // Será somado abaixo
+                    $produto->origem = 0; // Nacional por padrão
+                    $produto->usuario_id = auth()->id(); // Define o usuário criador
+                    $produto->ativo = true;
                 }
 
                 if ($produto) {

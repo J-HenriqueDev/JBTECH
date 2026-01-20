@@ -162,11 +162,22 @@
             </div>
 
             <div class="card mb-4">
-                <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <h5 class="card-title mb-0">Produtos</h5>
-                    <button type="button" class="btn btn-primary" onclick="abrirModalProduto()">
-                        <i class="bx bx-plus"></i> Adicionar Produto
-                    </button>
+                    <div class="d-flex align-items-start gap-2">
+                        <div>
+                            <div class="input-group input-group-sm" style="width: 300px;">
+                                <span class="input-group-text"><i class="bx bx-barcode"></i></span>
+                                <input type="text" id="barcode-input" class="form-control" placeholder="Qtd * Código * Preço">
+                            </div>
+                            <small class="text-muted d-block mt-1" style="font-size: 11px;">
+                                Ex: 2*Código*1,99 ou 10*Código
+                            </small>
+                        </div>
+                        <button type="button" class="btn btn-primary" onclick="abrirModalProduto()">
+                            <i class="bx bx-plus"></i> Adicionar Produto
+                        </button>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -585,6 +596,21 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        // Focus on Client Select2 on load
+        setTimeout(function() {
+            // Check if cliente input is visible
+            if ($('#div-cliente').is(':visible')) {
+                $('#select_cliente').select2('open');
+            }
+        }, 500);
+
+        // Move focus to barcode input when client is selected
+        $('#select_cliente').on('select2:select', function(e) {
+            setTimeout(function() {
+                $('#barcode-input').focus();
+            }, 100);
+        });
+
         // Initialize Select2
         $('.select2').select2({
             width: '100%'
@@ -727,6 +753,93 @@
                 tbody.append(tr);
             }
         });
+
+        // Barcode Scanner Logic
+        $('#barcode-input').on('keypress', function(e) {
+            if (e.which === 13) { // Enter key
+                e.preventDefault();
+                const input = $(this).val().trim();
+
+                if (input) {
+                    let qtd = 1;
+                    let barcode = input;
+                    let price = null;
+
+                    // Check for Qtd * Code * Price pattern (e.g. 2*789*1,29)
+                    // We split by '*' to handle multiple parts
+                    const parts = input.split('*');
+
+                    if (parts.length >= 3) {
+                        // Qtd * Code * Price
+                        qtd = parseFloat(parts[0].trim()) || 1;
+                        barcode = parts[1].trim();
+                        // Handle price with comma or dot
+                        let priceStr = parts[2].trim().replace(',', '.');
+                        price = parseFloat(priceStr);
+                    } else if (parts.length === 2) {
+                        // Qtd * Code
+                        qtd = parseFloat(parts[0].trim()) || 1;
+                        barcode = parts[1].trim();
+                    } else {
+                        // Fallback: check for x/X separator for Qtd (legacy support)
+                        const match = input.match(/^(\d+)\s*[xX]\s*(.+)$/);
+                        if (match) {
+                            qtd = parseFloat(match[1]);
+                            barcode = match[2];
+                        }
+                    }
+
+                    buscarProdutoPorCodigo(barcode, qtd, price);
+                }
+            }
+        });
+
+        function buscarProdutoPorCodigo(barcode, qtd = 1, customPrice = null) {
+            $('#barcode-input').prop('disabled', true);
+
+            $.ajax({
+                url: '{{ route("produtos.buscar-codigo") }}',
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    termo: barcode
+                },
+                success: function(response) {
+                    if (response.success) {
+                        const p = response.produto;
+
+                        // Use custom price if provided and valid, otherwise product price
+                        let valor = parseFloat(p.preco_venda);
+                        if (customPrice !== null && !isNaN(customPrice)) {
+                            valor = customPrice;
+                        }
+
+                        const total = qtd * valor;
+
+                        // Use CFOP from product or default to 5102
+                        const cfop = p.cfop || '5102';
+
+                        adicionarLinhaTabela(produtoIndex, p.id, p.nome, qtd, valor, cfop, total);
+                        produtoIndex++;
+                        calcTotalNota();
+
+                        // Clear input and focus for next scan
+                        $('#barcode-input').val('').focus();
+                    } else {
+                        alert(response.message || 'Produto não encontrado');
+                        $('#barcode-input').val('').select();
+                    }
+                },
+                error: function(xhr) {
+                    console.error(xhr);
+                    alert('Erro ao buscar produto: ' + (xhr.responseJSON?.message || 'Erro desconhecido'));
+                    $('#barcode-input').val('').select();
+                },
+                complete: function() {
+                    $('#barcode-input').prop('disabled', false).focus();
+                }
+            });
+        }
 
         toggleDestinatario();
     });

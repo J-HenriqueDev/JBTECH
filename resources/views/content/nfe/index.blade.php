@@ -88,7 +88,7 @@
                                     N/A
                                     @endif
                                 </td>
-                                <td><strong>R$ {{ number_format($nfe->valor_total, 2, ',', '.') }}</strong></td>
+                                <td><strong>R$ {{ number_format((float)$nfe->valor_total, 2, ',', '.') }}</strong></td>
                                 <td>{{ $nfe->data_emissao ? $nfe->data_emissao->format('d/m/Y') : 'N/A' }}</td>
                                 <td>
                                     @php

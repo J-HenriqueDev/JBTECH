@@ -26,6 +26,8 @@ class NaturezaOperacaoController extends Controller
             'cfop_estadual' => 'required|string|size:4',
             'cfop_interestadual' => 'required|string|size:4',
             'cfop_exterior' => 'nullable|string|size:4',
+            'finNFe' => 'required|integer|in:1,2,3,4',
+            'indPres' => 'required|integer|in:0,1,2,3,4,5,9',
         ]);
 
         $dados = $request->all();
@@ -33,6 +35,7 @@ class NaturezaOperacaoController extends Controller
         $dados['calcula_custo'] = $request->has('calcula_custo');
         $dados['movimenta_estoque'] = $request->has('movimenta_estoque');
         $dados['gera_financeiro'] = $request->has('gera_financeiro');
+        $dados['consumidor_final'] = $request->has('consumidor_final');
 
         if ($dados['padrao']) {
             NaturezaOperacao::where('tipo', $dados['tipo'])->update(['padrao' => false]);
@@ -56,6 +59,8 @@ class NaturezaOperacaoController extends Controller
             'cfop_estadual' => 'required|string|size:4',
             'cfop_interestadual' => 'required|string|size:4',
             'cfop_exterior' => 'nullable|string|size:4',
+            'finNFe' => 'required|integer|in:1,2,3,4',
+            'indPres' => 'required|integer|in:0,1,2,3,4,5,9',
         ]);
 
         $dados = $request->all();
@@ -63,6 +68,7 @@ class NaturezaOperacaoController extends Controller
         $dados['calcula_custo'] = $request->has('calcula_custo');
         $dados['movimenta_estoque'] = $request->has('movimenta_estoque');
         $dados['gera_financeiro'] = $request->has('gera_financeiro');
+        $dados['consumidor_final'] = $request->has('consumidor_final');
 
         if ($dados['padrao']) {
             NaturezaOperacao::where('tipo', $dados['tipo'])->where('id', '!=', $natureza->id)->update(['padrao' => false]);

@@ -160,7 +160,7 @@ $isReadOnly = $notaFiscal->status == 'autorizada' || $notaFiscal->status == 'can
               </div>
               <div class="col-md-4">
                 <label class="form-label text-muted fw-bold small text-uppercase">Valor Total</label>
-                <div class="text-primary fw-bold fs-5">R$ {{ number_format($notaFiscal->valor_total, 2, ',', '.') }}</div>
+                <div class="text-primary fw-bold fs-5">R$ {{ number_format((float)$notaFiscal->valor_total, 2, ',', '.') }}</div>
               </div>
             </div>
           </div>
@@ -352,7 +352,7 @@ $isReadOnly = $notaFiscal->status == 'autorizada' || $notaFiscal->status == 'can
                       </td>
                       <td>
                         <input type="number" step="0.01" min="0" name="pagamento[parcelas][{{ $index }}][valor]" class="form-control form-control-sm"
-                          value="{{ isset($parcela['valor']) ? number_format($parcela['valor'], 2, '.', '') : '' }}">
+                          value="{{ isset($parcela['valor']) ? number_format((float)$parcela['valor'], 2, '.', '') : '' }}">
                       </td>
                     </tr>
                     @endforeach
@@ -423,23 +423,23 @@ $isReadOnly = $notaFiscal->status == 'autorizada' || $notaFiscal->status == 'can
                         name="produtos[{{ $index }}][qCom]"
                         class="form-control form-control-sm quantidade-input"
                         data-index="{{ $index }}"
-                        value="{{ number_format($quantidade, 4, '.', '') }}">
+                        value="{{ number_format((float)$quantidade, 4, '.', '') }}">
                     </td>
                     <td>
                       <input type="number" step="0.01" min="0.01"
                         name="produtos[{{ $index }}][vUnCom]"
                         class="form-control form-control-sm valor-unitario-input"
                         data-index="{{ $index }}"
-                        value="{{ number_format($valorUnitario, 2, '.', '') }}">
+                        value="{{ number_format((float)$valorUnitario, 2, '.', '') }}">
                     </td>
                     <td class="text-end">
                       R$
-                      <span class="valor-total" data-index="{{ $index }}">{{ number_format($valorTotal, 2, ',', '.') }}</span>
+                      <span class="valor-total" data-index="{{ $index }}">{{ number_format((float)$valorTotal, 2, ',', '.') }}</span>
                       <input type="hidden"
                         name="produtos[{{ $index }}][vProd]"
                         class="valor-total-input"
                         data-index="{{ $index }}"
-                        value="{{ number_format($valorTotal, 2, '.', '') }}">
+                        value="{{ number_format((float)$valorTotal, 2, '.', '') }}">
                     </td>
                   </tr>
                   @empty
@@ -451,7 +451,7 @@ $isReadOnly = $notaFiscal->status == 'autorizada' || $notaFiscal->status == 'can
                 <tfoot>
                   <tr class="table-light">
                     <td colspan="7" class="text-end"><strong>Total:</strong></td>
-                    <td><strong>R$ <span id="total-nota-valor">{{ number_format($notaFiscal->valor_total, 2, ',', '.') }}</span></strong></td>
+                    <td><strong>R$ <span id="total-nota-valor">{{ number_format((float)$notaFiscal->valor_total, 2, ',', '.') }}</span></strong></td>
                   </tr>
                 </tfoot>
               </table>
@@ -518,7 +518,7 @@ $isReadOnly = $notaFiscal->status == 'autorizada' || $notaFiscal->status == 'can
                 data-preco="{{ $prod->preco_venda }}"
                 data-unidade="{{ $prod->unidade_comercial }}"
                 data-ncm="{{ $prod->ncm }}">
-                {{ $prod->nome }} (R$ {{ number_format($prod->preco_venda, 2, ',', '.') }})
+                {{ $prod->nome }} (R$ {{ number_format((float)$prod->preco_venda, 2, ',', '.') }})
               </option>
               @endforeach
             </select>
