@@ -55,26 +55,32 @@
                     <!-- Seção de Recorrência -->
                     <div class="card bg-lighter border mb-4">
                         <div class="card-body">
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="form-check form-switch custom-option-basic">
-                                    <input class="form-check-input" type="checkbox" id="recorrente" name="recorrente" value="1">
-                                    <label class="form-check-label fw-bold ms-2" for="recorrente">Este é um pagamento recorrente?</label>
+                            <div class="row align-items-center">
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch custom-option-basic">
+                                        <input class="form-check-input" type="checkbox" id="recorrente" name="recorrente" value="1">
+                                        <label class="form-check-label fw-bold ms-2" for="recorrente">Pagamento Recorrente</label>
+                                    </div>
                                 </div>
-                            </div>
-
-                            <div id="recorrencia_options" class="row g-3 d-none animate__animated animate__fadeIn">
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold" for="frequencia">Frequência</label>
-                                    <select class="form-select" id="frequencia" name="frequencia">
-                                        <option value="mensal" selected>Mensal</option>
-                                        <option value="semanal">Semanal</option>
-                                        <option value="anual">Anual</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold" for="dia_vencimento">Dia de Vencimento (Fixo)</label>
-                                    <input type="number" class="form-control" id="dia_vencimento" name="dia_vencimento" min="1" max="31" placeholder="Ex: 10">
-                                    <small class="text-muted">Se definido, o vencimento será sempre neste dia.</small>
+                                <div class="col-md-8">
+                                    <div id="recorrencia_options" class="row g-2 d-none animate__animated animate__fadeIn">
+                                        <div class="col-md-6">
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text">Frequência</span>
+                                                <select class="form-select" id="frequencia" name="frequencia">
+                                                    <option value="mensal" selected>Mensal</option>
+                                                    <option value="semanal">Semanal</option>
+                                                    <option value="anual">Anual</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text">Dia Venc.</span>
+                                                <input type="number" class="form-control" id="dia_vencimento" name="dia_vencimento" min="1" max="31" placeholder="Fixo">
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
