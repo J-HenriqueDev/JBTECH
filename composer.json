@@ -10,6 +10,7 @@
   "require": {
     "php": "^8.2",
     "ext-gd": "*",
+    "ext-pgsql": "*",
     "barryvdh/laravel-dompdf": "^3.0",
     "guzzlehttp/guzzle": "^7.9",
     "laravel/framework": "^11.0",
