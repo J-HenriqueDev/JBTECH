@@ -255,10 +255,10 @@
                         <table class="table table-hover mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th style="width: 35%">Produto XML / Associação</th>
-                                    <th style="width: 15%">Conversão</th>
-                                    <th style="width: 25%">Custos (Unit.)</th>
-                                    <th style="width: 25%">Precificação</th>
+                                    <th style="width: 50%">Produto XML / Associação</th>
+                                    <th style="width: 10%">Conversão</th>
+                                    <th style="width: 20%">Custos (Unit.)</th>
+                                    <th style="width: 20%">Precificação</th>
                                 </tr>
                             </thead>
                             <tbody>
