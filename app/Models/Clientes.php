@@ -21,7 +21,9 @@ class Clientes extends Model
         'inscricao_estadual',
         'inscricao_municipal',
         'indicador_ie',
-        'data_nascimento'
+        'data_nascimento',
+        'tipo_cliente',
+        'suframa'
     ];
 
     protected $casts = [

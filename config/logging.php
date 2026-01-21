@@ -54,8 +54,18 @@ return [
 
     'stack' => [
       'driver' => 'stack',
-      'channels' => explode(',', env('LOG_STACK', 'single')),
+      'channels' => explode(',', env('LOG_STACK', 'single,stderr')),
       'ignore_exceptions' => false,
+    ],
+
+    'stderr' => [
+      'driver' => 'monolog',
+      'level' => env('LOG_LEVEL', 'debug'),
+      'handler' => StreamHandler::class,
+      'formatter' => env('LOG_STDERR_FORMATTER'),
+      'with' => [
+        'stream' => 'php://stderr',
+      ],
     ],
 
     'single' => [

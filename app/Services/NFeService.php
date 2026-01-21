@@ -1554,7 +1554,7 @@ INI;
         if ($nextQuery) {
             $nextQueryTime = \Carbon\Carbon::parse($nextQuery);
             if (now()->lt($nextQueryTime)) {
-                $diff = now()->diffInMinutes($nextQueryTime);
+                $diff = (int) ceil(now()->diffInMinutes($nextQueryTime));
                 throw new Exception("Consulta temporariamente bloqueada pela SEFAZ (Consumo Indevido). Tente novamente em {$diff} minutos.");
             }
         }
@@ -1567,8 +1567,7 @@ INI;
             // Consulta DistribuicaoDFe por NSU
             $resp = $this->tools->sefazDistDFe($ultNSU);
 
-            $st = new Standardize();
-            $std = $st->toStd($resp);
+            $std = $this->parseDistDFeResponse($resp);
 
             // Verifica status de bloqueio ou sem documentos
             // 137: Nenhum documento localizado -> Deve aguardar 1 hora
@@ -1600,7 +1599,7 @@ INI;
         if ($nextQuery) {
             $nextQueryTime = \Carbon\Carbon::parse($nextQuery);
             if (now()->lt($nextQueryTime)) {
-                $diff = now()->diffInMinutes($nextQueryTime);
+                $diff = (int) ceil(now()->diffInMinutes($nextQueryTime));
                 throw new Exception("Consulta temporariamente bloqueada pela SEFAZ (Consumo Indevido). O sistema deve aguardar {$diff} minutos antes de tentar novamente.");
             }
         }
@@ -1619,8 +1618,7 @@ INI;
             // Para buscar por chave, NSU deve ser 0
             $resp = $this->tools->sefazDistDFe(0, 0, $chave);
 
-            $st = new Standardize();
-            $std = $st->toStd($resp);
+            $std = $this->parseDistDFeResponse($resp);
 
             // Verifica status de bloqueio ou sem documentos
             // 656: Consumo Indevido -> Deve aguardar 1 hora
@@ -1647,7 +1645,7 @@ INI;
 
                     // Tenta baixar novamente
                     $resp = $this->tools->sefazDistDFe(0, 0, $chave);
-                    $std = $st->toStd($resp);
+                    $std = $this->parseDistDFeResponse($resp);
                 } catch (\Exception $eManifest) {
                     Log::warning('Falha ao manifestar automaticamente: ' . $eManifest->getMessage());
 
@@ -1675,7 +1673,7 @@ INI;
                                 }
 
                                 $resp = $this->tools->sefazDistDFe(0, 0, $chave);
-                                $std = $st->toStd($resp);
+                                $std = $this->parseDistDFeResponse($resp);
 
                                 if ($std->cStat == 656) {
                                     Configuracao::set('nfe_next_dfe_query', now()->addHour()->toDateTimeString(), 'nfe', 'datetime', 'Próxima consulta DFe permitida');
@@ -2004,5 +2002,38 @@ INI;
             'vOutro' => 0,
             'vNF' => $total,
         ];
+    }
+
+    /**
+     * Helper para parsear resposta do DFe corrigindo problemas de atributos perdidos (NSU/schema)
+     * em elementos docZip quando convertidos para stdClass via json_encode
+     */
+    private function parseDistDFeResponse($resp)
+    {
+        $st = new Standardize();
+        $std = $st->toStd($resp);
+
+        // CORREÇÃO: Forçar estrutura correta de docZip preservando atributos (NSU/schema)
+        try {
+            $xml = simplexml_load_string($resp);
+            if (isset($xml->loteDistDFeInt->docZip)) {
+                $docZips = [];
+                foreach ($xml->loteDistDFeInt->docZip as $node) {
+                    $doc = new stdClass();
+                    $doc->NSU = (string) $node['NSU'];
+                    $doc->schema = (string) $node['schema'];
+                    $doc->{'$'} = (string) $node;
+                    $docZips[] = $doc;
+                }
+                if (!isset($std->loteDistDFeInt)) {
+                    $std->loteDistDFeInt = new stdClass();
+                }
+                $std->loteDistDFeInt->docZip = $docZips;
+            }
+        } catch (\Exception $e) {
+            // Silencioso se falhar, mantém original
+        }
+
+        return $std;
     }
 }

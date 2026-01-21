@@ -14,6 +14,8 @@ class Log extends Model
         'categoria',
         'acao',
         'detalhes',
+        'ip',
+        'user_agent',
     ];
 
     /**

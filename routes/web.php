@@ -98,17 +98,17 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
   Route::get('/dashboard/nfe/{id}/view-xml', [NFeController::class, 'viewXml'])->name('nfe.viewXml');
   Route::get('/dashboard/nfe/{id}/download-xml-cancelamento', [NFeController::class, 'downloadXmlCancelamento'])->name('nfe.downloadXmlCancelamento');
   Route::post('/dashboard/nfe/{id}/cancelar', [NFeController::class, 'cancelar'])->name('nfe.cancelar');
-  Route::post('/dashboard/nfe/{id}/carta-correcao', [NFeController::class, 'cartaCorrecao'])->name('nfe.cartaCorrecao');
-  Route::post('/dashboard/nfe/inutilizar', [NFeController::class, 'inutilizar'])->name('nfe.inutilizar');
-  Route::post('/dashboard/nfe/{id}/enviar-email', [NFeController::class, 'enviarEmail'])->name('nfe.enviarEmail');
-  Route::post('/dashboard/nfe/{id}/transmitir', [NFeController::class, 'transmitir'])->name('nfe.transmitir');
-  Route::get('/dashboard/nfe/{id}/danfe', [NFeController::class, 'gerarDanfe'])->name('nfe.gerarDanfe');
-  Route::resource('/dashboard/nfe', NFeController::class)->names([
-    'index' => 'nfe.index',
-    'create' => 'nfe.create',
-    'store' => 'nfe.store',
-    'show' => 'nfe.show',
-  ]);
+  Route::get('/dashboard/nfe/{id}/carta-correcao', [NFeController::class, 'cartaCorrecao'])->name('nfe.cartaCorrecao');
+  Route::post('/dashboard/nfe/{id}/carta-correcao', [NFeController::class, 'enviarCartaCorrecao'])->name('nfe.enviarCartaCorrecao');
+  Route::get('/dashboard/nfe/{id}/imprimir', [NFeController::class, 'imprimir'])->name('nfe.imprimir');
+  Route::get('/dashboard/nfe/{id}/imprimir-etiqueta', [NFeController::class, 'imprimirEtiqueta'])->name('nfe.imprimirEtiqueta');
+  Route::resource('dashboard/nfe', NFeController::class);
+
+  // Rotas para NFS-e (Nota Fiscal de Serviço)
+  Route::get('/dashboard/nfse/visualizar-fake/{chave}', [\App\Http\Controllers\NotaFiscalServicoController::class, 'visualizarFake'])->name('nfse.visualizar-fake');
+  Route::get('/dashboard/nfse/{id}/pdf', [\App\Http\Controllers\NotaFiscalServicoController::class, 'gerarPdf'])->name('nfse.pdf');
+  Route::resource('dashboard/nfse', \App\Http\Controllers\NotaFiscalServicoController::class);
+  Route::post('/dashboard/nfse/{id}/emitir', [\App\Http\Controllers\NotaFiscalServicoController::class, 'emitir'])->name('nfse.emitir');
 
 
   Route::get('/produtos/lista', [ProdutosController::class, 'listar'])->name('produtos.lista');

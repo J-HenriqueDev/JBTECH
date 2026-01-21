@@ -17,13 +17,19 @@ class LogService
      */
     public static function registrar($categoria, $acao, $detalhes = null)
     {
-        Log::create([
-            'user_id' => Auth::id(), // ID do usuário logado
-            'categoria' => $categoria,
-            'acao' => $acao,
-            'detalhes' => $detalhes,
-            'ip' => request()->ip(), // IP do usuário
-            'user_agent' => request()->userAgent(), // Navegador do usuário
-        ]);
+        try {
+            Log::create([
+                'user_id' => Auth::id(), // ID do usuário logado
+                'categoria' => $categoria,
+                'acao' => $acao,
+                'detalhes' => $detalhes,
+                'ip' => request()->ip(), // IP do usuário
+                'user_agent' => request()->userAgent(), // Navegador do usuário
+            ]);
+        } catch (\Exception $e) {
+            // Silently fail to avoid breaking the application if logging fails
+            // But try to log to system log if possible
+            \Illuminate\Support\Facades\Log::error('Falha ao registrar log no banco de dados: ' . $e->getMessage());
+        }
     }
 }

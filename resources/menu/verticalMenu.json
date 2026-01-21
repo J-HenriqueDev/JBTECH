@@ -91,6 +91,12 @@
       "slug": "nfe"
     },
     {
+      "url": "/dashboard/nfse",
+      "name": "NFS-e (Serviço)",
+      "icon": "menu-icon tf-icons bx bx-file text-success",
+      "slug": "nfse"
+    },
+    {
       "url": "/dashboard/notas-entrada",
       "name": "NFe (Entrada)",
       "icon": "menu-icon tf-icons fas fa-file-download text-primary",

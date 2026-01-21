@@ -4,7 +4,7 @@
 @import './_theme/pages';
 @import './_theme/_theme';
 
-$primary-color: #696cff;
+$primary-color: #00FF41;
 
 @include template-common-theme($primary-color);
 @include template-libs-dark-theme($primary-color);

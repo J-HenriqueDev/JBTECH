@@ -36,12 +36,13 @@ window.config = {
     dark: '#181c211a'
   },
   colors_dark: {
-    cardColor: '#2b2c40',
-    bodyBg: '#232333',
-    bodyColor: '#b2b2c4',
-    headingColor: '#d5d5e2',
-    textMuted: '#7e7f96',
-    borderColor: '#4e4f6c'
+    cardColor: '#0a0a0a',
+    bodyBg: '#000000',
+    bodyColor: '#e0e0e0',
+    headingColor: '#ffffff',
+    textMuted: '#a0a0a0',
+    borderColor: '#333333',
+    primary: '#00FF41' // Matrix Green
   },
   enableMenuLocalStorage: true // Enable menu state with local storage support
 };

@@ -11,26 +11,30 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('compras', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('fornecedor_id')->nullable()->constrained('fornecedores')->onDelete('set null');
-            $table->date('data_compra');
-            $table->decimal('valor_total', 10, 2)->default(0);
-            $table->string('status')->default('pendente'); // pendente, recebido, cancelado
-            $table->text('observacoes')->nullable();
-            $table->foreignId('user_id')->constrained('users'); // Quem registrou
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('compras')) {
+            Schema::create('compras', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('fornecedor_id')->nullable()->constrained('fornecedores')->onDelete('set null');
+                $table->date('data_compra');
+                $table->decimal('valor_total', 10, 2)->default(0);
+                $table->string('status')->default('pendente'); // pendente, recebido, cancelado
+                $table->text('observacoes')->nullable();
+                $table->foreignId('user_id')->constrained('users'); // Quem registrou
+                $table->timestamps();
+            });
+        }
 
-        Schema::create('compra_items', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('compra_id')->constrained('compras')->onDelete('cascade');
-            $table->foreignId('produto_id')->nullable()->constrained('produtos')->onDelete('set null');
-            $table->integer('quantidade');
-            $table->decimal('valor_unitario', 10, 2);
-            $table->decimal('valor_total', 10, 2);
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('compra_items')) {
+            Schema::create('compra_items', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('compra_id')->constrained('compras')->onDelete('cascade');
+                $table->foreignId('produto_id')->nullable()->constrained('produtos')->onDelete('set null');
+                $table->integer('quantidade');
+                $table->decimal('valor_unitario', 10, 2);
+                $table->decimal('valor_total', 10, 2);
+                $table->timestamps();
+            });
+        }
     }
 
     /**

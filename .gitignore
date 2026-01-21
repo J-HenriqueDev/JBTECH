@@ -1,7 +1,7 @@
 # Laravel
 /node_modules
 /public/hot
-/public/
+# /public/
 /public/storage
 /storage/*.key
 /vendor

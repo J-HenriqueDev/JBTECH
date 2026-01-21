@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0fea3dbe501ff5517fe3cabded557907",
+    "content-hash": "3349a8e937c06d07e81e1470ac87c048",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -1388,6 +1388,62 @@
                 }
             ],
             "time": "2025-08-22T14:27:06+00:00"
+        },
+        {
+            "name": "hadder/nfse-nacional",
+            "version": "1.0.9",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Rainzart/nfse-nacional.git",
+                "reference": "f6200fa7794831df375556e5c98c75af20935142"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Rainzart/nfse-nacional/zipball/f6200fa7794831df375556e5c98c75af20935142",
+                "reference": "f6200fa7794831df375556e5c98c75af20935142",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-dom": "*",
+                "ext-openssl": "*",
+                "ext-zlib": "*",
+                "nesbot/carbon": "^3.8",
+                "nfephp-org/sped-common": "^5.1",
+                "php": "^8.2",
+                "symfony/var-dumper": "^7.1",
+                "tecnickcom/tcpdf": "^6.7"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "Helpers.php"
+                ],
+                "psr-4": {
+                    "Hadder\\NfseNacional\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Fernando Friedrich",
+                    "email": "fernando@hadder.com.br"
+                }
+            ],
+            "description": "Pacote para geração de NFSe Nacional usando componentes NFePHP (https://github.com/nfephp-org)",
+            "keywords": [
+                "mei",
+                "nfse",
+                "nfse-nacional"
+            ],
+            "support": {
+                "issues": "https://github.com/Rainzart/nfse-nacional/issues",
+                "source": "https://github.com/Rainzart/nfse-nacional/tree/1.0.9"
+            },
+            "time": "2026-01-20T20:47:16+00:00"
         },
         {
             "name": "justinrainbow/json-schema",
@@ -7341,6 +7397,77 @@
             "time": "2023-10-23T09:28:20+00:00"
         },
         {
+            "name": "tecnickcom/tcpdf",
+            "version": "6.10.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/tecnickcom/TCPDF.git",
+                "reference": "7a2701251e5d52fc3d508fd71704683eb54f5939"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/tecnickcom/TCPDF/zipball/7a2701251e5d52fc3d508fd71704683eb54f5939",
+                "reference": "7a2701251e5d52fc3d508fd71704683eb54f5939",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "php": ">=7.1.0"
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "config",
+                    "include",
+                    "tcpdf.php",
+                    "tcpdf_barcodes_1d.php",
+                    "tcpdf_barcodes_2d.php",
+                    "include/tcpdf_colors.php",
+                    "include/tcpdf_filters.php",
+                    "include/tcpdf_font_data.php",
+                    "include/tcpdf_fonts.php",
+                    "include/tcpdf_images.php",
+                    "include/tcpdf_static.php",
+                    "include/barcodes/datamatrix.php",
+                    "include/barcodes/pdf417.php",
+                    "include/barcodes/qrcode.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "LGPL-3.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Nicola Asuni",
+                    "email": "info@tecnick.com",
+                    "role": "lead"
+                }
+            ],
+            "description": "TCPDF is a PHP class for generating PDF documents and barcodes.",
+            "homepage": "http://www.tcpdf.org/",
+            "keywords": [
+                "PDFD32000-2008",
+                "TCPDF",
+                "barcodes",
+                "datamatrix",
+                "pdf",
+                "pdf417",
+                "qrcode"
+            ],
+            "support": {
+                "issues": "https://github.com/tecnickcom/TCPDF/issues",
+                "source": "https://github.com/tecnickcom/TCPDF/tree/6.10.1"
+            },
+            "funding": [
+                {
+                    "url": "https://www.paypal.com/donate/?hosted_button_id=NZUEC5XS8MFBJ",
+                    "type": "custom"
+                }
+            ],
+            "time": "2025-11-21T10:58:21+00:00"
+        },
+        {
             "name": "thecodingmachine/safe",
             "version": "v3.3.0",
             "source": {
@@ -10325,7 +10452,8 @@
     "prefer-lowest": false,
     "platform": {
         "php": "^8.2",
-        "ext-gd": "*"
+        "ext-gd": "*",
+        "ext-pgsql": "*"
     },
     "platform-dev": {},
     "plugin-api-version": "2.9.0"

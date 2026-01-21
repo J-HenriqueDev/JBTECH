@@ -38,7 +38,7 @@ class ProcessarNFeDestinadas extends Command
         if ($nextQuery) {
             $nextQueryTime = Carbon::parse($nextQuery);
             if (now()->lt($nextQueryTime)) {
-                $diff = now()->diffInMinutes($nextQueryTime);
+                $diff = (int) ceil(now()->diffInMinutes($nextQueryTime));
                 $msg = "Consulta bloqueada pela SEFAZ. Aguardando {$diff} minutos.";
                 $this->warn($msg);
                 Log::warning("Command nfe:processar-destinadas: $msg");

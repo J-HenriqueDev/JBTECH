@@ -3,4 +3,180 @@
 //  Copy and paste variables as needed, modify their values, and remove the !default flag.
 //  ===================================================================================================================
 
-// $success: #f0f000 !default;
+// Backgrounds
+$body-bg: #000000;
+$card-bg: #0a0a0a; // Slightly lighter than pure black to distinguish cards
+$white: #ffffff;
+
+// Text Colors
+$body-color: #e0e0e0;
+$heading-color: #ffffff;
+$text-muted: #a0a0a0;
+
+// Borders
+$border-color: #333333;
+
+// Matrix / Hacker Theme Accents
+$primary: #00ff41; // Matrix Green
+$success: #00ff41; // Matrix Green
+$info: #008f11; // Darker Green
+$component-active-bg: $primary;
+$component-active-color: #000000;
+
+// Helper variables for components that use rgba
+$rgba-to-hex-bg: $body-bg;
+
+// Global CSS Overrides for Matrix/Dark Mode
+html.dark-style {
+  // Invert Logo in Sidebar
+  .app-brand-logo img {
+    filter: invert(1) hue-rotate(180deg); // Invert and adjust hue if needed
+  }
+
+  // Ensure all inputs have dark background and light text
+  .form-control,
+  .form-select,
+  .input-group-text {
+    background-color: #121212 !important;
+    color: #e0e0e0 !important;
+    border-color: #333333;
+
+    &:focus {
+      border-color: $primary;
+      box-shadow: 0 0 0 0.25rem rgba(0, 255, 65, 0.25);
+    }
+  }
+
+  // Fix placeholders
+  .form-control::placeholder {
+    color: #666666 !important;
+  }
+
+  // Dropdowns (Select2, standard)
+  .dropdown-menu {
+    background-color: #1a1a1a;
+    border-color: #333;
+  }
+  .dropdown-item {
+    color: #e0e0e0;
+    &:hover,
+    &:focus {
+      background-color: rgba(0, 255, 65, 0.1);
+      color: $primary;
+    }
+  }
+
+  // Sidebar Menu
+  .menu-vertical,
+  .menu-horizontal {
+    background-color: #000000 !important;
+
+    .menu-inner > .menu-item.active > .menu-link {
+      background-color: rgba(0, 255, 65, 0.15) !important;
+      color: $primary !important;
+
+      i {
+        color: $primary !important;
+      }
+    }
+
+    .menu-inner > .menu-item .menu-link {
+      color: #b0b0b0;
+      &:hover {
+        color: #ffffff;
+      }
+    }
+  }
+
+  // Tables
+  .table {
+    color: #e0e0e0;
+    thead th {
+      background-color: #121212;
+      color: $primary;
+    }
+    td {
+      border-color: #333;
+    }
+  }
+
+  // Force text colors for headings and body content
+  body,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  .h1,
+  .h2,
+  .h3,
+  .h4,
+  .h5,
+  .h6 {
+    color: #e0e0e0 !important;
+  }
+
+  // Fix specific utility classes that force dark text
+  .text-dark {
+    color: #e0e0e0 !important;
+  }
+
+  .text-body {
+    color: #b0b0b0 !important;
+  }
+
+  .text-muted {
+    color: #888888 !important;
+  }
+
+  // Card specific overrides
+  .card {
+    background-color: $card-bg; // Ensure card bg is set
+
+    .card-header,
+    .card-title,
+    .card-body,
+    .card-text {
+      color: #e0e0e0 !important;
+    }
+
+    // Fix for form labels inside cards
+    label,
+    .form-label {
+      color: #e0e0e0 !important;
+    }
+  }
+
+  // Modal fixes
+  .modal-content {
+    background-color: #121212;
+    border: 1px solid #333;
+
+    .modal-header,
+    .modal-footer {
+      border-color: #333;
+    }
+
+    .modal-title,
+    .modal-body,
+    .modal-footer {
+      color: #e0e0e0 !important;
+    }
+
+    .btn-close {
+      filter: invert(1);
+    }
+  }
+
+  // Profile Information specific fix (Jetstream/Fortify components)
+  // Usually these are in cards or specific containers
+  .md\:grid-cols-3 {
+    // Assuming Jetstream layout
+    h3,
+    h5,
+    p {
+      color: #e0e0e0 !important;
+    }
+  }
+}

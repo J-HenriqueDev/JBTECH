@@ -72,6 +72,46 @@ $navbarDetached = ($navbarDetached ?? '');
 
         <ul class="navbar-nav flex-row align-items-center ms-auto">
 
+        <!-- Notification -->
+        <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-1">
+          <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+            <i class="bx bx-bell bx-md"></i>
+            <span class="badge bg-danger rounded-pill badge-notifications">0</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end py-0">
+            <li class="dropdown-menu-header border-bottom">
+              <div class="dropdown-header d-flex align-items-center py-3">
+                <h5 class="text-body mb-0 me-auto">Notificações</h5>
+                <a href="javascript:void(0)" class="dropdown-notifications-all text-body" data-bs-toggle="tooltip" data-bs-placement="top" title="Marcar todas como lidas"><i class="bx fs-4 bx-envelope-open"></i></a>
+              </div>
+            </li>
+            <li class="dropdown-notifications-list scrollable-container">
+              <ul class="list-group list-group-flush">
+                <li class="list-group-item list-group-item-action dropdown-notifications-item">
+                  <div class="d-flex">
+                    <div class="flex-shrink-0 me-3">
+                      <div class="avatar">
+                        <span class="avatar-initial rounded-circle bg-label-success"><i class="bx bx-cart"></i></span>
+                      </div>
+                    </div>
+                    <div class="flex-grow-1">
+                      <h6 class="mb-1">Bem-vindo!</h6>
+                      <p class="mb-0">Sistema pronto para uso.</p>
+                      <small class="text-muted">Agora</small>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </li>
+            <li class="dropdown-menu-footer border-top">
+              <a href="javascript:void(0);" class="dropdown-item d-flex justify-content-center p-3">
+                Ver todas as notificações
+              </a>
+            </li>
+          </ul>
+        </li>
+        <!--/ Notification -->
+
         <!-- User -->
         <li class="nav-item navbar-dropdown dropdown-user dropdown">
           <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);" data-bs-toggle="dropdown">
@@ -93,7 +133,7 @@ $navbarDetached = ($navbarDetached ?? '');
                       @if (Auth::check())
                         {{ Auth::user()->name }}
                       @else
-                      John Doe
+                      Usuário
                       @endif
                     </h6>
                     <small class="text-muted">Admin</small>
@@ -106,43 +146,35 @@ $navbarDetached = ($navbarDetached ?? '');
             </li>
             <li>
               <a class="dropdown-item" href="{{ Route::has('profile.show') ? route('profile.show') : 'javascript:void(0);' }}">
-                <i class="bx bx-user bx-md me-3"></i><span>My Profile</span>
+                <i class="bx bx-user bx-md me-3"></i><span>Meu Perfil</span>
               </a>
             </li>
             @if (Auth::check() && Laravel\Jetstream\Jetstream::hasApiFeatures())
               <li>
                 <a class="dropdown-item" href="{{ route('api-tokens.index') }}">
-                  <i class='bx bx-key bx-md me-3'></i><span>API Tokens</span>
+                  <i class='bx bx-key bx-md me-3'></i><span>Tokens API</span>
                 </a>
               </li>
             @endif
-            <li>
-              <a class="dropdown-item" href="javascript:void(0);">
-                <span class="d-flex align-items-center align-middle">
-                  <i class="flex-shrink-0 bx bx-credit-card bx-md me-3"></i><span class="flex-grow-1 align-middle">Billing Plan</span>
-                  <span class="flex-shrink-0 badge rounded-pill bg-danger">4</span>
-                </span>
-              </a>
-            </li>
             @if (Auth::User() && Laravel\Jetstream\Jetstream::hasTeamFeatures())
               <li>
                 <div class="dropdown-divider my-1"></div>
               </li>
               <li>
-                <h6 class="dropdown-header">Manage Team</h6>
+                <h6 class="dropdown-header">Gerenciar Equipe</h6>
               </li>
               <li>
                 <div class="dropdown-divider my-1"></div>
               </li>
               <li>
                 <a class="dropdown-item" href="{{ Auth::user() ? route('teams.show', Auth::user()->currentTeam->id) : 'javascript:void(0)' }}">
-                  <i class='bx bx-cog bx-md me-3'></i><span>Team Settings</span>
+                  <i class='bx bx-cog bx-md me-3'></i><span>Configurações da Equipe</span>
                 </a>
               </li>
               @can('create', Laravel\Jetstream\Jetstream::newTeamModel())
               <li>
                 <a class="dropdown-item" href="{{ route('teams.create') }}">
-                  <i class='bx bx-user bx-md me-3'></i><span>Create New Team</span>
+                  <i class='bx bx-user bx-md me-3'></i><span>Criar Nova Equipe</span>
                 </a>
               </li>
               @endcan
@@ -151,7 +183,7 @@ $navbarDetached = ($navbarDetached ?? '');
                 <div class="dropdown-divider my-1"></div>
               </li>
               <li>
-                <h6 class="dropdown-header">Switch Teams</h6>
+                <h6 class="dropdown-header">Alternar Equipes</h6>
               </li>
               <li>
                 <div class="dropdown-divider my-1"></div>
@@ -171,7 +203,7 @@ $navbarDetached = ($navbarDetached ?? '');
             @if (Auth::check())
               <li>
                 <a class="dropdown-item" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                  <i class='bx bx-power-off bx-md me-3'></i><span>Logout</span>
+                  <i class='bx bx-power-off bx-md me-3'></i><span>Sair</span>
                 </a>
               </li>
               <form method="POST" id="logout-form" action="{{ route('logout') }}">
@@ -180,7 +212,7 @@ $navbarDetached = ($navbarDetached ?? '');
             @else
             <li>
               <a class="dropdown-item" href="{{ Route::has('login') ? route('login') : url('auth/login-basic') }}">
-                <i class='bx bx-log-in bx-md me-3'></i><span>Login</span>
+                <i class='bx bx-log-in bx-md me-3'></i><span>Entrar</span>
               </a>
             </li>
             @endif

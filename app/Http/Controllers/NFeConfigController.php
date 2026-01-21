@@ -111,20 +111,26 @@ class NFeConfigController extends Controller
             // 2. Se NÃO tem arquivo novo, mas tem senha nova, valida e atualiza
             elseif ($request->filled('nfe_cert_password')) {
                 $senhaNova = $request->input('nfe_cert_password');
-                $certPath = 'certificates/' . Configuracao::get('nfe_cert_path', 'certificado.pfx');
 
-                // Se o certificado existe, valida a nova senha contra ele
-                if (Storage::exists($certPath)) {
-                    try {
-                        $this->validarCertificado($certPath, $senhaNova);
-                    } catch (Exception $e) {
-                        return back()->withErrors('A nova senha fornecida é inválida para o certificado atual: ' . $e->getMessage());
+                // Ignora se for a máscara de senha
+                if ($senhaNova === '********') {
+                    Log::info('Senha recebida é a máscara (********), ignorando atualização.');
+                } else {
+                    $certPath = 'certificates/' . Configuracao::get('nfe_cert_path', 'certificado.pfx');
+
+                    // Se o certificado existe, valida a nova senha contra ele
+                    if (Storage::exists($certPath)) {
+                        try {
+                            $this->validarCertificado($certPath, $senhaNova);
+                        } catch (Exception $e) {
+                            return back()->withErrors('A nova senha fornecida é inválida para o certificado atual: ' . $e->getMessage());
+                        }
                     }
-                }
 
-                // Salva a nova senha
-                Configuracao::set('nfe_cert_password', $senhaNova, 'nfe', 'password', 'Senha do certificado digital');
-                Log::info('Senha do certificado (existente) atualizada com sucesso.');
+                    // Salva a nova senha
+                    Configuracao::set('nfe_cert_password', $senhaNova, 'nfe', 'password', 'Senha do certificado digital');
+                    Log::info('Senha do certificado (existente) atualizada com sucesso.');
+                }
             }
 
             $camposNFe = [

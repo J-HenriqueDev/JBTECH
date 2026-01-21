@@ -38,3 +38,6 @@
   @import '_bootstrap-extended/utilities-ltr';
   @import 'bootstrap/scss/utilities/api';
 }
+
+// Import Custom Overrides LAST to ensure they take precedence
+@import '_custom-variables/bootstrap-extended-dark';

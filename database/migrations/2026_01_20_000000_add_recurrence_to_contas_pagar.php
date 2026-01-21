@@ -12,10 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('contas_pagar', function (Blueprint $table) {
-            $table->boolean('recorrente')->default(false);
-            $table->string('frequencia')->nullable()->comment('mensal, semanal, anual'); // mensal, semanal, anual
-            $table->integer('dia_vencimento')->nullable(); // Para recorrência mensal
-            $table->date('proximo_vencimento')->nullable();
+            if (!Schema::hasColumn('contas_pagar', 'recorrente')) {
+                $table->boolean('recorrente')->default(false);
+            }
+            if (!Schema::hasColumn('contas_pagar', 'frequencia')) {
+                $table->string('frequencia')->nullable()->comment('mensal, semanal, anual');
+            }
+            if (!Schema::hasColumn('contas_pagar', 'dia_vencimento')) {
+                $table->integer('dia_vencimento')->nullable();
+            }
+            if (!Schema::hasColumn('contas_pagar', 'proximo_vencimento')) {
+                $table->date('proximo_vencimento')->nullable();
+            }
         });
     }
 

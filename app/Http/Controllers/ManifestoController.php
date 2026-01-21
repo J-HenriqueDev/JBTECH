@@ -30,7 +30,7 @@ class ManifestoController extends Controller
         $nextQuery = Configuracao::get('nfe_next_dfe_query');
         $bloqueioMsg = null;
         if ($nextQuery && now()->lt(Carbon::parse($nextQuery))) {
-            $diffMinutes = now()->diffInMinutes(Carbon::parse($nextQuery));
+            $diffMinutes = (int) ceil(now()->diffInMinutes(Carbon::parse($nextQuery)));
             $bloqueioMsg = "Sincronização pausada pela SEFAZ. Próxima tentativa permitida em {$diffMinutes} minutos.";
         }
 
@@ -142,7 +142,7 @@ class ManifestoController extends Controller
             // Verifica se há bloqueio ativo antes de tentar
             $nextQuery = Configuracao::get('nfe_next_dfe_query');
             if ($nextQuery && now()->lt(Carbon::parse($nextQuery))) {
-                $diffMinutes = now()->diffInMinutes(Carbon::parse($nextQuery));
+                $diffMinutes = (int) ceil(now()->diffInMinutes(Carbon::parse($nextQuery)));
                 return redirect()->back()->with('error', "Sistema em pausa temporária pela SEFAZ. Aguarde {$diffMinutes} minutos.");
             }
 
@@ -183,7 +183,7 @@ class ManifestoController extends Controller
             if ($nextQuery) {
                 $nextQueryDate = Carbon::parse($nextQuery);
                 if (now()->lt($nextQueryDate)) {
-                    $diffMinutes = now()->diffInMinutes($nextQueryDate);
+                    $diffMinutes = (int) ceil(now()->diffInMinutes($nextQueryDate));
                     return redirect()->back()->with('error', "Aguarde {$diffMinutes} minutos para realizar uma nova busca (Regra da SEFAZ para evitar bloqueio).");
                 }
             }

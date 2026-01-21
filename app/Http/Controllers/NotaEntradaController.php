@@ -35,7 +35,7 @@ class NotaEntradaController extends Controller
             if ($nextQuery) {
                 $nextQueryDate = \Carbon\Carbon::parse($nextQuery);
                 if (now()->lt($nextQueryDate)) {
-                    $diffMinutes = now()->diffInMinutes($nextQueryDate);
+                    $diffMinutes = (int) ceil(now()->diffInMinutes($nextQueryDate));
                     return redirect()->back()->with('error', "Aguarde {$diffMinutes} minutos para realizar uma nova busca (Regra da SEFAZ para evitar bloqueio).");
                 }
             }
