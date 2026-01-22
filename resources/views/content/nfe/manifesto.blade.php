@@ -56,6 +56,9 @@
             <button type="submit" class="btn btn-primary" {{ (isset($bloqueioMsg) && $bloqueioMsg) ? 'disabled' : '' }}>
                 <i class="bx bx-refresh me-1"></i> Buscar Novas Notas
             </button>
+            <button type="submit" name="reset_nsu" value="1" class="btn btn-outline-secondary" {{ (isset($bloqueioMsg) && $bloqueioMsg) ? 'disabled' : '' }} title="Refazer busca completa (últimos 90 dias)">
+                <i class="bx bx-history me-1"></i> Resync Completo
+            </button>
         </form>
     </div>
 </div>
@@ -116,7 +119,19 @@
                                 <input class="form-check-input note-checkbox" type="checkbox" name="chaves[]" value="{{ $nota->chave_acesso }}">
                             </div>
                         </td>
-                        <td>{{ $nota->data_emissao ? \Carbon\Carbon::parse($nota->data_emissao)->format('d/m/Y H:i') : 'N/A' }}</td>
+                        <td>
+                            @php
+                            $dataEmissao = 'N/A';
+                            if ($nota->data_emissao) {
+                            try {
+                            $dataEmissao = \Carbon\Carbon::parse($nota->data_emissao)->format('d/m/Y H:i');
+                            } catch (\Exception $e) {
+                            $dataEmissao = $nota->data_emissao; // Mostra original se falhar o parse
+                            }
+                            }
+                            @endphp
+                            {{ $dataEmissao }}
+                        </td>
                         <td>
                             <span title="{{ $nota->chave_acesso }}">{{ substr($nota->chave_acesso, 0, 25) }}...</span>
                             <button type="button" class="btn btn-sm btn-icon" onclick="navigator.clipboard.writeText('{{ $nota->chave_acesso }}')">

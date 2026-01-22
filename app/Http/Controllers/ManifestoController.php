@@ -21,31 +21,46 @@ class ManifestoController extends Controller
 
     public function index()
     {
-        // Buscar notas dos últimos 90 dias ou atualizadas recentemente
-        $notas = NotaEntrada::where(function ($q) {
-            $q->where('created_at', '>=', Carbon::now()->subDays(90))
-                ->orWhere('updated_at', '>=', Carbon::now()->subDays(1));
-        })
-            ->orderBy('updated_at', 'desc')
-            ->get();
+        try {
+            // Buscar notas dos últimos 90 dias ou atualizadas recentemente
+            $notas = NotaEntrada::where(function ($q) {
+                $q->where('created_at', '>=', Carbon::now()->subDays(90))
+                    ->orWhere('updated_at', '>=', Carbon::now()->subDays(1));
+            })
+                ->orderBy('updated_at', 'desc')
+                ->get();
 
-        // Verifica se há bloqueio ativo para exibir alerta na tela
-        $nextQuery = Configuracao::get('nfe_next_dfe_query');
-        $bloqueioMsg = null;
-        if ($nextQuery) {
-            try {
-                $nextQueryDate = Carbon::parse($nextQuery);
-                if (now()->lt($nextQueryDate)) {
-                    $diffMinutes = (int) ceil(now()->diffInMinutes($nextQueryDate));
-                    $bloqueioMsg = "Sincronização temporariamente pausada para evitar bloqueio na SEFAZ. Próxima tentativa em {$diffMinutes} minutos.";
+            // Verifica se há bloqueio ativo para exibir alerta na tela
+            $nextQuery = Configuracao::get('nfe_next_dfe_query');
+            $bloqueioMsg = null;
+            if ($nextQuery) {
+                try {
+                    $nextQueryDate = Carbon::parse($nextQuery);
+                    if (now()->lt($nextQueryDate)) {
+                        $diffMinutes = (int) ceil(now()->diffInMinutes($nextQueryDate));
+                        $bloqueioMsg = "Sincronização temporariamente pausada para evitar bloqueio na SEFAZ. Próxima tentativa em {$diffMinutes} minutos.";
+                    }
+                } catch (\Exception $e) {
+                    // Se a data estiver inválida, ignoramos o bloqueio visual e logamos o erro
+                    Log::warning("Data de bloqueio inválida na configuração: $nextQuery");
                 }
-            } catch (\Exception $e) {
-                // Se a data estiver inválida, ignoramos o bloqueio visual e logamos o erro
-                Log::warning("Data de bloqueio inválida na configuração: $nextQuery");
+            }
+
+            return response(view('content.nfe.manifesto', compact('notas', 'bloqueioMsg'))->render());
+        } catch (\Exception $e) {
+            Log::error("Erro fatal ao carregar manifesto: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+            // Em caso de erro, tenta renderizar a view vazia ou com mensagem
+            try {
+                return response(view('content.nfe.manifesto', [
+                    'notas' => collect([]),
+                    'bloqueioMsg' => null,
+                    'error' => 'Erro ao carregar notas: ' . $e->getMessage()
+                ])->with('error', 'Erro ao carregar notas: ' . $e->getMessage())->render());
+            } catch (\Exception $e2) {
+                // Se até a view de erro falhar, retorna texto puro
+                return response("Erro crítico ao carregar a página de manifesto. Contate o suporte. Detalhes: " . $e->getMessage(), 500);
             }
         }
-
-        return view('content.nfe.manifesto', compact('notas', 'bloqueioMsg'));
     }
 
     public function manifestar(Request $request)
@@ -179,7 +194,7 @@ class ManifestoController extends Controller
     }
 
     // Método para sincronizar manualmente (buscar novas notas na SEFAZ)
-    public function sincronizar()
+    public function sincronizar(Request $request)
     {
         // Previne execução concorrente (Double-click protection)
         $lock = Cache::lock('nfe_sincronizacao', 10); // 10 segundos de lock inicial
@@ -200,6 +215,13 @@ class ManifestoController extends Controller
             }
 
             $lastNSU = Configuracao::get('nfe_last_nsu') ?: 0;
+
+            // Se solicitado reset, volta para 0 para buscar tudo
+            if ($request->has('reset_nsu')) {
+                $lastNSU = 0;
+                Log::info("Sincronização forçada com reset de NSU iniciada pelo usuário.");
+            }
+
             $maxLoops = 10; // Aumentado para 10 loops (500 docs) para recuperar atraso
             $loopCount = 0;
             $newDocsCount = 0;
