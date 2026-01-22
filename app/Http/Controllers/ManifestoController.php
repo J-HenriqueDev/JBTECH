@@ -31,7 +31,7 @@ class ManifestoController extends Controller
         $bloqueioMsg = null;
         if ($nextQuery && now()->lt(Carbon::parse($nextQuery))) {
             $diffMinutes = (int) ceil(now()->diffInMinutes(Carbon::parse($nextQuery)));
-            $bloqueioMsg = "Sincronização pausada pela SEFAZ. Próxima tentativa permitida em {$diffMinutes} minutos.";
+            $bloqueioMsg = "Sincronização temporariamente pausada para evitar bloqueio na SEFAZ. Próxima tentativa em {$diffMinutes} minutos.";
         }
 
         return view('content.nfe.manifesto', compact('notas', 'bloqueioMsg'));
@@ -220,11 +220,23 @@ class ManifestoController extends Controller
                     $docs = is_array($resp->loteDistDFeInt->docZip) ? $resp->loteDistDFeInt->docZip : [$resp->loteDistDFeInt->docZip];
 
                     foreach ($docs as $doc) {
-                        $nsu = $doc->NSU;
-                        $schema = $doc->schema;
-                        $contentEncoded = $doc->{'$'} ?? $doc->{0} ?? null;
+                        $nsu = null;
+                        $schema = null;
+                        $contentEncoded = null;
 
-                        if (!$contentEncoded) {
+                        if (is_object($doc)) {
+                            $nsu = $doc->NSU ?? null;
+                            $schema = $doc->schema ?? null;
+                            $contentEncoded = $doc->{'$'} ?? $doc->{0} ?? null;
+                        } elseif (is_array($doc)) {
+                            $nsu = $doc['NSU'] ?? null;
+                            $schema = $doc['schema'] ?? null;
+                            $contentEncoded = $doc['$'] ?? ($doc[0] ?? null);
+                        } elseif (is_string($doc)) {
+                            $contentEncoded = $doc;
+                        }
+
+                        if (!$contentEncoded && (is_object($doc) || is_array($doc))) {
                             foreach ($doc as $key => $value) {
                                 if (is_string($value) && strlen($value) > 20) {
                                     $contentEncoded = $value;
@@ -239,7 +251,7 @@ class ManifestoController extends Controller
                                 $this->processarDocDFe($nsu, $schema, $xmlContent);
                                 $newDocsCount++;
                             } catch (\Exception $e) {
-                                Log::error("Erro ao processar doc NSU $nsu: " . $e->getMessage());
+                                Log::error("Erro ao processar documento: " . $e->getMessage());
                             }
                         }
                     }
@@ -277,13 +289,23 @@ class ManifestoController extends Controller
     {
         $xml = simplexml_load_string($xmlContent);
 
+        if (!$schema || $schema === '') {
+            $content = (string) $xmlContent;
+            if (strpos($content, '<resNFe') !== false) {
+                $schema = 'resNFe_v1.00.xsd';
+            } elseif (strpos($content, '<resEvento') !== false) {
+                $schema = 'resEvento_v1.00.xsd';
+            } else {
+                $schema = 'procNFe_v4.00.xsd';
+            }
+        }
+
         if (strpos($schema, 'resNFe') !== false) {
             // Resumo da NFe
             $chave = preg_replace('/[^0-9]/', '', (string) $xml->chNFe);
             $cnpj = (string) $xml->CNPJ;
             $nome = (string) $xml->xNome;
             $valor = (float) $xml->vNF;
-            $data = (string) $xml->dhEmi;
             $statusSefaz = (int) $xml->cSitNFe;
 
             $status = 'pendente';

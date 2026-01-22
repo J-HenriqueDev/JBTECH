@@ -1588,8 +1588,10 @@ INI;
             // Verifica status de bloqueio ou sem documentos
             // 137: Nenhum documento localizado -> Deve aguardar 1 hora
             // 656: Consumo Indevido -> Deve aguardar 1 hora
-            if ($std->cStat == 137 || $std->cStat == 656) {
+            if ($std->cStat == 656) {
                 Configuracao::set('nfe_next_dfe_query', now()->addHour()->toDateTimeString(), 'nfe', 'datetime', 'Próxima consulta DFe permitida');
+            } elseif ($std->cStat == 137) {
+                Configuracao::set('nfe_next_dfe_query', now()->addMinutes(5)->toDateTimeString(), 'nfe', 'datetime', 'Próxima consulta DFe permitida');
             }
 
             if ($std->cStat != 138 && $std->cStat != 137) { // 138: Documentos localizados, 137: Nenhum documento

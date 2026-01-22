@@ -57,16 +57,23 @@ class NotaEntradaController extends Controller
                     $docs = is_array($resp->loteDistDFeInt->docZip) ? $resp->loteDistDFeInt->docZip : [$resp->loteDistDFeInt->docZip];
 
                     foreach ($docs as $doc) {
-                        $nsu = $doc->NSU;
-                        $schema = $doc->schema;
+                        $nsu = null;
+                        $schema = null;
+                        $contentEncoded = null;
 
-                        // O conteúdo vem compactado (GZIP) e codificado (Base64)
-                        // A propriedade pode variar dependendo da conversão do Standardize
-                        // Geralmente é o valor do nó
-                        $contentEncoded = $doc->{'$'} ?? $doc->{0} ?? null;
+                        if (is_object($doc)) {
+                            $nsu = $doc->NSU ?? null;
+                            $schema = $doc->schema ?? null;
+                            $contentEncoded = $doc->{'$'} ?? $doc->{0} ?? null;
+                        } elseif (is_array($doc)) {
+                            $nsu = $doc['NSU'] ?? null;
+                            $schema = $doc['schema'] ?? null;
+                            $contentEncoded = $doc['$'] ?? ($doc[0] ?? null);
+                        } elseif (is_string($doc)) {
+                            $contentEncoded = $doc;
+                        }
 
-                        // Se não encontrou conteúdo de forma padrão, tenta pegar a primeira propriedade string
-                        if (!$contentEncoded) {
+                        if (!$contentEncoded && (is_object($doc) || is_array($doc))) {
                             foreach ($doc as $key => $value) {
                                 if (is_string($value) && strlen($value) > 20) {
                                     $contentEncoded = $value;
@@ -81,7 +88,7 @@ class NotaEntradaController extends Controller
                                 $this->processarDocDFe($nsu, $schema, $xmlContent);
                                 $newDocsCount++;
                             } catch (\Exception $e) {
-                                Log::error("Erro ao processar doc NSU $nsu: " . $e->getMessage());
+                                Log::error("Erro ao processar documento: " . $e->getMessage());
                             }
                         }
                     }
@@ -118,13 +125,23 @@ class NotaEntradaController extends Controller
     {
         $xml = simplexml_load_string($xmlContent);
 
+        if (!$schema || $schema === '') {
+            $content = (string) $xmlContent;
+            if (strpos($content, '<resNFe') !== false) {
+                $schema = 'resNFe_v1.00.xsd';
+            } elseif (strpos($content, '<resEvento') !== false) {
+                $schema = 'resEvento_v1.00.xsd';
+            } else {
+                $schema = 'procNFe_v4.00.xsd';
+            }
+        }
+
         if (strpos($schema, 'resNFe') !== false) {
             // Resumo da NFe
             $chave = preg_replace('/[^0-9]/', '', (string) $xml->chNFe);
             $cnpj = (string) $xml->CNPJ; // CNPJ do Emitente
             $nome = (string) $xml->xNome;
             $valor = (float) $xml->vNF;
-            $data = (string) $xml->dhEmi;
             $statusSefaz = (int) $xml->cSitNFe; // 1=Autorizada, 2=Denegada, 3=Cancelada
 
             $status = 'detectada';
