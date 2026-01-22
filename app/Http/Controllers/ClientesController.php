@@ -9,6 +9,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use App\Validators\CpfCnpjValidator;
 use App\Services\LogService;
 
