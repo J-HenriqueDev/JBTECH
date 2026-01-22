@@ -345,6 +345,22 @@ class NFSeService
         $certPath = storage_path('app/certificates/' . ($certPathConfig ?: 'certificado.pfx'));
         $senha = Configuracao::get('nfe_cert_password');
 
+        // Tenta restaurar do banco se não existir no disco (Correção para Heroku)
+        if (!file_exists($certPath)) {
+            $certData = Configuracao::get('nfe_cert_data');
+            if ($certData) {
+                try {
+                    if (!file_exists(dirname($certPath))) {
+                        mkdir(dirname($certPath), 0755, true);
+                    }
+                    file_put_contents($certPath, base64_decode($certData));
+                    Log::info('Certificado restaurado do banco de dados para: ' . $certPath);
+                } catch (\Exception $e) {
+                    Log::error('Erro ao restaurar certificado do banco: ' . $e->getMessage());
+                }
+            }
+        }
+
         if (!file_exists($certPath)) {
             // Tenta caminho antigo/alternativo se falhar
             $certPathAlt = Configuracao::get('nfe_certificado');

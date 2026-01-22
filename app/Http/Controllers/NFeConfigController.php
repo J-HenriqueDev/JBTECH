@@ -104,6 +104,15 @@ class NFeConfigController extends Controller
                 Storage::move($caminhoTemp, $caminho);
                 Configuracao::set('nfe_cert_path', $nomeArquivo, 'nfe', 'file', 'Caminho do certificado digital');
 
+                // Salva o conteúdo do certificado no banco de dados (para persistência no Heroku)
+                try {
+                    $certContent = Storage::get($caminho);
+                    Configuracao::set('nfe_cert_data', base64_encode($certContent), 'nfe', 'longtext', 'Conteúdo do certificado digital (Base64)');
+                    Log::info('Conteúdo do certificado salvo no banco de dados.');
+                } catch (Exception $e) {
+                    Log::error('Erro ao salvar conteúdo do certificado no banco: ' . $e->getMessage());
+                }
+
                 // Salva a senha validada
                 Configuracao::set('nfe_cert_password', $senhaParaValidar, 'nfe', 'password', 'Senha do certificado digital');
                 Log::info('Senha do certificado (novo) salva com sucesso.');
