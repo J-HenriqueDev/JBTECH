@@ -42,8 +42,8 @@ class NotaEntradaController extends Controller
 
             $lastNSU = \App\Models\Configuracao::get('nfe_last_nsu') ?: 0;
 
-            // Limite de loops para evitar timeout (máximo 3 páginas ou 150 documentos)
-            $maxLoops = 3;
+            // Limite de loops para evitar timeout (máximo 10 páginas ou 500 documentos)
+            $maxLoops = 10;
             $loopCount = 0;
             $newDocsCount = 0;
 
@@ -57,42 +57,47 @@ class NotaEntradaController extends Controller
                     $docs = is_array($resp->loteDistDFeInt->docZip) ? $resp->loteDistDFeInt->docZip : [$resp->loteDistDFeInt->docZip];
 
                     foreach ($docs as $doc) {
-                        $nsu = null;
-                        $schema = null;
-                        $contentEncoded = null;
+                        try {
+                            $nsu = null;
+                            $schema = null;
+                            $contentEncoded = null;
 
-                        if (is_object($doc)) {
-                            $nsu = $doc->NSU ?? null;
-                            $schema = $doc->schema ?? null;
-                            $contentEncoded = $doc->{'$'} ?? $doc->{0} ?? null;
-                        } elseif (is_array($doc)) {
-                            $nsu = $doc['NSU'] ?? null;
-                            $schema = $doc['schema'] ?? null;
-                            $contentEncoded = $doc['$'] ?? ($doc[0] ?? null);
-                        } elseif (is_string($doc)) {
-                            $contentEncoded = $doc;
-                        }
+                            if (is_object($doc)) {
+                                $nsu = $doc->NSU ?? null;
+                                $schema = $doc->schema ?? null;
+                                $contentEncoded = $doc->{'$'} ?? $doc->{0} ?? null;
+                                // Fallback
+                                if (!$contentEncoded && method_exists($doc, '__toString')) {
+                                    $str = (string)$doc;
+                                    if (strlen($str) > 20) $contentEncoded = $str;
+                                }
+                            } elseif (is_array($doc)) {
+                                $nsu = $doc['NSU'] ?? null;
+                                $schema = $doc['schema'] ?? null;
+                                $contentEncoded = $doc['$'] ?? ($doc[0] ?? null);
+                            } elseif (is_string($doc)) {
+                                $contentEncoded = $doc;
+                            }
 
-                        if (!$contentEncoded && (is_object($doc) || is_array($doc))) {
-                            foreach ($doc as $key => $value) {
-                                if (is_string($value) && strlen($value) > 20) {
-                                    $contentEncoded = $value;
-                                    break;
+                            if (!$contentEncoded && (is_object($doc) || is_array($doc))) {
+                                foreach ($doc as $key => $value) {
+                                    if (is_string($value) && strlen($value) > 20) {
+                                        $contentEncoded = $value;
+                                        break;
+                                    }
                                 }
                             }
-                        }
 
-                        if ($contentEncoded) {
-                            try {
+                            if ($contentEncoded) {
                                 $xmlContent = gzdecode(base64_decode($contentEncoded));
                                 $resultType = $this->processarDocDFe($nsu, $schema, $xmlContent);
 
                                 if ($resultType === 'new') {
                                     $newDocsCount++;
                                 }
-                            } catch (\Exception $e) {
-                                Log::error("Erro ao processar documento: " . $e->getMessage());
                             }
+                        } catch (\Exception $eDoc) {
+                            Log::error("NotaEntradaController: Erro ao processar documento individual (NSU " . ($nsu ?? 'N/A') . "): " . $eDoc->getMessage());
                         }
                     }
                 }
