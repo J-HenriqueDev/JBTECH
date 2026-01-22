@@ -85,8 +85,11 @@ class NotaEntradaController extends Controller
                         if ($contentEncoded) {
                             try {
                                 $xmlContent = gzdecode(base64_decode($contentEncoded));
-                                $this->processarDocDFe($nsu, $schema, $xmlContent);
-                                $newDocsCount++;
+                                $resultType = $this->processarDocDFe($nsu, $schema, $xmlContent);
+
+                                if ($resultType === 'new') {
+                                    $newDocsCount++;
+                                }
                             } catch (\Exception $e) {
                                 Log::error("Erro ao processar documento: " . $e->getMessage());
                             }
@@ -109,7 +112,14 @@ class NotaEntradaController extends Controller
                 sleep(2);
             } while ($loopCount < $maxLoops);
 
-            return redirect()->back()->with('success', "Busca realizada! {$newDocsCount} documentos processados/atualizados.");
+            $msgSuccess = "Busca realizada!";
+            if ($newDocsCount > 0) {
+                $msgSuccess .= " {$newDocsCount} novos documentos encontrados.";
+            } else {
+                $msgSuccess .= " Nenhum documento novo encontrado.";
+            }
+
+            return redirect()->back()->with('success', $msgSuccess);
         } catch (\Exception $e) {
             $msg = $e->getMessage();
             if (str_contains($msg, '656') || str_contains($msg, 'Consumo Indevido')) {
@@ -143,11 +153,12 @@ class NotaEntradaController extends Controller
             $nome = (string) $xml->xNome;
             $valor = (float) $xml->vNF;
             $statusSefaz = (int) $xml->cSitNFe; // 1=Autorizada, 2=Denegada, 3=Cancelada
+            $data = (string) $xml->dhEmi;
 
             $status = 'detectada';
             if ($statusSefaz == 3) $status = 'cancelada';
 
-            NotaEntrada::updateOrCreate(
+            $nota = NotaEntrada::updateOrCreate(
                 ['chave_acesso' => $chave],
                 [
                     'emitente_cnpj' => $cnpj,
@@ -157,6 +168,7 @@ class NotaEntradaController extends Controller
                     'status' => $status
                 ]
             );
+            return $nota->wasRecentlyCreated ? 'new' : 'updated';
         } elseif (strpos($schema, 'procNFe') !== false || strpos($schema, 'resNFe') === false) {
             // NFe Completa (XML)
             // Tenta localizar o infNFe independentemente da estrutura (procNFe ou NFe direta)
@@ -172,7 +184,7 @@ class NotaEntradaController extends Controller
                 $emit = $infNFe->emit;
                 $total = $infNFe->total->ICMSTot;
 
-                NotaEntrada::updateOrCreate(
+                $nota = NotaEntrada::updateOrCreate(
                     ['chave_acesso' => $chave],
                     [
                         'emitente_cnpj' => (string) $emit->CNPJ,
@@ -183,6 +195,7 @@ class NotaEntradaController extends Controller
                         'status' => 'downloaded'
                     ]
                 );
+                return $nota->wasRecentlyCreated ? 'new' : 'updated';
             }
         } elseif (strpos($schema, 'resEvento') !== false) {
             // Evento (ex: Cancelamento)
@@ -192,8 +205,14 @@ class NotaEntradaController extends Controller
             // 110111 = Cancelamento
             if ($tpEvento == '110111') {
                 NotaEntrada::where('chave_acesso', $chave)->update(['status' => 'cancelada']);
+                return 'updated';
+            } else {
+                Log::info("NotaEntradaController: Evento ignorado (NSU: $nsu, Schema: $schema, Tipo: $tpEvento, Chave: $chave)");
             }
+        } else {
+            Log::info("NotaEntradaController: Schema desconhecido ou ignorado (NSU: $nsu, Schema: $schema)");
         }
+        return 'ignored';
     }
 
     public function baixarPorChave(Request $request)

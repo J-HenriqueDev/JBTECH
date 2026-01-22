@@ -21,9 +21,12 @@ class ManifestoController extends Controller
 
     public function index()
     {
-        // Buscar notas dos últimos 30 dias
-        $notas = NotaEntrada::where('created_at', '>=', Carbon::now()->subDays(30))
-            ->orderBy('created_at', 'desc')
+        // Buscar notas dos últimos 90 dias ou atualizadas recentemente
+        $notas = NotaEntrada::where(function ($q) {
+            $q->where('created_at', '>=', Carbon::now()->subDays(90))
+                ->orWhere('updated_at', '>=', Carbon::now()->subDays(1));
+        })
+            ->orderBy('updated_at', 'desc')
             ->get();
 
         // Verifica se há bloqueio ativo para exibir alerta na tela
@@ -248,8 +251,11 @@ class ManifestoController extends Controller
                         if ($contentEncoded) {
                             try {
                                 $xmlContent = gzdecode(base64_decode($contentEncoded));
-                                $this->processarDocDFe($nsu, $schema, $xmlContent);
-                                $newDocsCount++;
+                                $resultType = $this->processarDocDFe($nsu, $schema, $xmlContent);
+
+                                if ($resultType === 'new') {
+                                    $newDocsCount++;
+                                }
                             } catch (\Exception $e) {
                                 Log::error("Erro ao processar documento: " . $e->getMessage());
                             }
@@ -266,7 +272,13 @@ class ManifestoController extends Controller
                 sleep(2); // Rate limiting simples
             } while ($loopCount < $maxLoops);
 
-            $msgSuccess = "Sincronização concluída! {$newDocsCount} novos documentos processados.";
+            $msgSuccess = "Sincronização concluída!";
+            if ($newDocsCount > 0) {
+                $msgSuccess .= " {$newDocsCount} novos documentos importados.";
+            } else {
+                $msgSuccess .= " Nenhum documento novo encontrado.";
+            }
+
             if ($parouPorBloqueio) {
                 $msgSuccess .= " (Atenção: A SEFAZ solicitou pausa nas consultas. Aguarde 1 hora antes de tentar novamente.)";
                 return redirect()->back()->with('warning', $msgSuccess);
@@ -307,11 +319,12 @@ class ManifestoController extends Controller
             $nome = (string) $xml->xNome;
             $valor = (float) $xml->vNF;
             $statusSefaz = (int) $xml->cSitNFe;
+            $data = (string) $xml->dhEmi;
 
             $status = 'pendente';
             if ($statusSefaz == 3) $status = 'cancelada';
 
-            NotaEntrada::updateOrCreate(
+            $nota = NotaEntrada::updateOrCreate(
                 ['chave_acesso' => $chave],
                 [
                     'emitente_cnpj' => $cnpj,
@@ -321,6 +334,7 @@ class ManifestoController extends Controller
                     'status' => $status
                 ]
             );
+            return $nota->wasRecentlyCreated ? 'new' : 'updated';
         } elseif (strpos($schema, 'procNFe') !== false || strpos($schema, 'resNFe') === false) {
             // NFe Completa
             $infNFe = null;
@@ -335,7 +349,7 @@ class ManifestoController extends Controller
                 $emit = $infNFe->emit;
                 $total = $infNFe->total->ICMSTot;
 
-                NotaEntrada::updateOrCreate(
+                $nota = NotaEntrada::updateOrCreate(
                     ['chave_acesso' => $chave],
                     [
                         'emitente_cnpj' => (string) $emit->CNPJ,
@@ -346,6 +360,7 @@ class ManifestoController extends Controller
                         'status' => 'downloaded' // Status indica que temos o XML
                     ]
                 );
+                return $nota->wasRecentlyCreated ? 'new' : 'updated';
             }
         } elseif (strpos($schema, 'resEvento') !== false) {
             // Evento
@@ -354,7 +369,13 @@ class ManifestoController extends Controller
 
             if ($tpEvento == '110111') {
                 NotaEntrada::where('chave_acesso', $chave)->update(['status' => 'cancelada']);
+                return 'updated';
+            } else {
+                Log::info("ManifestoController: Evento ignorado (NSU: $nsu, Schema: $schema, Tipo: $tpEvento, Chave: $chave)");
             }
+        } else {
+            Log::info("ManifestoController: Schema desconhecido ou ignorado (NSU: $nsu, Schema: $schema)");
         }
+        return 'ignored';
     }
 }
