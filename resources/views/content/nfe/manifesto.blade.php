@@ -279,3 +279,59 @@
 </script>
 
 @endsection
+
+<!-- Modal de Ajuda Sincronização -->
+<div class="modal fade" id="modalHelp" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bx bx-help-circle me-2"></i>Entenda as Opções de Sincronização</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-primary d-flex" role="alert">
+                    <span class="badge badge-center rounded-pill bg-primary border-label-primary p-3 me-2"><i class="bx bx-info-circle fs-6"></i></span>
+                    <div class="d-flex flex-column ps-1">
+                        <h6 class="alert-heading d-flex align-items-center fw-bold mb-1">Qual devo usar?</h6>
+                        <span>Use "Buscar Novas Notas" todos os dias. Deixe o "Resync Completo" apenas para emergências.</span>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-12">
+                        <div class="card shadow-none bg-label-primary h-100">
+                            <div class="card-body p-3">
+                                <h6 class="card-title fw-bold text-primary mb-2">
+                                    <i class="bx bx-refresh me-1"></i> Buscar Novas Notas
+                                </h6>
+                                <p class="card-text small mb-0">
+                                    <strong>O que faz:</strong> Busca apenas o que foi emitido <u>após</u> a última sincronização.<br>
+                                    <strong>Quando usar:</strong> No dia a dia, para ver se chegaram notas novas hoje.<br>
+                                    <strong>Vantagem:</strong> É muito mais rápido e evita bloqueios da SEFAZ.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-12">
+                        <div class="card shadow-none bg-label-secondary h-100">
+                            <div class="card-body p-3">
+                                <h6 class="card-title fw-bold text-secondary mb-2">
+                                    <i class="bx bx-history me-1"></i> Resync Completo
+                                </h6>
+                                <p class="card-text small mb-0">
+                                    <strong>O que faz:</strong> Ignora o histórico e varre a SEFAZ buscando <u>todas</u> as notas dos últimos 90 dias.<br>
+                                    <strong>Quando usar:</strong> Apenas se notar que <u>faltam notas antigas</u> na lista ou se o sistema ficou semanas desligado.<br>
+                                    <strong>Atenção:</strong> Pode demorar mais para processar.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendi, obrigado!</button>
+            </div>
+        </div>
+    </div>
+</div>
