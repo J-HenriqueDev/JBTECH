@@ -13,7 +13,7 @@
 @yield('vendor-script')
 <!-- END: Page Vendor JS-->
 <!-- BEGIN: Theme JS-->
-@vite(['resources/assets/js/main.js'])
+@vite(['resources/assets/js/main.js', 'resources/assets/js/notifications.js'])
 
 <!-- END: Theme JS-->
 <!-- BEGIN: Helpers JS -->

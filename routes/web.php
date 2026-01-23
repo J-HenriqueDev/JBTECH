@@ -61,6 +61,12 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
 
   Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
 
+  // Rotas para Notificações
+  Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+  Route::post('/notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');
+  Route::post('/notifications/read-all', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.readAll');
+  Route::get('/notifications/test', [\App\Http\Controllers\NotificationController::class, 'testNotification'])->name('notifications.test');
+
   Route::resource('dashboard/users', UserController::class)->names([
     'index' => 'users.index',
     'create' => 'users.create',
