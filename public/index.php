@@ -13,5 +13,12 @@ if (file_exists($maintenance = __DIR__ . '/../storage/framework/maintenance.php'
 require __DIR__ . '/../vendor/autoload.php';
 
 // Bootstrap Laravel and handle the request...
-(require_once __DIR__ . '/../bootstrap/app.php')
-  ->handleRequest(Request::capture());
+try {
+    (require_once __DIR__ . '/../bootstrap/app.php')
+      ->handleRequest(Request::capture());
+} catch (\Throwable $e) {
+    echo "<h1>Critical Error</h1>";
+    echo "<p>" . htmlspecialchars($e->getMessage()) . "</p>";
+    echo "<pre>" . htmlspecialchars($e->getTraceAsString()) . "</pre>";
+    die();
+}
