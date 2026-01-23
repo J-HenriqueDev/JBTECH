@@ -22,7 +22,7 @@ use App\Http\Controllers\RelatorioController;
 use App\Http\Controllers\FornecedorController;
 use App\Http\Controllers\ContaPagarController;
 use App\Http\Controllers\CompraController;
-
+use App\Http\Controllers\UserController;
 
 // Rota principal "/" - acessível sem autenticação
 Route::get('/', [Landing::class, 'index'])->name('front-pages-landing');
@@ -98,6 +98,17 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
 
   Route::get('/dashboard/nfe/config', [\App\Http\Controllers\NFeConfigController::class, 'index'])->name('nfe.config');
   Route::post('/dashboard/nfe/config', [\App\Http\Controllers\NFeConfigController::class, 'store'])->name('nfe.config.store');
+
+  // Rota temporária para migração (remover após uso)
+  Route::get('/run-migration-temp', function () {
+    try {
+      \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+      return 'Migração executada com sucesso! <br>' . nl2br(\Illuminate\Support\Facades\Artisan::output());
+    } catch (\Exception $e) {
+      return 'Erro ao executar migração: ' . $e->getMessage();
+    }
+  });
+
   Route::post('/dashboard/nfe/testar-certificado', [\App\Http\Controllers\NFeConfigController::class, 'testarCertificado'])->name('nfe.testarCertificado');
   Route::get('/dashboard/nfe/{id}/consultar-status', [NFeController::class, 'consultarStatus'])->name('nfe.consultarStatus');
   Route::get('/dashboard/nfe/{id}/download-xml', [NFeController::class, 'downloadXml'])->name('nfe.downloadXml');
