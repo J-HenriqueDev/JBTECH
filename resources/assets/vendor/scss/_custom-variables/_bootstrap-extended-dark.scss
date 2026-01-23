@@ -179,4 +179,27 @@ html.dark-style {
       color: #e0e0e0 !important;
     }
   }
+
+  // Fix for text visibility on bright Matrix Green backgrounds
+  .bg-primary,
+  .bg-success,
+  .bg-warning {
+    .text-white,
+    .card-title,
+    .card-text,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      color: #000000 !important;
+    }
+    i,
+    .bx,
+    .fas,
+    .fa {
+      color: #000000 !important;
+    }
+  }
 }

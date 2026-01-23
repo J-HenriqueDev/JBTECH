@@ -861,6 +861,12 @@
     "src": "resources/assets/js/modal-two-factor-auth.js",
     "isEntry": true
   },
+  "resources/assets/js/notifications.js": {
+    "file": "assets/notifications-CpRwJGlq.js",
+    "name": "notifications",
+    "src": "resources/assets/js/notifications.js",
+    "isEntry": true
+  },
   "resources/assets/js/offcanvas-add-payment.js": {
     "file": "assets/offcanvas-add-payment-DTRtbrUi.js",
     "name": "offcanvas-add-payment",

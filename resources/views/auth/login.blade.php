@@ -9,27 +9,32 @@ $customizerHidden = 'customizer-hide';
 
 @section('vendor-style')
 @vite([
-  'resources/assets/vendor/libs/@form-validation/form-validation.scss'
+'resources/assets/vendor/libs/@form-validation/form-validation.scss'
 ])
 @endsection
 
 @section('page-style')
 @vite([
-  'resources/assets/vendor/scss/pages/page-auth.scss'
+'resources/assets/vendor/scss/pages/page-auth.scss'
 ])
+<style>
+  html.dark-style .app-brand img {
+    filter: invert(1) brightness(2);
+  }
+</style>
 @endsection
 
 @section('vendor-script')
 @vite([
-  'resources/assets/vendor/libs/@form-validation/popular.js',
-  'resources/assets/vendor/libs/@form-validation/bootstrap5.js',
-  'resources/assets/vendor/libs/@form-validation/auto-focus.js'
+'resources/assets/vendor/libs/@form-validation/popular.js',
+'resources/assets/vendor/libs/@form-validation/bootstrap5.js',
+'resources/assets/vendor/libs/@form-validation/auto-focus.js'
 ])
 @endsection
 
 @section('page-script')
 @vite([
-  'resources/assets/js/pages-auth.js'
+'resources/assets/js/pages-auth.js'
 ])
 @endsection
 
@@ -44,7 +49,7 @@ $customizerHidden = 'customizer-hide';
           <div class="app-brand justify-content-center">
             <a href="{{url('/')}}" class="app-brand-link gap-2">
               <img src="{{ asset('assets/img/front-pages/landing-page/jblogo_black.png') }}" alt="JBTECH Logo"
-                 style="width: 200px; height: auto;">
+                style="width: 200px; height: auto;">
             </a>
           </div>
 
@@ -54,10 +59,10 @@ $customizerHidden = 'customizer-hide';
             <!-- E-mail ou Nome de Usuário -->
             <div class="mb-6">
               <label for="email" class="form-label">E-mail ou Nome de Usuário</label>
-              {{--  <input type="text" class="form-control @error('email-username') is-invalid @enderror" id="email" name="email-username" placeholder="Digite seu e-mail ou nome de usuário" autofocus>  --}}
+              {{-- <input type="text" class="form-control @error('email-username') is-invalid @enderror" id="email" name="email-username" placeholder="Digite seu e-mail ou nome de usuário" autofocus>  --}}
               <input type="text" class="form-control @error('email') is-invalid @enderror" id="login-email" name="email" placeholder="john@example.com" autofocus value="{{ old('email') }}">
               @error('email-username')
-                <div class="invalid-feedback">{{ $message }}</div>
+              <div class="invalid-feedback">{{ $message }}</div>
               @enderror
             </div>
 
@@ -68,7 +73,7 @@ $customizerHidden = 'customizer-hide';
                 <input type="password" id="password" class="form-control @error('password') is-invalid @enderror" name="password" placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;" aria-describedby="password" />
                 <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
                 @error('password')
-                  <div class="invalid-feedback d-block">{{ $message }}</div>
+                <div class="invalid-feedback d-block">{{ $message }}</div>
                 @enderror
               </div>
             </div>
@@ -95,13 +100,13 @@ $customizerHidden = 'customizer-hide';
 
             <!-- Mensagens de erro gerais -->
             @if ($errors->any())
-              <div class="alert alert-danger">
-                <ul class="mb-0">
-                  @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                  @endforeach
-                </ul>
-              </div>
+            <div class="alert alert-danger">
+              <ul class="mb-0">
+                @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+                @endforeach
+              </ul>
+            </div>
             @endif
 
           </form>
