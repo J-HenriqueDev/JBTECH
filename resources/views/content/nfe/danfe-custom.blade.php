@@ -148,9 +148,9 @@
 @endphp
 <body>
     <div class="footer">
-        <p><strong>Powered by JBTECH Informática</strong> - Tecnologia ao seu alcance</p>
+        <p style="text-align: right;"><strong>Powered by JBTech Informática</strong></p>
         <p>{{ $emitenteNome }} - CNPJ: {{ $emitenteCnpj }}</p>
-        <p>Documento gerado em {{ \Carbon\Carbon::now()->format('d/m/Y H:i') }}</p>
+        <p>Documento gerado em {{ \Carbon\Carbon::now()->setTimezone(\App\Models\Configuracao::get('sistema_timezone') ?: 'America/Sao_Paulo')->format('d/m/Y H:i') }}</p>
     </div>
 
     <div class="header clearfix">

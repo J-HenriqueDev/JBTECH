@@ -60,8 +60,22 @@
                 <i class="bx bx-history me-1"></i> Resync Completo
             </button>
         </form>
+
     </div>
+    
 </div>
+
+
+<div class="alert alert-primary d-flex" role="alert">
+    <span class="badge badge-center rounded-pill bg-primary border-label-primary p-3 me-2"><i class="bx bx-info-circle fs-6"></i></span>
+    <div class="d-flex flex-column ps-1">
+        <h6 class="alert-heading d-flex align-items-center fw-bold mb-1">Qual devo usar?</h6>
+        <span>Use <strong>Buscar Novas Notas</strong> todos os dias. Deixe o <strong>Resync Completo</strong> apenas para emergências.</span>
+    </div>
+    <button type="button" class="btn btn-sm btn-outline-primary ms-auto" data-bs-toggle="modal" data-bs-target="#modalHelp">
+        <i class="bx bx-help-circle me-1"></i> Detalhes
+    </button>
+    </div>
 
 <div class="card">
     <div class="card-header border-bottom">
@@ -330,7 +344,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendi, obrigado!</button>
+              <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendi, obrigado!</button>
             </div>
         </div>
     </div>

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use App\Models\Configuracao;
 
 class UserController extends Controller
 {
@@ -15,13 +16,37 @@ class UserController extends Controller
      */
     public function index()
     {
-        // Restriction: Only Admins can access
-        if (!Auth::user()->isAdmin()) {
+        if (!Auth::user()->canAccess('users', 'view')) {
             return redirect()->route('dashboard')->with('error', 'Acesso não autorizado.');
         }
 
         $users = User::all();
-        return view('content.users.index', compact('users'));
+        $modules = [
+            'clientes',
+            'fornecedores',
+            'produtos',
+            'compras',
+            'os',
+            'cobrancas',
+            'vendas',
+            'relatorios',
+            'naturezas',
+            'notas-entrada',
+            'nfe',
+            'nfse',
+            'users'
+        ];
+        $roles = $this->rolesList();
+        $permissions = [];
+        $stored = Configuracao::get('roles_permissions', null);
+        if ($stored) {
+            try {
+                $permissions = json_decode($stored, true) ?: [];
+            } catch (\Exception $e) {
+                $permissions = [];
+            }
+        }
+        return view('content.users.index', compact('users', 'modules', 'roles', 'permissions'));
     }
 
     /**
@@ -29,8 +54,7 @@ class UserController extends Controller
      */
     public function create()
     {
-        // Restriction: Only Admins can access
-        if (!Auth::user()->isAdmin()) {
+        if (!Auth::user()->canAccess('users', 'edit')) {
             return redirect()->route('dashboard')->with('error', 'Acesso não autorizado.');
         }
 
@@ -42,8 +66,7 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        // Restriction: Only Admins can access
-        if (!Auth::user()->isAdmin()) {
+        if (!Auth::user()->canAccess('users', 'edit')) {
             return redirect()->route('dashboard')->with('error', 'Acesso não autorizado.');
         }
 
@@ -67,8 +90,7 @@ class UserController extends Controller
      */
     public function edit(string $id)
     {
-        // Restriction: Only Admins can access
-        if (!Auth::user()->isAdmin()) {
+        if (!Auth::user()->canAccess('users', 'edit')) {
             return redirect()->route('dashboard')->with('error', 'Acesso não autorizado.');
         }
 
@@ -81,8 +103,7 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        // Restriction: Only Admins can access
-        if (!Auth::user()->isAdmin()) {
+        if (!Auth::user()->canAccess('users', 'edit')) {
             return redirect()->route('dashboard')->with('error', 'Acesso não autorizado.');
         }
 
@@ -113,12 +134,32 @@ class UserController extends Controller
     }
 
     /**
+     * Update roles permissions map
+     */
+    public function updatePermissions(Request $request)
+    {
+        if (!Auth::user()->canAccess('users', 'edit')) {
+            return redirect()->route('dashboard')->with('error', 'Acesso não autorizado.');
+        }
+        $data = $request->input('perm', []);
+        $allowedLevels = ['none', 'view', 'edit', 'full'];
+        $sanitized = [];
+        foreach ($data as $module => $byRole) {
+            $sanitized[$module] = [];
+            foreach ($byRole as $role => $level) {
+                $sanitized[$module][$role] = in_array($level, $allowedLevels) ? $level : 'none';
+            }
+        }
+        Configuracao::set('roles_permissions', json_encode($sanitized), 'sistema', 'json', 'Mapa de permissões por cargo');
+        return redirect()->route('users.index')->with('success', 'Permissões atualizadas com sucesso!');
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
     {
-        // Restriction: Only Admins can access
-        if (!Auth::user()->isAdmin()) {
+        if (!Auth::user()->canAccess('users', 'edit')) {
             return redirect()->route('dashboard')->with('error', 'Acesso não autorizado.');
         }
 
@@ -130,5 +171,150 @@ class UserController extends Controller
         $user->delete();
 
         return redirect()->route('users.index')->with('success', 'Usuário excluído com sucesso!');
+    }
+
+    public function updateRolePermissions(Request $request)
+    {
+        if (!Auth::user()->canAccess('users', 'edit')) {
+            return redirect()->route('dashboard')->with('error', 'Acesso não autorizado.');
+        }
+        $role = $request->input('role');
+        $perms = $request->input('perm', []);
+        $allowed = ['none', 'view', 'edit', 'full'];
+        $stored = Configuracao::get('roles_permissions', null);
+        $map = [];
+        if ($stored) {
+            try {
+                $map = json_decode($stored, true) ?: [];
+            } catch (\Exception $e) {
+                $map = [];
+            }
+        }
+        foreach ($perms as $module => $level) {
+            $lvl = in_array($level, $allowed) ? $level : 'none';
+            if (!isset($map[$module])) $map[$module] = [];
+            $map[$module][$role] = $lvl;
+        }
+        Configuracao::set('roles_permissions', json_encode($map), 'sistema', 'json', 'Mapa de permissões por cargo');
+        return redirect()->route('users.index', ['role' => $role])->with('success', 'Permissões do cargo atualizadas com sucesso!');
+    }
+
+    public function addRole(Request $request)
+    {
+        if (!Auth::user()->canAccess('users', 'edit')) {
+            return redirect()->route('dashboard')->with('error', 'Acesso não autorizado.');
+        }
+        $name = trim($request->input('name'));
+        if ($name === '' || strlen($name) > 50) {
+            return back()->with('error', 'Nome de cargo inválido.');
+        }
+        $name = strtolower(preg_replace('/[^a-z0-9_\-]/i', '', $name));
+        $roles = $this->rolesList();
+        if (in_array($name, $roles)) {
+            return back()->with('error', 'Cargo já existe.');
+        }
+        $roles[] = $name;
+        Configuracao::set('roles_list', json_encode($roles), 'sistema', 'json', 'Lista de cargos');
+        return redirect()->route('users.index', ['role' => $name])->with('success', 'Cargo criado com sucesso!');
+    }
+
+    public function renameRole(Request $request)
+    {
+        if (!Auth::user()->canAccess('users', 'edit')) {
+            return redirect()->route('dashboard')->with('error', 'Acesso não autorizado.');
+        }
+        $from = trim($request->input('from'));
+        $to = trim($request->input('to'));
+        if ($from === 'admin') {
+            return back()->with('error', 'Não é permitido renomear o cargo admin.');
+        }
+        $to = strtolower(preg_replace('/[^a-z0-9_\-]/i', '', $to));
+        if ($to === '' || strlen($to) > 50) {
+            return back()->with('error', 'Novo nome inválido.');
+        }
+        $roles = $this->rolesList();
+        if (!in_array($from, $roles)) {
+            return back()->with('error', 'Cargo de origem não existe.');
+        }
+        if (in_array($to, $roles)) {
+            return back()->with('error', 'Já existe um cargo com este nome.');
+        }
+        $updatedRoles = array_map(function ($r) use ($from, $to) {
+            return $r === $from ? $to : $r;
+        }, $roles);
+        Configuracao::set('roles_list', json_encode($updatedRoles), 'sistema', 'json', 'Lista de cargos');
+        User::where('role', $from)->update(['role' => $to]);
+        $stored = Configuracao::get('roles_permissions', null);
+        $map = [];
+        if ($stored) {
+            try {
+                $map = json_decode($stored, true) ?: [];
+            } catch (\Exception $e) {
+                $map = [];
+            }
+        }
+        foreach ($map as $module => $byRole) {
+            if (isset($map[$module][$from])) {
+                $map[$module][$to] = $map[$module][$from];
+                unset($map[$module][$from]);
+            }
+        }
+        Configuracao::set('roles_permissions', json_encode($map), 'sistema', 'json', 'Mapa de permissões por cargo');
+        return redirect()->route('users.index', ['role' => $to])->with('success', 'Cargo renomeado com sucesso!');
+    }
+
+    public function deleteRole(Request $request)
+    {
+        if (!Auth::user()->canAccess('users', 'edit')) {
+            return redirect()->route('dashboard')->with('error', 'Acesso não autorizado.');
+        }
+        $role = trim($request->input('role'));
+        if ($role === 'admin') {
+            return back()->with('error', 'Não é permitido excluir o cargo admin.');
+        }
+        $count = User::where('role', $role)->count();
+        if ($count > 0) {
+            return back()->with('error', 'Há usuários vinculados a este cargo.');
+        }
+        $roles = $this->rolesList();
+        $roles = array_values(array_filter($roles, fn($r) => $r !== $role));
+        Configuracao::set('roles_list', json_encode($roles), 'sistema', 'json', 'Lista de cargos');
+        $stored = Configuracao::get('roles_permissions', null);
+        $map = [];
+        if ($stored) {
+            try {
+                $map = json_decode($stored, true) ?: [];
+            } catch (\Exception $e) {
+                $map = [];
+            }
+        }
+        foreach ($map as $module => $byRole) {
+            if (isset($map[$module][$role])) {
+                unset($map[$module][$role]);
+            }
+        }
+        Configuracao::set('roles_permissions', json_encode($map), 'sistema', 'json', 'Mapa de permissões por cargo');
+        return redirect()->route('users.index')->with('success', 'Cargo excluído com sucesso!');
+    }
+
+    protected function rolesList(): array
+    {
+        $roles = ['admin', 'user'];
+        $stored = Configuracao::get('roles_list', null);
+        if ($stored) {
+            try {
+                $list = json_decode($stored, true);
+                if (is_array($list) && count($list) > 0) {
+                    $roles = $list;
+                }
+            } catch (\Exception $e) {
+            }
+        } else {
+            $distinct = User::select('role')->distinct()->pluck('role')->filter()->values()->toArray();
+            foreach ($distinct as $r) {
+                if (!in_array($r, $roles)) $roles[] = $r;
+            }
+        }
+        return array_values(array_unique($roles));
     }
 }

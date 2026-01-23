@@ -772,7 +772,7 @@ INI;
 
             $danfe = new CustomDanfe($xml);
             $danfe->debugMode(false);
-            $danfe->creditsIntegratorFooter('Powered by JBTech');
+            $danfe->creditsIntegratorFooter('Powered by JBTech Informática', false);
             $danfe->exibirTextoFatura = true;
 
             $logoPath = public_path('assets/img/front-pages/landing-page/jblogo_black.png');

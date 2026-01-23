@@ -59,11 +59,9 @@ $isReadOnly = $notaFiscal->status == 'autorizada' || $notaFiscal->status == 'can
     </form>
     @endif
 
-    @if($notaFiscal->xml || $notaFiscal->status == 'autorizada')
     <a href="{{ route('nfe.gerarDanfe', $notaFiscal->id) }}" target="_blank" class="btn btn-primary btn-sm">
-      <i class="bx bxs-file-pdf"></i> Ver PDF
+      <i class="bx bxs-file-pdf"></i> Visualizar Nota
     </a>
-    @endif
 
     @if($notaFiscal->status == 'autorizada')
     <form action="{{ route('nfe.enviarEmail', $notaFiscal->id) }}" method="POST" class="d-inline">

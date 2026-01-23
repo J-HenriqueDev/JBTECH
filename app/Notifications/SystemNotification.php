@@ -15,16 +15,20 @@ class SystemNotification extends Notification
     public $message;
     public $type; // success, info, warning, danger
     public $link;
+    public $requireConfirm;
+    public $imageUrl;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct($title, $message, $type = 'info', $link = null)
+    public function __construct($title, $message, $type = 'info', $link = null, $requireConfirm = false, $imageUrl = null)
     {
         $this->title = $title;
         $this->message = $message;
         $this->type = $type;
         $this->link = $link;
+        $this->requireConfirm = (bool) $requireConfirm;
+        $this->imageUrl = $imageUrl;
     }
 
     /**
@@ -49,6 +53,9 @@ class SystemNotification extends Notification
             'message' => $this->message,
             'type' => $this->type,
             'link' => $this->link,
+            'require_confirm' => $this->requireConfirm,
+            'ack_status' => null,
+            'image_url' => $this->imageUrl
         ];
     }
 }

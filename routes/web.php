@@ -66,6 +66,11 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
   Route::post('/notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');
   Route::post('/notifications/read-all', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.readAll');
   Route::get('/notifications/test', [\App\Http\Controllers\NotificationController::class, 'testNotification'])->name('notifications.test');
+  Route::get('/notifications/admin', [\App\Http\Controllers\NotificationController::class, 'admin'])->name('notifications.admin');
+  Route::post('/notifications/send', [\App\Http\Controllers\NotificationController::class, 'send'])->name('notifications.send');
+  Route::post('/notifications/scheduled/cancel', [\App\Http\Controllers\NotificationController::class, 'cancelScheduled'])->name('notifications.scheduled.cancel');
+  Route::get('/notifications/history', [\App\Http\Controllers\NotificationController::class, 'history'])->name('notifications.history');
+  Route::post('/notifications/{id}/ack', [\App\Http\Controllers\NotificationController::class, 'ack'])->name('notifications.ack');
 
   Route::resource('dashboard/users', UserController::class)->names([
     'index' => 'users.index',
@@ -76,6 +81,11 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
     'update' => 'users.update',
     'destroy' => 'users.destroy',
   ]);
+  Route::post('/dashboard/users/permissions', [UserController::class, 'updatePermissions'])->name('users.permissions.update');
+  Route::post('/dashboard/users/permissions/role-update', [UserController::class, 'updateRolePermissions'])->name('users.permissions.updateRole');
+  Route::post('/dashboard/users/roles/add', [UserController::class, 'addRole'])->name('users.roles.add');
+  Route::post('/dashboard/users/roles/rename', [UserController::class, 'renameRole'])->name('users.roles.rename');
+  Route::post('/dashboard/users/roles/delete', [UserController::class, 'deleteRole'])->name('users.roles.delete');
 
   // Rotas para Configurações
   Route::get('/dashboard/configuracoes', [ConfiguracaoController::class, 'index'])->name('configuracoes.index');
@@ -98,6 +108,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
 
   Route::get('/dashboard/nfe/config', [\App\Http\Controllers\NFeConfigController::class, 'index'])->name('nfe.config');
   Route::post('/dashboard/nfe/config', [\App\Http\Controllers\NFeConfigController::class, 'store'])->name('nfe.config.store');
+  Route::post('/dashboard/nfe/{id}/transmitir', [\App\Http\Controllers\NFeController::class, 'transmitir'])->name('nfe.transmitir');
 
   // Rota temporária para migração (remover após uso)
   Route::get('/run-migration-temp', function () {
@@ -119,6 +130,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
   Route::post('/dashboard/nfe/{id}/carta-correcao', [NFeController::class, 'enviarCartaCorrecao'])->name('nfe.enviarCartaCorrecao');
   Route::get('/dashboard/nfe/{id}/imprimir', [NFeController::class, 'imprimir'])->name('nfe.imprimir');
   Route::get('/dashboard/nfe/{id}/imprimir-etiqueta', [NFeController::class, 'imprimirEtiqueta'])->name('nfe.imprimirEtiqueta');
+  Route::get('/dashboard/nfe/{id}/pdf', [NFeController::class, 'gerarDanfe'])->name('nfe.gerarDanfe');
   Route::post('/dashboard/nfe/inutilizar', [NFeController::class, 'inutilizar'])->name('nfe.inutilizar');
   Route::resource('dashboard/nfe', NFeController::class);
 

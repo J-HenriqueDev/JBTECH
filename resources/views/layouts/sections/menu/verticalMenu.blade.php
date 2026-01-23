@@ -29,7 +29,7 @@ $configData = Helper::appClasses();
     @foreach ($menuData[0]->menu as $menu)
 
     {{-- Check for admin-only menus --}}
-    @if(isset($menu->slug) && in_array($menu->slug, ['users', 'logs', 'nfe-config']) && !auth()->user()->isAdmin())
+    @if(isset($menu->slug) && in_array($menu->slug, ['users', 'logs', 'nfe-config', 'notifications.admin']) && !auth()->user()->isAdmin())
     @continue
     @endif
 

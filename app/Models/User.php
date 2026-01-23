@@ -41,6 +41,26 @@ class User extends Authenticatable
     }
 
     /**
+     * Check access based on configured role permissions
+     */
+    public function canAccess(string $module, string $required = 'view'): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+        $mapJson = \App\Models\Configuracao::get('roles_permissions', null);
+        $map = [];
+        if ($mapJson) {
+            try { $map = json_decode($mapJson, true) ?: []; } catch (\Exception $e) { $map = []; }
+        }
+        $level = $map[$module][$this->role] ?? 'view';
+        $rank = ['none' => 0, 'view' => 1, 'edit' => 2, 'full' => 3];
+        $need = $rank[$required] ?? 1;
+        $has = $rank[$level] ?? 0;
+        return $has >= $need;
+    }
+
+    /**
      * The attributes that should be hidden for serialization.
      *
      * @var array<int, string>

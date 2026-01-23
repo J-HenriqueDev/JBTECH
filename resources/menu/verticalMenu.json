@@ -136,6 +136,12 @@
       "slug": "configuracoes"
     },
     {
+      "url": "/notifications/admin",
+      "name": "Notificações (Admin)",
+      "icon": "menu-icon tf-icons bx bx-bell text-primary",
+      "slug": "notifications.admin"
+    },
+    {
       "url": "/logs",
       "name": "Logs do Sistema",
       "icon": "menu-icon tf-icons bx bx-list-ul text-secondary",
