@@ -22,9 +22,9 @@ class ManifestoController extends Controller
     public function index()
     {
         try {
-            // Buscar todas as notas, ordenadas por data de emissão (limite de 1000 para performance)
-            // Removemos filtro de data restrito para garantir que notas importadas apareçam
-            $notas = NotaEntrada::orderBy('data_emissao', 'desc')
+            // Buscar todas as notas, ordenadas por atualização (para ver as recém sincronizadas no topo)
+            // Removemos filtro de data restrito para garantir que todas apareçam
+            $notas = NotaEntrada::orderBy('updated_at', 'desc')
                 ->take(1000)
                 ->get();
 
@@ -306,6 +306,10 @@ class ManifestoController extends Controller
                 sleep(2); // Rate limiting simples
             } while ($loopCount < $maxLoops);
 
+            if ($loopCount >= $maxLoops && $lastNSU < $maxNSU) {
+                $parouPorLimite = true;
+            }
+
             $msgSuccess = "Sincronização concluída!";
             if ($newDocsCount > 0) {
                 $msgSuccess .= " {$newDocsCount} novos documentos importados.";
@@ -315,6 +319,11 @@ class ManifestoController extends Controller
 
             if ($parouPorBloqueio) {
                 $msgSuccess .= " (Atenção: A SEFAZ solicitou pausa nas consultas. Aguarde 1 hora antes de tentar novamente.)";
+                return redirect()->back()->with('warning', $msgSuccess);
+            }
+            
+            if ($parouPorLimite) {
+                $msgSuccess .= " (Atenção: Ainda existem notas na SEFAZ. Clique em 'Buscar Novas Notas' novamente para continuar baixando.)";
                 return redirect()->back()->with('warning', $msgSuccess);
             }
 
@@ -365,9 +374,16 @@ class ManifestoController extends Controller
                     'emitente_nome' => $nome,
                     'valor_total' => $valor,
                     'data_emissao' => $data,
-                    'status' => $status
+                    // Não sobrescreve status se já estiver processada/downloaded
                 ]
             );
+
+            // Só atualiza status para pendente se não tiver XML ainda
+            if ($nota->status != 'processada' && $nota->status != 'downloaded' && !$nota->xml_content) {
+                $nota->status = $status;
+                $nota->save();
+            }
+
             return $nota->wasRecentlyCreated ? 'new' : 'updated';
         } elseif (strpos($schema, 'procNFe') !== false || strpos($schema, 'resNFe') === false) {
             // NFe Completa
