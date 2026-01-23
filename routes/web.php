@@ -180,8 +180,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
   Route::post('/dashboard/orcamentos/{id}/recusar', [OrcamentoController::class, 'recusar'])->name('orcamentos.recusar');
   Route::get('/orcamentos/{id}/verificar-estoque', [OrcamentoController::class, 'verificarEstoque'])->name('orcamentos.verificarEstoque');
 
-  // Rotas de Gerenciamento de Usuários
-  Route::resource('dashboard/users', \App\Http\Controllers\UserController::class);
+
 
   // Rotas para Importação de Notas (Entrada)
   Route::get('/dashboard/notas-entrada', [\App\Http\Controllers\NotaEntradaController::class, 'index'])->name('notas-entrada.index');
