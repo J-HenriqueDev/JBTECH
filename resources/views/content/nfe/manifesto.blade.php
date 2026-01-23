@@ -103,7 +103,7 @@
                             </div>
                         </th>
                         <th>Data Emissão</th>
-                        <th>Chave de Acesso</th>
+                        <th>Número NFe / Chave</th>
                         <th>Emitente</th>
                         <th>Valor</th>
                         <th>Status Manifestação</th>
@@ -173,11 +173,51 @@
                         </td>
                         <td>
                             @if($nota->xml_content)
-                            <a href="{{ route('notas-entrada.processar', $nota->id) }}" class="btn btn-sm btn-primary">
-                                <i class="bx bx-import me-1"></i> Importar
+                            <a href="{{ route('notas-entrada.processar', $nota->id) }}" class="btn btn-sm btn-primary" title="Importar Nota">
+                                <i class="bx bx-import"></i>
                             </a>
                             @else
-                            <small class="text-muted">Aguarde download</small>
+                            <button type="button" class="btn btn-sm btn-icon btn-info" data-bs-toggle="modal" data-bs-target="#modalDetalhes{{ $nota->id }}" title="Ver Detalhes (Resumo)">
+                                <i class="bx bx-show"></i>
+                            </button>
+                            <!-- Modal Detalhes -->
+                            <div class="modal fade" id="modalDetalhes{{ $nota->id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Detalhes da Nota (Resumo)</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="alert alert-info">
+                                                <small><i class="bx bx-info-circle"></i> Os detalhes completos (itens, impostos) só estarão disponíveis após a manifestação e download do XML.</small>
+                                            </div>
+                                            <dl class="row">
+                                                <dt class="col-sm-4">Emitente</dt>
+                                                <dd class="col-sm-8">{{ $nota->emitente_nome }}</dd>
+
+                                                <dt class="col-sm-4">CNPJ</dt>
+                                                <dd class="col-sm-8">{{ $cnpj }}</dd>
+
+                                                <dt class="col-sm-4">Valor Total</dt>
+                                                <dd class="col-sm-8">R$ {{ number_format($nota->valor_total, 2, ',', '.') }}</dd>
+
+                                                <dt class="col-sm-4">Data Emissão</dt>
+                                                <dd class="col-sm-8">{{ $dataEmissao }}</dd>
+
+                                                <dt class="col-sm-4">Chave de Acesso</dt>
+                                                <dd class="col-sm-8 text-break">{{ $nota->chave_acesso }}</dd>
+
+                                                <dt class="col-sm-4">Status SEFAZ</dt>
+                                                <dd class="col-sm-8">{{ ucfirst($nota->status) }}</dd>
+                                            </dl>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             @endif
 
                             @if($nota->manifestacao != 'sem_manifestacao' && !$nota->xml_content)
