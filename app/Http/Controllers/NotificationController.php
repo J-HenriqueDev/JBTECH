@@ -13,18 +13,23 @@ class NotificationController extends Controller
      */
     public function index()
     {
-        $user = Auth::user();
-        if (!$user) {
-            return response()->json(['notifications' => [], 'unread_count' => 0]);
+        try {
+            $user = Auth::user();
+            if (!$user) {
+                return response()->json(['notifications' => [], 'unread_count' => 0]);
+            }
+
+            $notifications = $user->notifications()->latest()->take(20)->get();
+            $unreadCount = $user->unreadNotifications->count();
+
+            return response()->json([
+                'notifications' => $notifications,
+                'unread_count' => $unreadCount
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Erro ao buscar notificações: ' . $e->getMessage());
+            return response()->json(['error' => 'Erro interno ao buscar notificações', 'message' => $e->getMessage()], 500);
         }
-
-        $notifications = $user->notifications()->latest()->take(20)->get();
-        $unreadCount = $user->unreadNotifications->count();
-
-        return response()->json([
-            'notifications' => $notifications,
-            'unread_count' => $unreadCount
-        ]);
     }
 
     /**
@@ -59,13 +64,18 @@ class NotificationController extends Controller
      */
     public function testNotification()
     {
-        $user = Auth::user();
-        $user->notify(new SystemNotification(
-            'Teste de Notificação',
-            'Esta é uma notificação de teste criada em ' . now()->format('d/m/Y H:i:s'),
-            'info'
-        ));
+        try {
+            $user = Auth::user();
+            $user->notify(new SystemNotification(
+                'Teste de Notificação',
+                'Esta é uma notificação de teste criada em ' . now()->format('d/m/Y H:i:s'),
+                'info'
+            ));
 
-        return redirect()->back()->with('success', 'Notificação de teste enviada!');
+            return redirect()->back()->with('success', 'Notificação de teste enviada!');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Erro ao enviar notificação de teste: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Erro ao enviar notificação: ' . $e->getMessage());
+        }
     }
 }
