@@ -24,7 +24,15 @@ class NotaEntradaController extends Controller
     public function index()
     {
         $notas = NotaEntrada::orderBy('data_emissao', 'desc')->paginate(10);
-        return view('content.notas-entrada.index', compact('notas'));
+
+        $nextQuery = \App\Models\Configuracao::get('nfe_next_dfe_query');
+        $bloqueioMsg = null;
+        if ($nextQuery && now()->lt(\Carbon\Carbon::parse($nextQuery))) {
+            $diffMinutes = (int) ceil(now()->diffInMinutes(\Carbon\Carbon::parse($nextQuery)));
+            $bloqueioMsg = "Sincronização temporariamente pausada para evitar bloqueio na SEFAZ. Próxima tentativa em {$diffMinutes} minutos.";
+        }
+
+        return view('content.notas-entrada.index', compact('notas', 'bloqueioMsg'));
     }
 
     public function buscarNovas()

@@ -4,6 +4,15 @@
 
 @section('content')
 
+@if(isset($bloqueioMsg) && $bloqueioMsg)
+<div class="alert alert-warning d-flex align-items-center" role="alert">
+    <i class="bx bx-time-five me-2"></i>
+    <div>
+        {{ $bloqueioMsg }}
+    </div>
+</div>
+@endif
+
 @if(session('success'))
 <div class="alert alert-primary alert-dismissible" role="alert">
     <h6 class="alert-heading d-flex align-items-center fw-bold mb-1">
@@ -48,7 +57,7 @@
         </button>
         <form action="{{ route('notas-entrada.buscar') }}" method="POST" class="d-inline">
             @csrf
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" class="btn btn-primary" {{ (isset($bloqueioMsg) && $bloqueioMsg) ? 'disabled' : '' }}>
                 <i class="fas fa-sync-alt me-1"></i> Buscar na SEFAZ
             </button>
         </form>
@@ -71,86 +80,134 @@
 </div>
 
 <div class="card">
-    <div class="card-header">
-        <h5 class="card-title mb-0">Notas Destinadas (Entrada)</h5>
+    <div class="card-header border-bottom">
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <h5 class="card-title mb-0">Notas Destinadas ({{ $notas->total() }})</h5>
+            <div id="bulk-actions" style="display: none;">
+                <span class="me-2 fw-bold" id="selected-count">0 selecionados</span>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bx bx-check-double me-1"></i> Manifestar como...
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><button class="dropdown-item" onclick="submitBulk('ciencia')"><i class="bx bx-show me-2"></i>Ciência da Operação</button></li>
+                        <li><button class="dropdown-item" onclick="submitBulk('confirmada')"><i class="bx bx-check me-2"></i>Confirmação da Operação</button></li>
+                        <li><button class="dropdown-item" onclick="submitBulk('desconhecida')"><i class="bx bx-question-mark me-2"></i>Desconhecimento da Operação</button></li>
+                        <li><button class="dropdown-item" onclick="submitBulk('nao_realizada')"><i class="bx bx-x me-2"></i>Operação não Realizada</button></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="table-responsive text-nowrap">
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>Emissão</th>
-                    <th>Emitente</th>
-                    <th>Chave / Número</th>
-                    <th>Valor</th>
-                    <th>Status</th>
-                    <th>Manifestação</th>
-                    <th>Ações</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($notas as $nota)
-                <tr>
-                    <td>{{ $nota->data_emissao ? $nota->data_emissao->format('d/m/Y H:i') : '-' }}</td>
-                    <td>
-                        <strong>{{ $nota->emitente_nome ?? 'Desconhecido' }}</strong><br>
-                        <small class="text-muted">{{ $nota->emitente_cnpj }}</small>
-                    </td>
-                    <td>
-                        <div>{{ $nota->numero_nfe ? 'NFe: '.$nota->numero_nfe : 'N/A' }}</div>
-                        <small class="text-muted" title="{{ $nota->chave_acesso }}">{{ \Illuminate\Support\Str::limit($nota->chave_acesso, 20) }}</small>
-                    </td>
-                    <td>R$ {{ number_format($nota->valor_total, 2, ',', '.') }}</td>
-                    <td>
-                        @if($nota->status == 'processada')
-                        <span class="badge bg-label-success">Processada</span>
-                        @elseif($nota->status == 'cancelada')
-                        <span class="badge bg-label-danger">Cancelada</span>
-                        @else
-                        <span class="badge bg-label-warning">Pendente</span>
-                        @endif
-                    </td>
-                    <td>
-                        <span class="badge bg-label-secondary">{{ $nota->manifestacao }}</span>
-                    </td>
-                    <td>
-                        <div class="dropdown">
-                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                                <i class="bx bx-dots-vertical-rounded"></i>
-                            </button>
-                            <div class="dropdown-menu">
-                                @if($nota->xml_content)
-                                <a class="dropdown-item" href="{{ route('notas-entrada.processar', $nota->id) }}">
-                                    <i class="fas fa-box me-1"></i> Dar Entrada
-                                </a>
-                                <a class="dropdown-item" href="#">
-                                    <i class="fas fa-eye me-1"></i> Ver Detalhes
-                                </a>
-                                @else
-                                <form action="{{ route('notas-entrada.baixar-por-chave') }}" method="POST">
-                                    @csrf
-                                    <input type="hidden" name="chave" value="{{ $nota->chave_acesso }}">
-                                    <button type="submit" class="dropdown-item">
-                                        <i class="fas fa-download me-1"></i> Baixar XML
-                                    </button>
-                                </form>
-                                @endif
+        <form id="bulk-form" action="{{ route('nfe.manifesto.manifestar') }}" method="POST">
+            @csrf
+            <input type="hidden" name="tipo" id="bulk-tipo">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th width="50">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="select-all">
                             </div>
-                        </div>
-                    </td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="7" class="text-center py-4">
-                        <div class="d-flex flex-column align-items-center">
-                            <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                            <h5 class="text-muted">Nenhuma nota encontrada</h5>
-                            <p class="text-muted mb-0">Clique em "Buscar na SEFAZ" para consultar notas emitidas para seu CNPJ.</p>
-                        </div>
-                    </td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
+                        </th>
+                        <th>Data Emissão</th>
+                        <th>Número NFe / Chave</th>
+                        <th>Emitente</th>
+                        <th>Valor</th>
+                        <th>Status Manifestação</th>
+                        <th>Status Download</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody class="table-border-bottom-0">
+                    @forelse($notas as $nota)
+                    <tr>
+                        <td>
+                            <div class="form-check">
+                                <input class="form-check-input note-checkbox" type="checkbox" name="chaves[]" value="{{ $nota->chave_acesso }}">
+                            </div>
+                        </td>
+                        <td>
+                            @php
+                                $dataEmissao = 'N/A';
+                                if ($nota->data_emissao) {
+                                    try {
+                                        $dataEmissao = \Carbon\Carbon::parse($nota->data_emissao)->format('d/m/Y H:i');
+                                    } catch (\Exception $e) {
+                                        $dataEmissao = $nota->data_emissao;
+                                    }
+                                }
+                            @endphp
+                            {{ $dataEmissao }}
+                        </td>
+                        <td>
+                            <span title="{{ $nota->chave_acesso }}">{{ substr($nota->chave_acesso, 0, 25) }}...</span>
+                            <button type="button" class="btn btn-sm btn-icon" onclick="navigator.clipboard.writeText('{{ $nota->chave_acesso }}')">
+                                <i class="bx bx-copy"></i>
+                            </button>
+                        </td>
+                        <td>
+                            <div class="d-flex flex-column">
+                                <span class="fw-bold">{{ $nota->emitente_nome ?? 'Desconhecido' }}</span>
+                                <small class="text-muted">{{ $nota->emitente_cnpj }}</small>
+                            </div>
+                        </td>
+                        <td>R$ {{ number_format($nota->valor_total, 2, ',', '.') }}</td>
+                        <td>
+                            @php
+                                $statusClass = match($nota->manifestacao) {
+                                    'ciencia' => 'bg-info',
+                                    'confirmada' => 'bg-success',
+                                    'desconhecida' => 'bg-warning',
+                                    'nao_realizada' => 'bg-danger',
+                                    default => 'bg-secondary'
+                                };
+                                $statusLabel = match($nota->manifestacao) {
+                                    'ciencia' => 'Ciência',
+                                    'confirmada' => 'Confirmada',
+                                    'desconhecida' => 'Desconhecida',
+                                    'nao_realizada' => 'Não Realizada',
+                                    default => 'Sem Manifestação'
+                                };
+                            @endphp
+                            <span class="badge {{ $statusClass }}">{{ $statusLabel }}</span>
+                        </td>
+                        <td>
+                            @if($nota->xml_content)
+                            <span class="badge bg-success">XML Baixado</span>
+                            @else
+                            <span class="badge bg-warning">Pendente</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if($nota->xml_content)
+                            <a href="{{ route('notas-entrada.processar', $nota->id) }}" class="btn btn-sm btn-primary" title="Importar Nota">
+                                <i class="bx bx-import"></i>
+                            </a>
+                            @else
+                            <form action="{{ route('notas-entrada.baixar-por-chave') }}" method="POST" class="d-inline">
+                                @csrf
+                                <input type="hidden" name="chave" value="{{ $nota->chave_acesso }}">
+                                <button type="submit" class="btn btn-sm btn-warning" title="Tentar baixar XML agora">
+                                    <i class="bx bx-download"></i>
+                                </button>
+                            </form>
+                            @endif
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="8" class="text-center py-5">
+                            <i class="bx bx-search fs-1 text-muted mb-2"></i>
+                            <p class="text-muted">Nenhuma nota encontrada.</p>
+                            <p class="text-muted small">Clique em "Buscar na SEFAZ" para consultar notas emitidas para seu CNPJ.</p>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </form>
     </div>
     <div class="card-footer">
         {{ $notas->links() }}
@@ -181,3 +238,43 @@
 </div>
 
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectAll = document.getElementById('select-all');
+        const checkboxes = document.querySelectorAll('.note-checkbox');
+        const bulkActions = document.getElementById('bulk-actions');
+        const selectedCount = document.getElementById('selected-count');
+
+        function updateBulkActions() {
+            const count = document.querySelectorAll('.note-checkbox:checked').length;
+            if (count > 0) {
+                bulkActions.style.display = 'block';
+                selectedCount.textContent = count + ' selecionados';
+            } else {
+                bulkActions.style.display = 'none';
+            }
+        }
+
+        if (selectAll) {
+            selectAll.addEventListener('change', function() {
+                checkboxes.forEach(cb => cb.checked = selectAll.checked);
+                updateBulkActions();
+            });
+
+            checkboxes.forEach(cb => {
+                cb.addEventListener('change', updateBulkActions);
+            });
+        }
+    });
+
+    function submitBulk(tipo) {
+        if (!confirm('Tem certeza que deseja manifestar as notas selecionadas como ' + tipo.toUpperCase() + '?')) {
+            return;
+        }
+        document.getElementById('bulk-tipo').value = tipo;
+        document.getElementById('bulk-form').submit();
+    }
+</script>
+@endpush

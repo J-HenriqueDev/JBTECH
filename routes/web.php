@@ -119,6 +119,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
   Route::post('/dashboard/nfe/{id}/carta-correcao', [NFeController::class, 'enviarCartaCorrecao'])->name('nfe.enviarCartaCorrecao');
   Route::get('/dashboard/nfe/{id}/imprimir', [NFeController::class, 'imprimir'])->name('nfe.imprimir');
   Route::get('/dashboard/nfe/{id}/imprimir-etiqueta', [NFeController::class, 'imprimirEtiqueta'])->name('nfe.imprimirEtiqueta');
+  Route::post('/dashboard/nfe/inutilizar', [NFeController::class, 'inutilizar'])->name('nfe.inutilizar');
   Route::resource('dashboard/nfe', NFeController::class);
 
   // Rotas para NFS-e (Nota Fiscal de Serviço)
