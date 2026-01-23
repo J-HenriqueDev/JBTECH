@@ -224,6 +224,7 @@ class ManifestoController extends Controller
             $loopCount = 0;
             $newDocsCount = 0;
             $parouPorBloqueio = false;
+            $parouPorLimite = false;
 
             do {
                 try {
@@ -321,7 +322,7 @@ class ManifestoController extends Controller
                 $msgSuccess .= " (Atenção: A SEFAZ solicitou pausa nas consultas. Aguarde 1 hora antes de tentar novamente.)";
                 return redirect()->back()->with('warning', $msgSuccess);
             }
-            
+
             if ($parouPorLimite) {
                 $msgSuccess .= " (Atenção: Ainda existem notas na SEFAZ. Clique em 'Buscar Novas Notas' novamente para continuar baixando.)";
                 return redirect()->back()->with('warning', $msgSuccess);
