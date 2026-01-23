@@ -22,12 +22,10 @@ class ManifestoController extends Controller
     public function index()
     {
         try {
-            // Buscar notas dos últimos 90 dias ou atualizadas recentemente
-            $notas = NotaEntrada::where(function ($q) {
-                $q->where('created_at', '>=', Carbon::now()->subDays(90))
-                    ->orWhere('updated_at', '>=', Carbon::now()->subDays(1));
-            })
-                ->orderBy('updated_at', 'desc')
+            // Buscar todas as notas, ordenadas por data de emissão (limite de 1000 para performance)
+            // Removemos filtro de data restrito para garantir que notas importadas apareçam
+            $notas = NotaEntrada::orderBy('data_emissao', 'desc')
+                ->take(1000)
                 ->get();
 
             // Verifica se há bloqueio ativo para exibir alerta na tela

@@ -160,8 +160,16 @@ class NotaEntradaController extends Controller
             $statusSefaz = (int) $xml->cSitNFe; // 1=Autorizada, 2=Denegada, 3=Cancelada
             $data = (string) $xml->dhEmi;
 
-            $status = 'detectada';
+            $status = 'pendente';
             if ($statusSefaz == 3) $status = 'cancelada';
+
+            // Verifica se a nota já existe para preservar status avançado
+            $notaExistente = NotaEntrada::where('chave_acesso', $chave)->first();
+
+            // Se já temos o XML baixado, não regredimos o status para pendente
+            if ($notaExistente && !empty($notaExistente->xml_content)) {
+                $status = $notaExistente->status;
+            }
 
             $nota = NotaEntrada::updateOrCreate(
                 ['chave_acesso' => $chave],

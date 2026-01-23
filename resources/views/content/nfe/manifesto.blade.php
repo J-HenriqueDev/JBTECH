@@ -197,7 +197,7 @@
                                                 <dd class="col-sm-8">{{ $nota->emitente_nome }}</dd>
 
                                                 <dt class="col-sm-4">CNPJ</dt>
-                                                <dd class="col-sm-8">{{ $cnpj }}</dd>
+                                                <dd class="col-sm-8">{{ $cnpjFormatado }}</dd>
 
                                                 <dt class="col-sm-4">Valor Total</dt>
                                                 <dd class="col-sm-8">R$ {{ number_format($nota->valor_total, 2, ',', '.') }}</dd>
