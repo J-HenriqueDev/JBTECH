@@ -2,86 +2,79 @@
 
 @section('title', 'Editar Orçamento')
 @section('vendor-style')
-@vite([
-'resources/assets/vendor/libs/select2/select2.scss',
-'resources/assets/vendor/libs/typeahead-js/typeahead.scss',
-'resources/assets/vendor/libs/swiper/swiper.scss'
-])
+    @vite(['resources/assets/vendor/libs/select2/select2.scss', 'resources/assets/vendor/libs/typeahead-js/typeahead.scss', 'resources/assets/vendor/libs/swiper/swiper.scss'])
 @endsection
 
 @section('vendor-script')
-@vite([
-'resources/assets/vendor/libs/select2/select2.js',
-'resources/assets/vendor/libs/swiper/swiper.js'
-])
+    @vite(['resources/assets/vendor/libs/select2/select2.js', 'resources/assets/vendor/libs/swiper/swiper.js'])
 @endsection
 
 @section('page-script')
-@vite([
-'resources/assets/js/forms-selects.js'
-])
-@include('content.orcamentos.scripts-edit')
+    @vite(['resources/assets/js/forms-selects.js'])
+    @include('content.orcamentos.scripts-edit')
 @endsection
 @section('content')
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="mb-0 text-primary" style="font-size: 2.5rem; font-weight: bold; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);">
-        <i class="fas fa-edit"></i> Editar Orçamento #{{ $orcamento->id }}
-        <span class="badge bg-{{ $orcamento->status == 'autorizado' ? 'success' : ($orcamento->status == 'recusado' ? 'danger' : 'warning') }} ms-2">
-            {{ ucfirst($orcamento->status) }}
-        </span>
-        @if($orcamento->validade < now() && $orcamento->status == 'pendente')
-            <span class="badge bg-danger ms-2">Vencido</span>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0 text-primary"
+            style="font-size: 2.5rem; font-weight: bold; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);">
+            <i class="fas fa-edit"></i> Editar Orçamento #{{ $orcamento->id }}
+            <span
+                class="badge bg-{{ $orcamento->status == 'autorizado' ? 'success' : ($orcamento->status == 'recusado' ? 'danger' : 'warning') }} ms-2">
+                {{ ucfirst($orcamento->status) }}
+            </span>
+            @if ($orcamento->validade < now() && $orcamento->status == 'pendente')
+                <span class="badge bg-danger ms-2">Vencido</span>
             @endif
-    </h1>
-    <div class="btn-group">
-        <a href="{{ route('orcamentos.show', $orcamento->id) }}" class="btn btn-info">
-            <i class="fas fa-eye"></i> Ver Detalhes
-        </a>
-        <a href="{{ route('orcamentos.gerarPdf', $orcamento->id) }}" class="btn btn-danger" target="_blank">
-            <i class="fas fa-file-pdf"></i> PDF
-        </a>
-        <a href="{{ route('orcamentos.index') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Voltar
-        </a>
+        </h1>
+        <div class="btn-group">
+            <a href="{{ route('orcamentos.show', $orcamento->id) }}" class="btn btn-info">
+                <i class="fas fa-eye"></i> Ver Detalhes
+            </a>
+            <a href="{{ route('orcamentos.gerarPdf', $orcamento->id) }}" class="btn btn-danger" target="_blank">
+                <i class="fas fa-file-pdf"></i> PDF
+            </a>
+            <a href="{{ route('orcamentos.index') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Voltar
+            </a>
+        </div>
     </div>
-</div>
 
-<!-- Alerta de Estoque Insuficiente -->
-@php
-$podeAutorizar = true;
-$produtosSemEstoque = [];
-foreach($orcamento->produtos as $produto) {
-if ($produto->estoque < $produto->pivot->quantidade) {
-    $podeAutorizar = false;
-    $produtosSemEstoque[] = [
-    'produto' => $produto,
-    'estoque_disponivel' => $produto->estoque,
-    'quantidade_solicitada' => $produto->pivot->quantidade,
-    'faltam' => $produto->pivot->quantidade - $produto->estoque,
-    ];
-    }
-    }
+    <!-- Alerta de Estoque Insuficiente -->
+    @php
+        $podeAutorizar = true;
+        $produtosSemEstoque = [];
+        foreach ($orcamento->produtos as $produto) {
+            if ($produto->estoque < $produto->pivot->quantidade) {
+                $podeAutorizar = false;
+                $produtosSemEstoque[] = [
+                    'produto' => $produto,
+                    'estoque_disponivel' => $produto->estoque,
+                    'quantidade_solicitada' => $produto->pivot->quantidade,
+                    'faltam' => $produto->pivot->quantidade - $produto->estoque,
+                ];
+            }
+        }
     @endphp
 
-    @if(!$podeAutorizar && $orcamento->status == 'pendente')
-    <div class="alert alert-warning alert-dismissible fade show" role="alert">
-        <h6 class="alert-heading d-flex align-items-center fw-bold mb-1">
-            <i class="fas fa-exclamation-triangle me-2"></i> Atenção: Estoque Insuficiente
-        </h6>
-        <p class="mb-2">Alguns produtos não possuem estoque suficiente para autorizar este orçamento:</p>
-        <ul class="mb-0">
-            @foreach($produtosSemEstoque as $item)
-            <li>
-                <strong>{{ $item['produto']->nome }}</strong> -
-                Estoque: {{ $item['estoque_disponivel'] }} |
-                Solicitado: {{ $item['quantidade_solicitada'] }} |
-                Faltam: {{ $item['faltam'] }}
-            </li>
-            @endforeach
-        </ul>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
+    @if (!$podeAutorizar && $orcamento->status == 'pendente')
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <h6 class="alert-heading d-flex align-items-center fw-bold mb-1">
+                <i class="fas fa-exclamation-triangle me-2"></i> Atenção: Estoque Insuficiente
+            </h6>
+            <p class="mb-2">Alguns produtos não possuem estoque suficiente para autorizar este orçamento:</p>
+            <ul class="mb-0">
+                @foreach ($produtosSemEstoque as $item)
+                    <li>
+                        <strong>{{ $item['produto']->nome }}</strong> -
+                        Estoque: {{ $item['estoque_disponivel'] }} |
+                        Solicitado: {{ $item['quantidade_solicitada'] }} |
+                        Faltam: {{ $item['faltam'] }}
+                    </li>
+                @endforeach
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
     @endif
 
     <div class="card mb-4">
@@ -99,31 +92,37 @@ if ($produto->estoque < $produto->pivot->quantidade) {
                         <select id="select2Basic" class="select2 form-select" name="cliente_id" required>
                             <option value="" disabled>Selecione um cliente</option>
                             @foreach ($clientes as $cliente)
-                            @php
-                            $endereco = '';
-                            if ($cliente->endereco) {
-                            $cepFormatado = $cliente->endereco->cep ?
-                            (\Illuminate\Support\Str::substr($cliente->endereco->cep, 0, 5) . '-' . \Illuminate\Support\Str::substr($cliente->endereco->cep, 5)) :
-                            '';
-                            $endereco = ($cliente->endereco->endereco ?? '') . ', ' .
-                            ($cliente->endereco->numero ?? '') . ', ' .
-                            ($cliente->endereco->bairro ?? '') . ', ' .
-                            ($cliente->endereco->cidade ?? '') . ', ' .
-                            ($cliente->endereco->estado ?? '') .
-                            ($cepFormatado ? ', CEP: ' . $cepFormatado : '');
-                            }
-                            @endphp
-                            <option value="{{ $cliente->id }}"
-                                data-endereco="{{ $endereco }}"
-                                {{ $orcamento->cliente_id == $cliente->id ? 'selected' : '' }}>
-                                #{{ $cliente->id }} - {{ $cliente->nome }} - {{ $cliente->cpf_cnpj }}
-                            </option>
+                                @php
+                                    $endereco = '';
+                                    if ($cliente->endereco) {
+                                        $cepFormatado = $cliente->endereco->cep
+                                            ? \Illuminate\Support\Str::substr($cliente->endereco->cep, 0, 5) .
+                                                '-' .
+                                                \Illuminate\Support\Str::substr($cliente->endereco->cep, 5)
+                                            : '';
+                                        $endereco =
+                                            ($cliente->endereco->endereco ?? '') .
+                                            ', ' .
+                                            ($cliente->endereco->numero ?? '') .
+                                            ', ' .
+                                            ($cliente->endereco->bairro ?? '') .
+                                            ', ' .
+                                            ($cliente->endereco->cidade ?? '') .
+                                            ', ' .
+                                            ($cliente->endereco->estado ?? '') .
+                                            ($cepFormatado ? ', CEP: ' . $cepFormatado : '');
+                                    }
+                                @endphp
+                                <option value="{{ $cliente->id }}" data-endereco="{{ $endereco }}"
+                                    {{ $orcamento->cliente_id == $cliente->id ? 'selected' : '' }}>
+                                    #{{ $cliente->id }} - {{ $cliente->nome }} - {{ $cliente->cpf_cnpj }}
+                                </option>
                             @endforeach
                         </select>
 
 
                         @error('cliente_id')
-                        <small class="text-danger fw-bold">{{ $message }}</small>
+                            <small class="text-danger fw-bold">{{ $message }}</small>
                         @enderror
                     </div>
 
@@ -131,9 +130,10 @@ if ($produto->estoque < $produto->pivot->quantidade) {
                         <label for="data" class="form-label">
                             <i class="bx bx-calendar"></i> Data
                         </label>
-                        <input type="date" class="form-control" name="data" id="data" value="{{ \Carbon\Carbon::parse($orcamento->data)->format('Y-m-d') }}" required>
+                        <input type="date" class="form-control" name="data" id="data"
+                            value="{{ \Carbon\Carbon::parse($orcamento->data)->format('Y-m-d') }}" required>
                         @error('data')
-                        <small class="text-danger fw-bold">{{ $message }}</small>
+                            <small class="text-danger fw-bold">{{ $message }}</small>
                         @enderror
                     </div>
 
@@ -141,9 +141,10 @@ if ($produto->estoque < $produto->pivot->quantidade) {
                         <label for="validade" class="form-label">
                             <i class="bx bx-calendar-check"></i> Validade do Orçamento
                         </label>
-                        <input type="date" class="form-control" name="validade" id="validade" value="{{ \Carbon\Carbon::parse($orcamento->validade)->format('Y-m-d') }}" required>
+                        <input type="date" class="form-control" name="validade" id="validade"
+                            value="{{ \Carbon\Carbon::parse($orcamento->validade)->format('Y-m-d') }}" required>
                         @error('validade')
-                        <small class="text-danger fw-bold">{{ $message }}</small>
+                            <small class="text-danger fw-bold">{{ $message }}</small>
                         @enderror
                     </div>
                 </div>
@@ -153,20 +154,28 @@ if ($produto->estoque < $produto->pivot->quantidade) {
                     <div class="col-md-8">
                         <label for="endereco_cliente" class="form-label">Endereço do Cliente</label>
                         @php
-                        $enderecoCliente = '';
-                        if ($orcamento->cliente && $orcamento->cliente->endereco) {
-                        $cepFormatado = $orcamento->cliente->endereco->cep ?
-                        (\Illuminate\Support\Str::substr($orcamento->cliente->endereco->cep, 0, 5) . '-' . \Illuminate\Support\Str::substr($orcamento->cliente->endereco->cep, 5)) :
-                        '';
-                        $enderecoCliente = ($orcamento->cliente->endereco->endereco ?? '') . ', ' .
-                        ($orcamento->cliente->endereco->numero ?? '') . ', ' .
-                        ($orcamento->cliente->endereco->bairro ?? '') . ', ' .
-                        ($orcamento->cliente->endereco->cidade ?? '') . ', ' .
-                        ($orcamento->cliente->endereco->estado ?? '') .
-                        ($cepFormatado ? ', CEP: ' . $cepFormatado : '');
-                        }
+                            $enderecoCliente = '';
+                            if ($orcamento->cliente && $orcamento->cliente->endereco) {
+                                $cepFormatado = $orcamento->cliente->endereco->cep
+                                    ? \Illuminate\Support\Str::substr($orcamento->cliente->endereco->cep, 0, 5) .
+                                        '-' .
+                                        \Illuminate\Support\Str::substr($orcamento->cliente->endereco->cep, 5)
+                                    : '';
+                                $enderecoCliente =
+                                    ($orcamento->cliente->endereco->endereco ?? '') .
+                                    ', ' .
+                                    ($orcamento->cliente->endereco->numero ?? '') .
+                                    ', ' .
+                                    ($orcamento->cliente->endereco->bairro ?? '') .
+                                    ', ' .
+                                    ($orcamento->cliente->endereco->cidade ?? '') .
+                                    ', ' .
+                                    ($orcamento->cliente->endereco->estado ?? '') .
+                                    ($cepFormatado ? ', CEP: ' . $cepFormatado : '');
+                            }
                         @endphp
-                        <input type="text" class="form-control" name="endereco_cliente" id="endereco_cliente" value="{{ $enderecoCliente }}" readonly>
+                        <input type="text" class="form-control" name="endereco_cliente" id="endereco_cliente"
+                            value="{{ $enderecoCliente }}" readonly>
                     </div>
 
                     <div class="col-md-4">
@@ -185,13 +194,15 @@ if ($produto->estoque < $produto->pivot->quantidade) {
                     <div>
                         <div class="input-group input-group-sm" style="width: 100%; max-width: 300px;">
                             <span class="input-group-text"><i class="bx bx-barcode"></i></span>
-                            <input type="text" id="barcode-input" class="form-control" placeholder="Qtd * Código * Preço" autocomplete="off">
+                            <input type="text" id="barcode-input" class="form-control" placeholder="Qtd * Código * Preço"
+                                autocomplete="off">
                         </div>
                         <small class="text-muted d-block mt-1" style="font-size: 11px;">
                             Ex: 2*Código*1,99 ou 10*Código
                         </small>
                     </div>
-                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalAdicionarProduto">
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#modalAdicionarProduto">
                         <i class="bx bx-plus-circle me-1"></i> Adicionar Produto
                     </button>
                 </div>
@@ -210,35 +221,46 @@ if ($produto->estoque < $produto->pivot->quantidade) {
                         </thead>
                         <tbody>
                             @foreach ($orcamento->produtos as $produto)
-                            <tr class="{{ $produto->estoque < $produto->pivot->quantidade ? 'table-warning' : '' }}">
-                                <td>{{ $produto->id }}</td>
-                                <td>
-                                    <strong>{{ $produto->nome }}</strong>
-                                    @if($produto->estoque < $produto->pivot->quantidade)
-                                        <br><small class="text-danger">⚠ Estoque: {{ $produto->estoque }} (Solicitado: {{ $produto->pivot->quantidade }})</small>
+                                <tr class="{{ $produto->estoque < $produto->pivot->quantidade ? 'table-warning' : '' }}">
+                                    <td>{{ $produto->id }}</td>
+                                    <td>
+                                        <strong>{{ $produto->nome }}</strong>
+                                        @if ($produto->estoque < $produto->pivot->quantidade)
+                                            <br><small class="text-danger">⚠ Estoque: {{ $produto->estoque }} (Solicitado:
+                                                {{ $produto->pivot->quantidade }})</small>
                                         @else
-                                        <br><small class="text-muted">Estoque: {{ $produto->estoque }}</small>
+                                            <br><small class="text-muted">Estoque: {{ $produto->estoque }}</small>
                                         @endif
-                                </td>
-                                <td>
-                                    <input type="number" class="form-control" name="produtos[{{ $produto->id }}][quantidade]" value="{{ $produto->pivot->quantidade }}" min="1" onchange="atualizarValorTotalTabela()">
-                                </td>
-                                <td>
-                                    <input type="text" class="form-control" name="produtos[{{ $produto->id }}][valor_unitario]" value="R$ {{ number_format($produto->pivot->valor_unitario, 2, ',', '.') }}" oninput="formatCurrencyService(this); atualizarValorTotalTabela()">
-                                </td>
-                                <td class="valor-total" data-valor="{{ $produto->pivot->valor_total ?? ($produto->pivot->valor_unitario * $produto->pivot->quantidade) }}">
-                                    <strong>R$ {{ number_format($produto->pivot->valor_total ?? ($produto->pivot->valor_unitario * $produto->pivot->quantidade), 2, ',', '.') }}</strong>
-                                </td>
-                                <td>
-                                    <button type="button" class="btn btn-danger btn-sm" onclick="removerProduto(this)">Remover</button>
-                                </td>
-                            </tr>
+                                    </td>
+                                    <td>
+                                        <input type="number" class="form-control"
+                                            name="produtos[{{ $produto->id }}][quantidade]"
+                                            value="{{ $produto->pivot->quantidade }}" min="1"
+                                            onchange="atualizarValorTotalTabela()">
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control"
+                                            name="produtos[{{ $produto->id }}][valor_unitario]"
+                                            value="R$ {{ number_format($produto->pivot->valor_unitario, 2, ',', '.') }}"
+                                            oninput="formatCurrencyService(this); atualizarValorTotalTabela()">
+                                    </td>
+                                    <td class="valor-total"
+                                        data-valor="{{ $produto->pivot->valor_total ?? $produto->pivot->valor_unitario * $produto->pivot->quantidade }}">
+                                        <strong>R$
+                                            {{ number_format($produto->pivot->valor_total ?? $produto->pivot->valor_unitario * $produto->pivot->quantidade, 2, ',', '.') }}</strong>
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-danger btn-sm"
+                                            onclick="removerProduto(this)">Remover</button>
+                                    </td>
+                                </tr>
                             @endforeach
                         </tbody>
                         <tfoot>
                             <tr>
                                 <td colspan="4" class="text-end fw-bold">Total</td>
-                                <td id="valorTotalTabela" class="text-success fw-bold">R$ {{ number_format($orcamento->valor_total, 2, ',', '.') }}</td>
+                                <td id="valorTotalTabela" class="text-success fw-bold">R$
+                                    {{ number_format($orcamento->valor_total, 2, ',', '.') }}</td>
                                 <td></td>
                             </tr>
                         </tfoot>
@@ -246,7 +268,8 @@ if ($produto->estoque < $produto->pivot->quantidade) {
                 </div>
 
                 <!-- Dismissible Alert para Custo de Combustível -->
-                <div id="alertCustoCombustivel" class="alert alert-warning alert-dismissible fade show d-none" role="alert">
+                <div id="alertCustoCombustivel" class="alert alert-warning alert-dismissible fade show d-none"
+                    role="alert">
                     <strong>Custo estimado de combustível: </strong><span id="valorCombustivelAlert">R$ 0,00</span>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
@@ -257,18 +280,20 @@ if ($produto->estoque < $produto->pivot->quantidade) {
                         <i class="bx bx-dollar-circle"></i> Valor do Serviço
                     </label>
                     <div class="input-group">
-                        <input type="text" class="form-control" name="valor_servico" id="valor_servico" placeholder="R$ 0,00" oninput="formatCurrencyService(this); validarValorServico()">
+                        <input type="text" class="form-control" name="valor_servico" id="valor_servico"
+                            placeholder="R$ 0,00" oninput="formatCurrencyService(this); validarValorServico()">
                         <button type="button" class="btn btn-primary" id="adicionarServico">Adicionar</button>
                     </div>
-                    <small id="erro_valor_servico" class="text-danger fw-bold d-none">O valor do serviço deve ser maior ou igual ao custo de combustível.</small>
+                    <small id="erro_valor_servico" class="text-danger fw-bold d-none">O valor do serviço deve ser maior ou
+                        igual ao custo de combustível.</small>
                     @error('valor_servico')
-                    <small class="text-danger fw-bold">{{ $message }}</small>
+                        <small class="text-danger fw-bold">{{ $message }}</small>
                     @enderror
                 </div>
 
                 <!-- Formas de Pagamento -->
                 @php
-                $formasPagamento = $orcamento->formas_pagamento ?? [];
+                    $formasPagamento = $orcamento->formas_pagamento ?? [];
                 @endphp
                 <div class="row mb-4">
                     <h5 class="mb-3"><i class="bx bx-wallet-alt me-2"></i>Formas de Pagamento</h5>
@@ -276,13 +301,18 @@ if ($produto->estoque < $produto->pivot->quantidade) {
                         <div class="row g-3">
                             <!-- À Vista -->
                             <div class="col-md-4">
-                                <label class="card h-100 border cursor-pointer position-relative shadow-sm hover-effect" for="pagamento_avista" style="cursor: pointer;">
+                                <label class="card h-100 border cursor-pointer position-relative shadow-sm hover-effect"
+                                    for="pagamento_avista" style="cursor: pointer;">
                                     <div class="card-body d-flex align-items-center p-3">
                                         <div class="form-check me-3">
-                                            <input class="form-check-input" type="checkbox" name="formas_pagamento[]" value="avista" id="pagamento_avista" {{ in_array('avista', $formasPagamento) ? 'checked' : '' }}>
+                                            <input class="form-check-input" type="checkbox" name="formas_pagamento[]"
+                                                value="avista" id="pagamento_avista"
+                                                {{ in_array('avista', $formasPagamento) ? 'checked' : '' }}>
                                         </div>
                                         <div>
-                                            <h6 class="mb-1 fw-bold text-dark"><i class="bx bx-money text-success fs-4 align-middle me-1"></i> À Vista</h6>
+                                            <h6 class="mb-1 fw-bold text-dark"><i
+                                                    class="bx bx-money text-success fs-4 align-middle me-1"></i> À Vista
+                                            </h6>
                                             <small class="text-muted">Dinheiro ou PIX</small>
                                         </div>
                                     </div>
@@ -291,13 +321,18 @@ if ($produto->estoque < $produto->pivot->quantidade) {
 
                             <!-- Cartão de Crédito -->
                             <div class="col-md-4">
-                                <label class="card h-100 border cursor-pointer position-relative shadow-sm hover-effect" for="pagamento_cartao" style="cursor: pointer;">
+                                <label class="card h-100 border cursor-pointer position-relative shadow-sm hover-effect"
+                                    for="pagamento_cartao" style="cursor: pointer;">
                                     <div class="card-body d-flex align-items-center p-3">
                                         <div class="form-check me-3">
-                                            <input class="form-check-input" type="checkbox" name="formas_pagamento[]" value="cartao" id="pagamento_cartao" {{ in_array('cartao', $formasPagamento) ? 'checked' : '' }}>
+                                            <input class="form-check-input" type="checkbox" name="formas_pagamento[]"
+                                                value="cartao" id="pagamento_cartao"
+                                                {{ in_array('cartao', $formasPagamento) ? 'checked' : '' }}>
                                         </div>
                                         <div>
-                                            <h6 class="mb-1 fw-bold text-dark"><i class="bx bx-credit-card text-primary fs-4 align-middle me-1"></i> Cartão de Crédito</h6>
+                                            <h6 class="mb-1 fw-bold text-dark"><i
+                                                    class="bx bx-credit-card text-primary fs-4 align-middle me-1"></i>
+                                                Cartão de Crédito</h6>
                                             <small class="text-muted">Parcelamento até 12x</small>
                                         </div>
                                     </div>
@@ -308,35 +343,55 @@ if ($produto->estoque < $produto->pivot->quantidade) {
                             <div class="col-md-4">
                                 <div class="card h-100 border shadow-sm hover-effect">
                                     <div class="card-body p-3">
-                                        <label class="d-flex align-items-center cursor-pointer mb-0 w-100" for="pagamento_boleto" style="cursor: pointer;">
+                                        <label class="d-flex align-items-center cursor-pointer mb-0 w-100"
+                                            for="pagamento_boleto" style="cursor: pointer;">
                                             <div class="form-check me-3">
-                                                <input class="form-check-input" type="checkbox" name="formas_pagamento[]" value="boleto" id="pagamento_boleto" {{ in_array('boleto', $formasPagamento) ? 'checked' : '' }}>
+                                                <input class="form-check-input" type="checkbox" name="formas_pagamento[]"
+                                                    value="boleto" id="pagamento_boleto"
+                                                    {{ in_array('boleto', old('formas_pagamento', $formasPagamento)) ? 'checked' : '' }}>
                                             </div>
                                             <div>
-                                                <h6 class="mb-0 fw-bold text-dark"><i class="bx bx-barcode text-warning fs-4 align-middle me-1"></i> Boleto Parcelado</h6>
+                                                <h6 class="mb-0 fw-bold text-dark"><i
+                                                        class="bx bx-barcode text-warning fs-4 align-middle me-1"></i>
+                                                    Boleto Parcelado</h6>
                                             </div>
                                         </label>
 
-                                        <div id="div_parcelas_boleto" style="{{ in_array('boleto', $formasPagamento) ? '' : 'display: none;' }}" class="mt-3 pt-2 border-top">
+                                        <div id="div_parcelas_boleto"
+                                            style="{{ in_array('boleto', old('formas_pagamento', $formasPagamento)) ? '' : 'display: none;' }}"
+                                            class="mt-3 pt-2 border-top">
                                             <div class="row g-2">
                                                 <div class="col-6">
                                                     <label class="form-label mb-1 text-muted small">Parcelas:</label>
                                                     <div class="input-group input-group-sm">
-                                                        <input type="number" name="parcelas_boleto" class="form-control" placeholder="Qtd" min="1" max="48" value="{{ $orcamento->parcelas_boleto }}">
+                                                        <input type="number" name="parcelas_boleto" class="form-control"
+                                                            placeholder="Qtd" min="1" max="48"
+                                                            value="{{ old('parcelas_boleto', $orcamento->parcelas_boleto) }}">
                                                         <span class="input-group-text">x</span>
                                                     </div>
                                                 </div>
                                                 <div class="col-6">
                                                     <label class="form-label mb-1 text-muted small">Intervalo:</label>
-                                                    <select name="periodicidade_boleto" class="form-select form-select-sm">
-                                                        <option value="Mensal" {{ ($orcamento->periodicidade_boleto == 'Mensal') ? 'selected' : '' }}>Mensal</option>
-                                                        <option value="Quinzenal" {{ ($orcamento->periodicidade_boleto == 'Quinzenal') ? 'selected' : '' }}>Quinzenal</option>
-                                                        <option value="Semanal" {{ ($orcamento->periodicidade_boleto == 'Semanal') ? 'selected' : '' }}>Semanal</option>
-                                                        <option value="7 Dias" {{ ($orcamento->periodicidade_boleto == '7 Dias') ? 'selected' : '' }}>A cada 7 Dias</option>
-                                                        <option value="15 Dias" {{ ($orcamento->periodicidade_boleto == '15 Dias') ? 'selected' : '' }}>A cada 15 Dias</option>
-                                                        <option value="30 Dias" {{ ($orcamento->periodicidade_boleto == '30 Dias') ? 'selected' : '' }}>A cada 30 Dias</option>
-                                                        <option value="45 Dias" {{ ($orcamento->periodicidade_boleto == '45 Dias') ? 'selected' : '' }}>A cada 45 Dias</option>
-                                                        <option value="60 Dias" {{ ($orcamento->periodicidade_boleto == '60 Dias') ? 'selected' : '' }}>A cada 60 Dias</option>
+                                                    <select name="periodicidade_boleto"
+                                                        class="form-select form-select-sm">
+                                                        <option value="Mensal"
+                                                            {{ old('periodicidade_boleto', $orcamento->periodicidade_boleto) == 'Mensal' ? 'selected' : '' }}>
+                                                            Mensal</option>
+                                                        <option value="Quinzenal"
+                                                            {{ old('periodicidade_boleto', $orcamento->periodicidade_boleto) == 'Quinzenal' ? 'selected' : '' }}>
+                                                            Quinzenal</option>
+                                                        <option value="Semanal"
+                                                            {{ old('periodicidade_boleto', $orcamento->periodicidade_boleto) == 'Semanal' ? 'selected' : '' }}>
+                                                            Semanal</option>
+                                                        <option value="7 Dias"
+                                                            {{ old('periodicidade_boleto', $orcamento->periodicidade_boleto) == '7 Dias' ? 'selected' : '' }}>
+                                                            A cada 7 Dias</option>
+                                                        <option value="15 Dias"
+                                                            {{ old('periodicidade_boleto', $orcamento->periodicidade_boleto) == '15 Dias' ? 'selected' : '' }}>
+                                                            A cada 15 Dias</option>
+                                                        <option value="30 Dias"
+                                                            {{ old('periodicidade_boleto', $orcamento->periodicidade_boleto) == '30 Dias' ? 'selected' : '' }}>
+                                                            A cada 30 Dias</option>
                                                     </select>
                                                 </div>
                                             </div>
@@ -344,44 +399,59 @@ if ($produto->estoque < $produto->pivot->quantidade) {
                                     </div>
                                 </div>
                             </div>
+                            <option value="45 Dias"
+                                {{ $orcamento->periodicidade_boleto == '45 Dias' ? 'selected' : '' }}>A cada 45 Dias
+                            </option>
+                            <option value="60 Dias"
+                                {{ $orcamento->periodicidade_boleto == '60 Dias' ? 'selected' : '' }}>A cada 60 Dias
+                            </option>
+                            </select>
                         </div>
                     </div>
                 </div>
-
-                <style>
-                    .hover-effect:hover {
-                        border-color: #696cff !important;
-                        background-color: #f8f9fa;
-                    }
-                </style>
-
-                <!-- Observações -->
-                <div class="mb-3">
-                    <label for="observacoes" class="form-label">
-                        <i class="bx bx-comment"></i> Observações
-                    </label>
-                    <textarea class="form-control" name="observacoes" id="observacoes" rows="3">{{ $orcamento->observacoes }}</textarea>
-                </div>
-
-                <!-- Botões -->
-                <div class="card-footer d-flex justify-content-end">
-                    <button type="submit" class="btn btn-md btn-primary fw-bold me-2">
-                        <i class="bx bx-save"></i> Salvar Alterações
-                    </button>
-                    <a href="{{ route('orcamentos.gerarPdf', $orcamento->id) }}" target="_blank" class="btn btn-md btn-success fw-bold me-2">
-                        <i class="bx bx-file"></i> Exibir PDF
-                    </a>
-                    <button type="button" class="btn btn-outline-secondary" onclick="history.back();">
-                        <i class="bx bx-x"></i> Cancelar
-                    </button>
-                </div>
-
             </div>
-        </form>
+    </div>
+    </div>
+    </div>
+    </div>
+    </div>
+
+    <style>
+        .hover-effect:hover {
+            border-color: #696cff !important;
+            background-color: #f8f9fa;
+        }
+    </style>
+
+    <!-- Observações -->
+    <div class="mb-3">
+        <label for="observacoes" class="form-label">
+            <i class="bx bx-comment"></i> Observações
+        </label>
+        <textarea class="form-control" name="observacoes" id="observacoes" rows="3">{{ $orcamento->observacoes }}</textarea>
+    </div>
+
+    <!-- Botões -->
+    <div class="card-footer d-flex justify-content-end">
+        <button type="submit" class="btn btn-md btn-primary fw-bold me-2">
+            <i class="bx bx-save"></i> Salvar Alterações
+        </button>
+        <a href="{{ route('orcamentos.gerarPdf', $orcamento->id) }}" target="_blank"
+            class="btn btn-md btn-success fw-bold me-2">
+            <i class="bx bx-file"></i> Exibir PDF
+        </a>
+        <button type="button" class="btn btn-outline-secondary" onclick="history.back();">
+            <i class="bx bx-x"></i> Cancelar
+        </button>
+    </div>
+
+    </div>
+    </form>
     </div>
 
     <!-- Modal para Adicionar Produtos -->
-    <div class="modal fade" id="modalAdicionarProduto" tabindex="-1" aria-labelledby="modalAdicionarProdutoLabel" aria-hidden="true">
+    <div class="modal fade" id="modalAdicionarProduto" tabindex="-1" aria-labelledby="modalAdicionarProdutoLabel"
+        aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -403,7 +473,8 @@ if ($produto->estoque < $produto->pivot->quantidade) {
                     </div>
                     <div class="mb-3">
                         <label for="quantidade" class="form-label">Quantidade</label>
-                        <input type="number" class="form-control" id="quantidade" value="1" min="1" required>
+                        <input type="number" class="form-control" id="quantidade" value="1" min="1"
+                            required>
                         <small class="text-muted" id="estoqueInfo"></small>
                     </div>
                     <div class="mb-3">
@@ -420,7 +491,8 @@ if ($produto->estoque < $produto->pivot->quantidade) {
     </div>
 
     <!-- Modal de Confirmação -->
-    <div class="modal fade" id="confirmarVendaSemEstoque" tabindex="-1" aria-labelledby="confirmarVendaSemEstoqueLabel" aria-hidden="true">
+    <div class="modal fade" id="confirmarVendaSemEstoque" tabindex="-1" aria-labelledby="confirmarVendaSemEstoqueLabel"
+        aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -442,4 +514,4 @@ if ($produto->estoque < $produto->pivot->quantidade) {
     {{-- @include('content.orcamentos.criar.partials.modal_produto')  --}}
 
 
-    @endsection
+@endsection

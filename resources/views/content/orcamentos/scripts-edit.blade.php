@@ -1,155 +1,145 @@
-  <script>
-      let custoCombustivel = 0; // Variável global para armazenar o custo do combustível
+<script>
+    function initEditOrcamentoScripts() {
+        if (typeof $ === 'undefined' || typeof $.fn.select2 === 'undefined') {
+            setTimeout(initEditOrcamentoScripts, 100);
+            return;
+        }
 
-      // Função para exibir mensagens flash (substituindo alert)
-      function showFlashMessage(type, message) {
-          // Tenta usar o componente x-banner se disponível
-          const event = new CustomEvent('banner-message', {
-              detail: {
-                  style: type, // 'success' or 'danger'
-                  message: message
-              }
-          });
-          document.dispatchEvent(event);
-      }
+        let custoCombustivel = 0; // Variável global para armazenar o custo do combustível
 
-      // Formata valores em moeda brasileira (usa função global se disponível)
-      function formatCurrency(value) {
-          // Trata valores undefined, null ou vazios
-          if (value === undefined || value === null || value === '') {
-              return 'R$ 0,00';
-          }
+        // Função para exibir mensagens flash (substituindo alert)
+        function showFlashMessage(type, message) {
+            const event = new CustomEvent('banner-message', {
+                detail: {
+                    style: type,
+                    message: message
+                }
+            });
+            document.dispatchEvent(event);
+        }
 
-          if (typeof window.formatCurrency === 'function') {
-              // Se a função global existir, usa ela
-              const input = document.createElement('input');
-              input.value = value;
-              window.formatCurrency(input);
-              return input.value;
-          }
-          // Fallback local
-          const numValue = parseFloat(value);
-          if (isNaN(numValue)) return 'R$ 0,00';
-          const formatted = Math.abs(numValue).toFixed(2);
-          return `R$ ${formatted.replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
-      }
+        // Formata valores em moeda brasileira (usa função global se disponível)
+        window.formatCurrency = function(value) {
+            if (value === undefined || value === null || value === '') {
+                return 'R$ 0,00';
+            }
+            const numValue = parseFloat(value);
+            if (isNaN(numValue)) return 'R$ 0,00';
+            const formatted = Math.abs(numValue).toFixed(2);
+            return `R$ ${formatted.replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
+        };
 
-      // Remove a formatação de moeda e retorna um número
-      function parseCurrency(value) {
-          if (!value || value === undefined || value === null) return 0;
-          if (typeof value !== 'string') return parseFloat(value) || 0;
-          const cleaned = value.replace('R$', '').replace(/\./g, '').replace(',', '.').trim();
-          return parseFloat(cleaned) || 0;
-      }
+        // Remove a formatação de moeda e retorna um número
+        window.parseCurrency = function(value) {
+            if (!value || value === undefined || value === null) return 0;
+            if (typeof value !== 'string') return parseFloat(value) || 0;
+            const cleaned = value.replace('R$', '').replace(/\./g, '').replace(',', '.').trim();
+            return parseFloat(cleaned) || 0;
+        };
 
-      // Formata o valor do campo de serviço (usa função global se disponível)
-      function formatCurrencyService(input) {
-          if (typeof window.formatCurrency === 'function') {
-              window.formatCurrency(input);
-              return;
-          }
-          // Fallback local
-          let value = input.value.replace(/\D/g, ''); // Remove caracteres não numéricos
-          if (value === '') {
-              input.value = 'R$ 0,00';
-              return;
-          }
-          let intValue = parseInt(value, 10) / 100;
-          input.value = intValue.toLocaleString('pt-BR', {
-              style: 'currency',
-              currency: 'BRL'
-          });
-      }
+        // Formata o valor do campo de serviço (usa função global se disponível)
+        window.formatCurrencyService = function(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (value === '') {
+                input.value = 'R$ 0,00';
+                return;
+            }
+            let intValue = parseInt(value, 10) / 100;
+            input.value = intValue.toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            });
+        };
 
-      // Valida se o valor de serviço é maior ou igual ao custo de combustível
-      function validarValorServico() {
-          const valorServicoInput = $('#valor_servico');
-          const valorServico = parseCurrency(valorServicoInput.val());
+        // Valida se o valor de serviço é maior ou igual ao custo de combustível
+        window.validarValorServico = function() {
+            const valorServicoInput = $('#valor_servico');
+            const valorServico = parseCurrency(valorServicoInput.val());
 
-          if (valorServico < custoCombustivel) {
-              valorServicoInput.addClass('is-invalid');
-              $('#alertCustoCombustivel').removeClass('d-none').addClass('alert-danger').html(`
-              <strong>O valor do serviço deve ser maior ou igual ao custo de combustível (${formatCurrency(custoCombustivel)}).</strong>
-              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-          `);
-              return false;
-          } else {
-              valorServicoInput.removeClass('is-invalid');
-              $('#alertCustoCombustivel').addClass('d-none');
-              return true;
-          }
-      }
+            if (valorServico < custoCombustivel) {
+                valorServicoInput.addClass('is-invalid');
+                $('#alertCustoCombustivel').removeClass('d-none').addClass('alert-danger').html(`
+            <strong>O valor do serviço deve ser maior ou igual ao custo de combustível (${formatCurrency(custoCombustivel)}).</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `);
+                return false;
+            } else {
+                valorServicoInput.removeClass('is-invalid');
+                $('#alertCustoCombustivel').addClass('d-none');
+                return true;
+            }
+        };
 
-      // Função para atualizar os produtos
-      function atualizarProdutos() {
-          carregandoProdutos = true; // Indica que uma requisição está em andamento
-          console.log('Carregando produtos...');
+        let produtosCarregados = false;
+        let carregandoProdutos = false;
 
-          $.ajax({
-              url: '/produtos/lista', // Altere para a URL correta da sua rota de produtos
-              method: 'GET',
-              success: function(produtos) {
-                  console.log('Produtos carregados:', produtos);
+        // Função para atualizar os produtos
+        function atualizarProdutos() {
+            carregandoProdutos = true;
+            console.log('Carregando produtos...');
 
-                  // Limpa as opções atuais
-                  $('#produto_id').empty();
+            $.ajax({
+                url: '/produtos/lista',
+                method: 'GET',
+                success: function(produtos) {
+                    console.log('Produtos carregados:', produtos);
+                    $('#produto_id').empty();
+                    $('#produto_id').append(
+                        '<option value="" disabled selected>Selecione um produto</option>');
 
-                  // Adiciona um placeholder
-                  $('#produto_id').append('<option value="" disabled selected>Selecione um produto</option>');
+                    produtos.forEach(function(produto) {
+                        const option = new Option(
+                            `${produto.nome} - R$ ${parseFloat(produto.preco_venda).toFixed(2).replace('.', ',')}${produto.estoque !== undefined ? ' (Estoque: ' + produto.estoque + ')' : ''}`,
+                            produto.id,
+                            false,
+                            false
+                        );
+                        $(option).data('preco', parseFloat(produto.preco_venda) || 0);
+                        $(option).data('estoque', produto.estoque ?? 0);
+                        $('#produto_id').append(option);
+                    });
 
-                  // Adiciona as novas opções ao select2
-                  produtos.forEach(function(produto) {
-                      const option = new Option(
-                          `${produto.nome} - R$ ${parseFloat(produto.preco_venda).toFixed(2).replace('.', ',')}${produto.estoque !== undefined ? ' (Estoque: ' + produto.estoque + ')' : ''}`,
-                          produto.id,
-                          false,
-                          false
-                      );
-                      // Adiciona o preço e estoque como atributos de dados (garante que seja número)
-                      $(option).data('preco', parseFloat(produto.preco_venda) || 0);
-                      $(option).data('estoque', produto.estoque ?? 0);
-                      $('#produto_id').append(option);
-                  });
+                    $('#produto_id').trigger('change.select2');
+                    produtosCarregados = true;
+                },
+                error: function(xhr, status, error) {
+                    console.error('Erro na requisição:', error);
+                    showFlashMessage('danger', 'Erro ao carregar os produtos. Tente novamente mais tarde.');
+                },
+                complete: function() {
+                    carregandoProdutos = false;
+                }
+            });
+        }
 
-                  // Atualiza o Select2 para refletir as novas opções
-                  $('#produto_id').trigger('change.select2');
+        // Função para adicionar produto na tabela
+        function adicionarProdutoNaTabela(id, nome, quantidade, precoUnitario) {
+            const valorTotal = precoUnitario * quantidade;
 
-                  // Abre o dropdown manualmente após a atualização
-                  $('#produto_id').select2('open');
-              },
-              error: function(xhr, status, error) {
-                  console.error('Erro na requisição:', error);
-                  showFlashMessage('danger', 'Erro ao carregar os produtos. Tente novamente mais tarde.');
-              },
-              complete: function() {
-                  carregandoProdutos = false; // Indica que a requisição foi concluída
-              }
-          });
-      }
+            let produtoExiste = false;
+            $('#tabelaProdutos tbody tr').each(function() {
+                const idExistente = $(this).find('input[name*="[id]"]').val();
+                if (idExistente == id) {
+                    produtoExiste = true;
+                    return false;
+                }
+            });
 
-      let produtosCarregados = false; // Indica se os produtos já foram carregados
-      let carregandoProdutos = false; // Indica se uma requisição está em andamento
+            if (produtoExiste) {
+                showFlashMessage('warning', 'Produto já adicionado. Remova-o primeiro se desejar alterar.');
+                return false;
+            }
 
+            const precoUnitarioFormatado = precoUnitario.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            const valorTotalFormatado = valorTotal.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
 
-      // Função para adicionar produto na tabela (Reutilizável)
-      function adicionarProdutoNaTabela(id, nome, quantidade, precoUnitario) {
-          const valorTotal = precoUnitario * quantidade;
-
-          let produtoExiste = false;
-          $('#tabelaProdutos tbody tr').each(function() {
-              const idExistente = $(this).find('input[name*="[id]"]').val();
-              if (idExistente == id) {
-                  produtoExiste = true;
-                  return false;
-              }
-          });
-
-          if (produtoExiste) {
-              showFlashMessage('warning', 'Produto já adicionado. Remova-o primeiro se desejar alterar.');
-              return false;
-          }
-
-          $('#tabelaProdutos tbody').append(`
+            $('#tabelaProdutos tbody').append(`
             <tr>
                 <td>
                     <input type="hidden" name="produtos[${id}][id]" value="${id}">${id}
@@ -159,421 +149,274 @@
                     <input type="number" class="form-control" name="produtos[${id}][quantidade]" value="${quantidade}" min="1" onchange="atualizarValorTotalTabela()">
                 </td>
                 <td>
-                    <input type="text" class="form-control" name="produtos[${id}][valor_unitario]" value="${formatMoney(precoUnitario)}" oninput="formatCurrencyService(this); atualizarValorTotalTabela()">
+                    <input type="text" class="form-control" name="produtos[${id}][valor_unitario]" value="R$ ${precoUnitarioFormatado}" oninput="formatCurrencyService(this); atualizarValorTotalTabela()">
                 </td>
-                <td class="valor-total" data-valor="${valorTotal}"><strong>${formatMoney(valorTotal)}</strong></td>
+                <td class="valor-total" data-valor="${valorTotal}"><strong>R$ ${valorTotalFormatado}</strong></td>
                 <td>
                     <button type="button" class="btn btn-danger btn-sm" onclick="removerProduto(this)">Remover</button>
                 </td>
             </tr>
         `);
 
-          atualizarMensagemTabela();
-          atualizarValorTotalTabela();
-          return true;
-      }
+            atualizarMensagemTabela();
+            atualizarValorTotalTabela();
+            return true;
+        }
 
-      // Busca produto por código de barras
-      function buscarProdutoPorCodigo(barcode, qtd = 1, customPrice = null) {
-          $('#barcode-input').prop('disabled', true);
+        window.removerProduto = function(btn) {
+            $(btn).closest('tr').remove();
+            atualizarMensagemTabela();
+            atualizarValorTotalTabela();
+        };
 
-          $.ajax({
-              url: '{{ route("produtos.buscar-codigo") }}',
-              method: 'POST',
-              data: {
-                  _token: '{{ csrf_token() }}',
-                  termo: barcode
-              },
-              success: function(response) {
-                  if (response.success) {
-                      const p = response.produto;
-                      let valor = parseFloat(p.preco_venda);
-                      if (customPrice !== null && !isNaN(customPrice)) {
-                          valor = customPrice;
-                      }
+        window.atualizarValorTotalTabela = function() {
+            let totalGeral = 0;
+            $('#tabelaProdutos tbody tr').each(function() {
+                const quantidade = parseFloat($(this).find('input[name*="[quantidade]"]').val()) || 0;
+                const valorUnitarioInput = $(this).find('input[name*="[valor_unitario]"]').val();
+                const valorUnitario = parseCurrency(valorUnitarioInput);
 
-                      if (adicionarProdutoNaTabela(p.id, p.nome, qtd, valor)) {
-                          // Sucesso
-                      }
-                      $('#barcode-input').val('').focus();
-                  } else {
-                      showFlashMessage('warning', response.message || 'Produto não encontrado');
-                      $('#barcode-input').val('').select();
-                  }
-              },
-              error: function(xhr) {
-                  console.error(xhr);
-                  showFlashMessage('danger', 'Erro ao buscar produto: ' + (xhr.responseJSON?.message || 'Erro desconhecido'));
-                  $('#barcode-input').val('').select();
-              },
-              complete: function() {
-                  $('#barcode-input').prop('disabled', false).focus();
-              }
-          });
-      }
+                const totalItem = quantidade * valorUnitario;
+                $(this).find('.valor-total').data('valor', totalItem);
+                $(this).find('.valor-total strong').text('R$ ' + totalItem.toLocaleString('pt-BR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }));
 
-      $(document).ready(function() {
-          // Evento do Scanner de Código de Barras
-          $('#barcode-input').on('keypress', function(e) {
-              if (e.which === 13) { // Enter key
-                  e.preventDefault();
-                  const input = $(this).val().trim();
+                totalGeral += totalItem;
+            });
 
-                  if (input) {
-                      let qtd = 1;
-                      let barcode = input;
-                      let price = null;
+            const valorServico = parseCurrency($('#valor_servico').val());
+            totalGeral += valorServico;
 
-                      // Check for Qtd * Code * Price pattern (e.g. 2*789*1,29)
-                      const parts = input.split('*');
+            $('#valorTotalTabela').text('R$ ' + totalGeral.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }));
+        };
 
-                      if (parts.length >= 3) {
-                          qtd = parseFloat(parts[0].trim()) || 1;
-                          barcode = parts[1].trim();
-                          let priceStr = parts[2].trim().replace(',', '.');
-                          price = parseFloat(priceStr);
-                      } else if (parts.length === 2) {
-                          qtd = parseFloat(parts[0].trim()) || 1;
-                          barcode = parts[1].trim();
-                      } else {
-                          const match = input.match(/^(\d+)\s*[xX]\s*(.+)$/);
-                          if (match) {
-                              qtd = parseFloat(match[1]);
-                              barcode = match[2];
-                          }
-                      }
+        window.atualizarMensagemTabela = function() {
+            if ($('#tabelaProdutos tbody tr').length === 0) {
+                if ($('#tabelaVazia').length === 0) {
+                    $('#tabelaProdutos tbody').append(`
+                    <tr id="tabelaVazia">
+                        <td colspan="6" class="text-center py-4 text-muted">
+                            Nenhum item adicionado.
+                        </td>
+                    </tr>
+                `);
+                }
+            } else {
+                $('#tabelaVazia').remove();
+            }
+        };
 
-                      buscarProdutoPorCodigo(barcode, qtd, price);
-                  }
-              }
-          });
+        function buscarProdutoPorCodigo(barcode, qtd = 1, customPrice = null) {
+            $('#barcode-input').prop('disabled', true);
 
-          // Inicializa o Select2 para o campo de clientes
-          $('#select2Basic').select2({
-              tags: false,
-              placeholder: 'Selecione um cliente',
-              width: '100%',
-              allowClear: true
-          });
+            $.ajax({
+                url: '{{ route('produtos.buscar-codigo') }}',
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    termo: barcode
+                },
+                success: function(response) {
+                    if (response.success) {
+                        const p = response.produto;
+                        let valor = parseFloat(p.preco_venda);
+                        if (customPrice !== null && !isNaN(customPrice)) {
+                            valor = customPrice;
+                        }
 
-          // Atualiza o endereço do cliente ao selecionar
-          $('#select2Basic').on('change', function() {
-              const enderecoCliente = $(this).find(':selected').data('endereco');
-              $('#endereco_cliente').val(enderecoCliente || '');
-          });
+                        if (adicionarProdutoNaTabela(p.id, p.nome, qtd, valor)) {
+                            // Sucesso
+                        }
+                        $('#barcode-input').val('').focus();
+                    } else {
+                        showFlashMessage('warning', response.message || 'Produto não encontrado');
+                        $('#barcode-input').val('').select();
+                    }
+                },
+                error: function(xhr) {
+                    console.error(xhr);
+                    showFlashMessage('danger', 'Erro ao buscar produto: ' + (xhr.responseJSON?.message ||
+                        'Erro desconhecido'));
+                    $('#barcode-input').val('').select();
+                },
+                complete: function() {
+                    $('#barcode-input').prop('disabled', false).focus();
+                }
+            });
+        }
 
-          // Preencher automaticamente o endereço ao carregar a página
-          const selectedEndereco = $('#select2Basic').find(':selected').data('endereco');
-          if (selectedEndereco) {
-              $('#endereco_cliente').val(selectedEndereco);
-          }
+        // Evento do Scanner de Código de Barras
+        $('#barcode-input').on('keypress', function(e) {
+            if (e.which === 13) {
+                e.preventDefault();
+                const input = $(this).val().trim();
 
-          // Inicializa o Select2 para o campo de produtos
-          $('#produto_id').select2({
-              tags: false,
-              dropdownParent: $('#modalAdicionarProduto'),
-              placeholder: 'Selecione um produto',
-              width: '100%',
-              allowClear: true
-          });
+                if (input) {
+                    let qtd = 1;
+                    let barcode = input;
+                    let price = null;
+                    const parts = input.split('*');
 
-          // Carrega os produtos ao carregar a página
-          atualizarProdutos();
+                    if (parts.length >= 3) {
+                        qtd = parseFloat(parts[0].trim()) || 1;
+                        barcode = parts[1].trim();
+                        let priceStr = parts[2].trim().replace(',', '.');
+                        price = parseFloat(priceStr);
+                    } else if (parts.length === 2) {
+                        qtd = parseFloat(parts[0].trim()) || 1;
+                        barcode = parts[1].trim();
+                    } else {
+                        const match = input.match(/^(\d+)\s*[xX]\s*(.+)$/);
+                        if (match) {
+                            qtd = parseFloat(match[1]);
+                            barcode = match[2];
+                        }
+                    }
 
-          // Toggle parcelas boleto
-          function toggleParcelasBoleto() {
-              if ($('#pagamento_boleto').is(':checked')) {
-                  $('#div_parcelas_boleto').slideDown();
-              } else {
-                  $('#div_parcelas_boleto').slideUp();
-              }
-          }
+                    buscarProdutoPorCodigo(barcode, qtd, price);
+                }
+            }
+        });
 
-          $('#pagamento_boleto').on('change', toggleParcelasBoleto);
-          toggleParcelasBoleto(); // Init state
+        // Inicializa o Select2 para o campo de clientes
+        $('#select2Basic').select2({
+            tags: false,
+            placeholder: 'Selecione um cliente',
+            width: '100%',
+            allowClear: true
+        });
 
-          $('#produto_id').on('select2:opening', function(e) {
-              if (!produtosCarregados && !carregandoProdutos) {
-                  e.preventDefault(); // Impede a abertura automática do dropdown
-                  atualizarProdutos(); // Atualiza os produtos
-              }
-          });
+        $('#select2Basic').on('change', function() {
+            const enderecoCliente = $(this).find(':selected').data('endereco');
+            $('#endereco_cliente').val(enderecoCliente || '');
+        });
 
-          // Atualiza o valor_unitário e valor_total ao selecionar um produto
-          $('#produto_id').on('change', function() {
-              const selectedId = $(this).val();
+        // Preencher endereço inicial se disponível
+        const selectedEndereco = $('#select2Basic').find(':selected').data('endereco');
+        if (selectedEndereco) {
+            $('#endereco_cliente').val(selectedEndereco);
+        }
 
-              // Ignora se nenhum produto foi selecionado ou se é o placeholder
-              if (!selectedId || selectedId === '') {
-                  $('#valor_unitario').val('');
-                  $('#valor_total').val('');
-                  return;
-              }
+        // Inicializa o Select2 para o campo de produtos
+        $('#produto_id').select2({
+            tags: false,
+            dropdownParent: $('#modalAdicionarProduto'),
+            placeholder: 'Selecione um produto',
+            width: '100%',
+            allowClear: true
+        });
 
-              const selectedOption = $(this).find('option[value="' + selectedId + '"]');
-              const preco = parseFloat(selectedOption.data('preco')) || 0;
+        atualizarProdutos();
 
-              if (preco && preco > 0) {
-                  // Preenche o campo Valor do Produto
-                  $('#valor_unitario').val(formatCurrency(preco));
+        // Toggle parcelas boleto
+        function toggleParcelasBoleto() {
+            if ($('#pagamento_boleto').is(':checked')) {
+                $('#div_parcelas_boleto').slideDown();
+            } else {
+                $('#div_parcelas_boleto').slideUp();
+            }
+        }
 
-                  // Calcula e preenche o Valor Total (preço × quantidade)
-                  const quantidade = parseInt($('#quantidade').val() || 1);
-                  const valorTotal = preco * quantidade;
-                  $('#valor_total').val(formatCurrency(valorTotal));
-              } else {
-                  $('#valor_unitario').val('');
-                  $('#valor_total').val('');
-              }
-          });
+        $('#pagamento_boleto').on('change', toggleParcelasBoleto);
 
+        $('#produto_id').on('select2:opening', function(e) {
+            if (!produtosCarregados && !carregandoProdutos) {
+                e.preventDefault();
+                atualizarProdutos();
+            }
+        });
 
-          // Atualiza o valor_total ao alterar a quantidade
-          $('#quantidade').on('input', function() {
-              const preco = parseCurrency($('#valor_unitario').val());
-              const quantidade = parseInt($(this).val() || 1);
-              $('#valor_total').val(formatCurrency(preco * quantidade));
+        $('#adicionarProduto').on('click', function() {
+            const id = $('#produto_id').val();
+            const nome = $('#produto_id option:selected').text().split(' - R$')[0];
+            const preco = parseCurrency($('#valor_unitario').val());
+            const qtd = parseInt($('#quantidade').val());
 
-              // Atualiza informação de estoque
-              const estoque = $('#produto_id').find(':selected').data('estoque');
-              if (estoque !== undefined) {
-                  if (estoque < quantidade) {
-                      $('#estoqueInfo').html('<span class="text-danger">⚠ Estoque disponível: ' + estoque + ' unidades</span>');
-                  } else if (estoque <= 10) {
-                      $('#estoqueInfo').html('<span class="text-warning">⚠ Estoque baixo: ' + estoque + ' unidades</span>');
-                  } else {
-                      $('#estoqueInfo').html('<span class="text-success">✓ Estoque disponível: ' + estoque + ' unidades</span>');
-                  }
-              }
-          });
+            if (id && qtd > 0) {
+                if (adicionarProdutoNaTabela(id, nome, qtd, preco)) {
+                    $('#modalAdicionarProduto').modal('hide');
+                    $('#produto_id').val('').trigger('change');
+                    $('#valor_unitario').val('');
+                    $('#quantidade').val(1);
+                    $('#valor_total').val('');
+                }
+            } else {
+                showFlashMessage('danger', 'Selecione um produto e uma quantidade válida.');
+            }
+        });
 
-          // Adiciona o produto na tabela
-          $('#adicionarProduto').on('click', function() {
-              const produtoId = $('#produto_id').val();
-              const produtoTexto = $('#produto_id option:selected').text();
-              const produtoNome = produtoTexto.split(' - ')[0];
-              const precoUnitario = parseCurrency($('#valor_unitario').val());
-              const quantidade = parseInt($('#quantidade').val() || 1);
-              const valorTotal = precoUnitario * quantidade;
+        $('#quantidade, #valor_unitario').on('input', function() {
+            const qtd = parseInt($('#quantidade').val()) || 0;
+            const valor = parseCurrency($('#valor_unitario').val());
+            const total = qtd * valor;
+            $('#valor_total').val('R$ ' + total.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }));
+        });
 
-              if (!produtoId || precoUnitario <= 0 || quantidade <= 0) {
-                  showFlashMessage('danger', 'Por favor, preencha todos os campos corretamente antes de adicionar um produto.');
-                  return;
-              }
+        $('#produto_id').on('select2:select', function(e) {
+            const preco = $(this).find(':selected').data('preco');
+            const estoque = $(this).find(':selected').data('estoque');
 
-              // Verifica se o produto já existe na tabela
-              let produtoExiste = false;
-              $('#tabelaProdutos tbody tr').each(function() {
-                  const idExistente = $(this).find('input[type="hidden"]').val();
-                  if (idExistente == produtoId) {
-                      produtoExiste = true;
-                      return false; // break
-                  }
-              });
+            $('#valor_unitario').val('R$ ' + preco.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }));
+            $('#quantidade').val(1).trigger('input');
 
-              if (produtoExiste) {
-                  showFlashMessage('warning', 'Este produto já foi adicionado à tabela. Remova-o primeiro se desejar alterar.');
-                  return;
-              }
+            if (estoque !== undefined) {
+                $('#estoqueInfo').text(`Estoque disponível: ${estoque}`);
+            } else {
+                $('#estoqueInfo').text('');
+            }
+        });
 
-              // Adiciona uma linha à tabela com os campos `name` necessários
-              $('#tabelaProdutos tbody').append(`
-            <tr>
-                <td>
-                    <input type="hidden" name="produtos[${produtoId}][id]" value="${produtoId}">${produtoId}
-                </td>
-                <td><strong>${produtoNome}</strong></td>
-                <td>
-                    <input type="number" class="form-control" name="produtos[${produtoId}][quantidade]" value="${quantidade}" min="1" onchange="atualizarValorTotalTabela()">
-                </td>
-                <td>
-                    <input type="text" class="form-control" name="produtos[${produtoId}][valor_unitario]" value="${formatCurrency(precoUnitario)}" oninput="formatCurrencyService(this); atualizarValorTotalTabela()">
-                </td>
-                <td class="valor-total" data-valor="${valorTotal}"><strong>${formatCurrency(valorTotal)}</strong></td>
-                <td>
-                    <button type="button" class="btn btn-danger btn-sm" onclick="removerProduto(this)">Remover</button>
-                </td>
-            </tr>
-        `);
+        // Botão Calcular Distância
+        $('#calcularDistancia').on('click', function() {
+            const endereco = $('#endereco_cliente').val();
+            if (!endereco) {
+                showFlashMessage('warning', 'Selecione um cliente com endereço cadastrado.');
+                return;
+            }
 
-              // Fecha o modal e limpa os campos
-              $('#modalAdicionarProduto').modal('hide');
-              limparCamposModal();
-              atualizarMensagemTabela();
-              atualizarValorTotalTabela();
-          });
+            const btn = $(this);
+            const originalText = btn.html();
+            btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> Calculando...');
 
+            $.ajax({
+                url: '{{ route('orcamentos.obter-coordenadas') }}',
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    endereco_cliente: endereco
+                },
+                success: function(response) {
+                    if (response.lat && response.lng) {
+                        // Aqui você pode adicionar lógica para calcular distância da loja
+                        // Por enquanto, apenas mostra as coordenadas ou abre no mapa
+                        window.open(
+                            `https://www.google.com/maps/dir/?api=1&destination=${response.lat},${response.lng}`,
+                            '_blank');
+                    } else if (response.error) {
+                        showFlashMessage('danger', response.error);
+                    }
+                },
+                error: function() {
+                    showFlashMessage('danger', 'Erro ao calcular distância.');
+                },
+                complete: function() {
+                    btn.prop('disabled', false).html(originalText);
+                }
+            });
+        });
+    }
 
-          // Verifica se existe campo de serviço na página
-          if ($('#valor_servico').length && $('#adicionarServico').length) {
-              $('#adicionarServico').on('click', function() {
-                  if (!validarValorServico()) return;
-
-                  const valorServico = parseCurrency($('#valor_servico').val());
-
-                  // Verifica se o serviço já existe na tabela
-                  let servicoExiste = false;
-                  $('#tabelaProdutos tbody tr').each(function() {
-                      const idExistente = $(this).find('td:first').text().trim();
-                      if (idExistente == '1') {
-                          servicoExiste = true;
-                          return false; // break
-                      }
-                  });
-
-                  if (servicoExiste) {
-                      showFlashMessage('warning', 'O serviço já foi adicionado à tabela. Remova-o primeiro se desejar alterar.');
-                      return;
-                  }
-
-                  // Simula o produto "Serviço" com ID 1 e insere na tabela
-                  $('#tabelaProdutos tbody').append(`
-                  <tr>
-                      <td>1</td> <!-- ID do produto Serviço -->
-                      <td><strong>Serviço</strong></td>
-                      <td>
-                          <input type="number" class="form-control" name="produtos[1][quantidade]" value="1" readonly>
-                      </td>
-                      <td>
-                          <input type="text" class="form-control" name="produtos[1][valor_unitario]" value="${formatCurrency(valorServico)}" readonly>
-                      </td>
-                      <td class="valor-total" data-valor="${valorServico}"><strong>${formatCurrency(valorServico)}</strong></td>
-                      <td>
-                          <button type="button" class="btn btn-danger btn-sm" onclick="removerProduto(this)">Remover</button>
-                      </td>
-                  </tr>
-              `);
-
-                  atualizarMensagemTabela();
-                  atualizarValorTotalTabela();
-
-                  // Limpa o campo de serviço
-                  $('#valor_servico').val('');
-              });
-          }
-
-
-          // Calcula distância do cliente e custo de combustível
-          if ($('#calcularDistancia').length) {
-              $('#calcularDistancia').on('click', function() {
-                  const enderecoCliente = $('#endereco_cliente').val();
-
-                  if (!enderecoCliente) {
-                      showFlashMessage('warning', 'Por favor, selecione um cliente para calcular a distância.');
-                      return;
-                  }
-
-                  $.ajax({
-                      url: '{{ route("orcamentos.obterCoordenadas") }}',
-                      method: 'POST',
-                      data: {
-                          endereco_cliente: enderecoCliente,
-                          _token: '{{ csrf_token() }}',
-                      },
-                      success: function(response) {
-                          if (response.error) {
-                              showFlashMessage('danger', 'Erro: ' + response.error);
-                          } else {
-                              calcularDistanciaDaLoja(response.lat, response.lng);
-                          }
-                      },
-                      error: function() {
-                          showFlashMessage('danger', 'Erro ao calcular distância. Verifique sua conexão e tente novamente.');
-                      }
-                  });
-              });
-          }
-
-          function calcularDistanciaDaLoja(lat, lng) {
-              if (typeof google === 'undefined' || !google.maps || !google.maps.geometry) {
-                  showFlashMessage('danger', 'Google Maps não está carregado. Verifique sua conexão e tente novamente.');
-                  return;
-              }
-
-              const lojaLat = -22.4807496;
-              const lojaLng = -44.5047416;
-
-              const origem = new google.maps.LatLng(lojaLat, lojaLng);
-              const destino = new google.maps.LatLng(lat, lng);
-
-              const distancia = google.maps.geometry.spherical.computeDistanceBetween(origem, destino);
-              const distanciaIdaVolta = distancia * 2;
-              const distanciaKm = (distanciaIdaVolta / 1000).toFixed(2);
-
-              const consumoPorLitro = 9;
-              const precoGasolina = 6.20;
-              const litrosNecessarios = distanciaIdaVolta / 1000 / consumoPorLitro;
-              const custoCombustivelCalculado = litrosNecessarios * precoGasolina;
-
-              custoCombustivel = custoCombustivelCalculado;
-
-              if ($('#alertCustoCombustivel').length) {
-                  $('#alertCustoCombustivel').removeClass('d-none').html(`
-                  <strong>Custo estimado de combustível: ${formatCurrency(custoCombustivelCalculado)}</strong>
-                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-              `);
-                  if ($('#valorCombustivelAlert').length) {
-                      $('#valorCombustivelAlert').text(formatCurrency(custoCombustivel));
-                  }
-              }
-
-              showFlashMessage('success', `Distância até o cliente (ida e volta): ${distanciaKm} km. Custo estimado: ${formatCurrency(custoCombustivel)}`);
-          }
-      });
-
-      // Atualiza a mensagem "Nenhum produto adicionado" na tabela
-      function atualizarMensagemTabela() {
-          const linhasProdutos = $('#tabelaProdutos tbody tr').length;
-          $('#tabelaVazia').toggleClass('d-none', linhasProdutos > 0);
-      }
-
-      // Atualiza o valor total na linha de total e recalcula valores das linhas
-      function atualizarValorTotalTabela() {
-          let total = 0;
-          $('#tabelaProdutos tbody tr').each(function() {
-              // Ignora a linha vazia
-              if ($(this).attr('id') === 'tabelaVazia') {
-                  return;
-              }
-
-              const quantidade = parseFloat($(this).find('input[name*="[quantidade]"]').val() || 0) || 0;
-              const valorUnitarioStr = $(this).find('input[name*="[valor_unitario]"]').val() || 'R$ 0,00';
-              const valorUnitario = parseCurrency(valorUnitarioStr) || 0;
-              const valorTotal = (quantidade * valorUnitario) || 0;
-
-              // Atualiza o valor total da linha (garante que seja um número válido)
-              if (!isNaN(valorTotal) && valorTotal >= 0) {
-                  $(this).find('.valor-total').html('<strong>' + formatCurrency(valorTotal) + '</strong>');
-                  $(this).find('.valor-total').attr('data-valor', valorTotal);
-                  total += valorTotal;
-              }
-          });
-          $('#valorTotalTabela').text(formatCurrency(total || 0));
-      }
-
-      // Atualiza valores ao carregar a página e quando campos mudam
-      $(document).ready(function() {
-          atualizarValorTotalTabela();
-
-          // Atualiza quando quantidade ou valor unitário mudam
-          $(document).on('input change', 'input[name*="[quantidade]"], input[name*="[valor_unitario]"]', function() {
-              atualizarValorTotalTabela();
-          });
-      });
-
-      // Limpa os campos do modal de produtos
-      function limparCamposModal() {
-          $('#produto_id').val(null).trigger('change');
-          $('#valor_unitario').val('');
-          $('#quantidade').val(1);
-          $('#valor_total').val('R$ 0,00');
-          $('#estoqueInfo').html('');
-      }
-
-      // Remove uma linha da tabela
-      window.removerProduto = function(button) {
-          $(button).closest('tr').remove();
-          atualizarMensagemTabela();
-          atualizarValorTotalTabela();
-      };
-  </script>
+    // Inicia o script com retry
+    initEditOrcamentoScripts();
+</script>

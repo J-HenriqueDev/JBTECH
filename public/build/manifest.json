@@ -862,7 +862,7 @@
     "isEntry": true
   },
   "resources/assets/js/notifications.js": {
-    "file": "assets/notifications-CpRwJGlq.js",
+    "file": "assets/notifications-CHUaNSwk.js",
     "name": "notifications",
     "src": "resources/assets/js/notifications.js",
     "isEntry": true
@@ -3347,7 +3347,7 @@
     "isEntry": true
   },
   "resources/assets/vendor/libs/apex-charts/apex-charts.scss": {
-    "file": "assets/apex-charts-DMFj2edJ.css",
+    "file": "assets/apex-charts-B9fLgZmU.css",
     "src": "resources/assets/vendor/libs/apex-charts/apex-charts.scss",
     "isEntry": true
   },
@@ -3397,7 +3397,7 @@
     ]
   },
   "resources/assets/vendor/libs/bootstrap-datepicker/bootstrap-datepicker.scss": {
-    "file": "assets/bootstrap-datepicker-CHN5-4Kb.css",
+    "file": "assets/bootstrap-datepicker-DD0SNDfK.css",
     "src": "resources/assets/vendor/libs/bootstrap-datepicker/bootstrap-datepicker.scss",
     "isEntry": true
   },
@@ -3412,7 +3412,7 @@
     ]
   },
   "resources/assets/vendor/libs/bootstrap-daterangepicker/bootstrap-daterangepicker.scss": {
-    "file": "assets/bootstrap-daterangepicker-DHylOn8O.css",
+    "file": "assets/bootstrap-daterangepicker-CqiqE31V.css",
     "src": "resources/assets/vendor/libs/bootstrap-daterangepicker/bootstrap-daterangepicker.scss",
     "isEntry": true
   },
@@ -3423,7 +3423,7 @@
     "isEntry": true
   },
   "resources/assets/vendor/libs/bootstrap-maxlength/bootstrap-maxlength.scss": {
-    "file": "assets/bootstrap-maxlength-CjzNnWdF.css",
+    "file": "assets/bootstrap-maxlength-COyH6zki.css",
     "src": "resources/assets/vendor/libs/bootstrap-maxlength/bootstrap-maxlength.scss",
     "isEntry": true
   },
@@ -3434,7 +3434,7 @@
     "isEntry": true
   },
   "resources/assets/vendor/libs/bootstrap-select/bootstrap-select.scss": {
-    "file": "assets/bootstrap-select-BPdawLxb.css",
+    "file": "assets/bootstrap-select-CqdrmN7y.css",
     "src": "resources/assets/vendor/libs/bootstrap-select/bootstrap-select.scss",
     "isEntry": true
   },
@@ -3448,7 +3448,7 @@
     ]
   },
   "resources/assets/vendor/libs/bs-stepper/bs-stepper.scss": {
-    "file": "assets/bs-stepper-CvKIFuf8.css",
+    "file": "assets/bs-stepper-FEdSL5J7.css",
     "src": "resources/assets/vendor/libs/bs-stepper/bs-stepper.scss",
     "isEntry": true
   },
@@ -3498,12 +3498,12 @@
     ]
   },
   "resources/assets/vendor/libs/datatables-bs5/datatables.bootstrap5.scss": {
-    "file": "assets/datatables-LeZO4Eb6.css",
+    "file": "assets/datatables-DApIh1SG.css",
     "src": "resources/assets/vendor/libs/datatables-bs5/datatables.bootstrap5.scss",
     "isEntry": true
   },
   "resources/assets/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.scss": {
-    "file": "assets/buttons-D0uyYRs1.css",
+    "file": "assets/buttons-Clp4FBnn.css",
     "src": "resources/assets/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.scss",
     "isEntry": true
   },
@@ -3513,27 +3513,27 @@
     "isEntry": true
   },
   "resources/assets/vendor/libs/datatables-fixedcolumns-bs5/fixedcolumns.bootstrap5.scss": {
-    "file": "assets/fixedcolumns-DWjyX1xs.css",
+    "file": "assets/fixedcolumns-DkH8-OHs.css",
     "src": "resources/assets/vendor/libs/datatables-fixedcolumns-bs5/fixedcolumns.bootstrap5.scss",
     "isEntry": true
   },
   "resources/assets/vendor/libs/datatables-fixedheader-bs5/fixedheader.bootstrap5.scss": {
-    "file": "assets/fixedheader-Btwdv8rE.css",
+    "file": "assets/fixedheader-CpYDK0Ix.css",
     "src": "resources/assets/vendor/libs/datatables-fixedheader-bs5/fixedheader.bootstrap5.scss",
     "isEntry": true
   },
   "resources/assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.scss": {
-    "file": "assets/responsive-D2x8hCFl.css",
+    "file": "assets/responsive-Bsl2OGAU.css",
     "src": "resources/assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.scss",
     "isEntry": true
   },
   "resources/assets/vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.scss": {
-    "file": "assets/rowgroup-CKN0GRJS.css",
+    "file": "assets/rowgroup-CNK3Azx9.css",
     "src": "resources/assets/vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.scss",
     "isEntry": true
   },
   "resources/assets/vendor/libs/datatables-select-bs5/select.bootstrap5.scss": {
-    "file": "assets/select-BlAbeWsy.css",
+    "file": "assets/select-BX43-hzA.css",
     "src": "resources/assets/vendor/libs/datatables-select-bs5/select.bootstrap5.scss",
     "isEntry": true
   },
@@ -3547,7 +3547,7 @@
     ]
   },
   "resources/assets/vendor/libs/dropzone/dropzone.scss": {
-    "file": "assets/dropzone-BLD8P_Zr.css",
+    "file": "assets/dropzone-BOTrYSJb.css",
     "src": "resources/assets/vendor/libs/dropzone/dropzone.scss",
     "isEntry": true
   },
@@ -3561,7 +3561,7 @@
     ]
   },
   "resources/assets/vendor/libs/flatpickr/flatpickr.scss": {
-    "file": "assets/flatpickr-Dzlck79r.css",
+    "file": "assets/flatpickr-DtbmaCe4.css",
     "src": "resources/assets/vendor/libs/flatpickr/flatpickr.scss",
     "isEntry": true
   },
@@ -4434,7 +4434,7 @@
     "isEntry": true
   },
   "resources/assets/vendor/libs/fullcalendar/fullcalendar.scss": {
-    "file": "assets/fullcalendar-Dly7wrsU.css",
+    "file": "assets/fullcalendar-BgLz-PTg.css",
     "src": "resources/assets/vendor/libs/fullcalendar/fullcalendar.scss",
     "isEntry": true
   },
@@ -4480,7 +4480,7 @@
     ]
   },
   "resources/assets/vendor/libs/jkanban/jkanban.scss": {
-    "file": "assets/jkanban-BfxjW1Mj.css",
+    "file": "assets/jkanban-CAVTVIG1.css",
     "src": "resources/assets/vendor/libs/jkanban/jkanban.scss",
     "isEntry": true
   },
@@ -4511,7 +4511,7 @@
     ]
   },
   "resources/assets/vendor/libs/jquery-timepicker/jquery-timepicker.scss": {
-    "file": "assets/jquery-timepicker-CroJJQDk.css",
+    "file": "assets/jquery-timepicker-D5uAEVdS.css",
     "src": "resources/assets/vendor/libs/jquery-timepicker/jquery-timepicker.scss",
     "isEntry": true
   },
@@ -4537,7 +4537,7 @@
     ]
   },
   "resources/assets/vendor/libs/jstree/jstree.scss": {
-    "file": "assets/jstree-BTjXlImy.css",
+    "file": "assets/jstree-DnuUOGaw.css",
     "src": "resources/assets/vendor/libs/jstree/jstree.scss",
     "isEntry": true
   },
@@ -4594,7 +4594,7 @@
     ]
   },
   "resources/assets/vendor/libs/mapbox-gl/mapbox-gl.scss": {
-    "file": "assets/mapbox-gl-OILSgtK0.css",
+    "file": "assets/mapbox-gl-CLhKryEd.css",
     "src": "resources/assets/vendor/libs/mapbox-gl/mapbox-gl.scss",
     "isEntry": true
   },
@@ -4624,12 +4624,12 @@
     "isEntry": true
   },
   "resources/assets/vendor/libs/nouislider/nouislider.scss": {
-    "file": "assets/nouislider-BF1DSBn1.css",
+    "file": "assets/nouislider-Djmv6xsR.css",
     "src": "resources/assets/vendor/libs/nouislider/nouislider.scss",
     "isEntry": true
   },
   "resources/assets/vendor/libs/numeral/numeral.js": {
-    "file": "assets/numeral-CDEz25Q-.js",
+    "file": "assets/numeral-BCnviesb.js",
     "name": "numeral",
     "src": "resources/assets/vendor/libs/numeral/numeral.js",
     "isEntry": true,
@@ -4647,12 +4647,12 @@
     ]
   },
   "resources/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.scss": {
-    "file": "assets/perfect-scrollbar-Bw8q77EU.css",
+    "file": "assets/perfect-scrollbar-CQGz3UhW.css",
     "src": "resources/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.scss",
     "isEntry": true
   },
   "resources/assets/vendor/libs/pickr/pickr-themes.scss": {
-    "file": "assets/pickr-themes-Dezqdf_x.css",
+    "file": "assets/pickr-themes-BBxbQJNU.css",
     "src": "resources/assets/vendor/libs/pickr/pickr-themes.scss",
     "isEntry": true
   },
@@ -4672,7 +4672,7 @@
     "isEntry": true
   },
   "resources/assets/vendor/libs/plyr/plyr.scss": {
-    "file": "assets/plyr-CwtNRmzE.css",
+    "file": "assets/plyr-Bx0Oyk0w.css",
     "src": "resources/assets/vendor/libs/plyr/plyr.scss",
     "isEntry": true
   },
@@ -4686,7 +4686,7 @@
     ]
   },
   "resources/assets/vendor/libs/quill/editor.scss": {
-    "file": "assets/editor-BUIkW5n6.css",
+    "file": "assets/editor-CmXVqdaa.css",
     "src": "resources/assets/vendor/libs/quill/editor.scss",
     "isEntry": true
   },
@@ -4711,7 +4711,7 @@
     ]
   },
   "resources/assets/vendor/libs/quill/typography.scss": {
-    "file": "assets/typography-DV3Kbauw.css",
+    "file": "assets/typography-DVrH8ZT1.css",
     "src": "resources/assets/vendor/libs/quill/typography.scss",
     "isEntry": true
   },
@@ -4722,7 +4722,7 @@
     "isEntry": true
   },
   "resources/assets/vendor/libs/rateyo/rateyo.scss": {
-    "file": "assets/rateyo-BlprYE_y.css",
+    "file": "assets/rateyo-CrIt1N6p.css",
     "src": "resources/assets/vendor/libs/rateyo/rateyo.scss",
     "isEntry": true
   },
@@ -4737,7 +4737,7 @@
     ]
   },
   "resources/assets/vendor/libs/select2/select2.scss": {
-    "file": "assets/select2-Cg-y-H7w.css",
+    "file": "assets/select2-CGg74gZ6.css",
     "src": "resources/assets/vendor/libs/select2/select2.scss",
     "isEntry": true
   },
@@ -4751,7 +4751,7 @@
     ]
   },
   "resources/assets/vendor/libs/shepherd/shepherd.scss": {
-    "file": "assets/shepherd-7ziKc7rx.css",
+    "file": "assets/shepherd-MthrH2yA.css",
     "src": "resources/assets/vendor/libs/shepherd/shepherd.scss",
     "isEntry": true
   },
@@ -4779,7 +4779,7 @@
     ]
   },
   "resources/assets/vendor/libs/sweetalert2/sweetalert2.scss": {
-    "file": "assets/sweetalert2-BZ-FAy5i.css",
+    "file": "assets/sweetalert2-Icpzn-3b.css",
     "src": "resources/assets/vendor/libs/sweetalert2/sweetalert2.scss",
     "isEntry": true
   },
@@ -4804,7 +4804,7 @@
     ]
   },
   "resources/assets/vendor/libs/tagify/tagify.scss": {
-    "file": "assets/tagify-DAHFU0Ag.css",
+    "file": "assets/tagify-C1Ax5yf4.css",
     "src": "resources/assets/vendor/libs/tagify/tagify.scss",
     "isEntry": true
   },
@@ -4819,7 +4819,7 @@
     ]
   },
   "resources/assets/vendor/libs/toastr/toastr.scss": {
-    "file": "assets/toastr-C25vbO-i.css",
+    "file": "assets/toastr-DS0zAs8e.css",
     "src": "resources/assets/vendor/libs/toastr/toastr.scss",
     "isEntry": true
   },
@@ -4834,22 +4834,22 @@
     ]
   },
   "resources/assets/vendor/libs/typeahead-js/typeahead.scss": {
-    "file": "assets/typeahead-Cm1en4lp.css",
+    "file": "assets/typeahead-CvGBkDPa.css",
     "src": "resources/assets/vendor/libs/typeahead-js/typeahead.scss",
     "isEntry": true
   },
   "resources/assets/vendor/scss/core-dark.scss": {
-    "file": "assets/core-dark-CRE5Ptm2.css",
+    "file": "assets/core-dark-Dg2MLpY1.css",
     "src": "resources/assets/vendor/scss/core-dark.scss",
     "isEntry": true
   },
   "resources/assets/vendor/scss/core.scss": {
-    "file": "assets/core-DW2BJaEB.css",
+    "file": "assets/core-B8zD_Ete.css",
     "src": "resources/assets/vendor/scss/core.scss",
     "isEntry": true
   },
   "resources/assets/vendor/scss/pages/advanced-wizard.scss": {
-    "file": "assets/advanced-wizard-pALTLqPB.css",
+    "file": "assets/advanced-wizard-C9ZFUZom.css",
     "src": "resources/assets/vendor/scss/pages/advanced-wizard.scss",
     "isEntry": true
   },
@@ -4859,27 +4859,27 @@
     "isEntry": true
   },
   "resources/assets/vendor/scss/pages/app-academy.scss": {
-    "file": "assets/app-academy-BszI08mZ.css",
+    "file": "assets/app-academy-B9jNfjp5.css",
     "src": "resources/assets/vendor/scss/pages/app-academy.scss",
     "isEntry": true
   },
   "resources/assets/vendor/scss/pages/app-calendar.scss": {
-    "file": "assets/app-calendar-CJJmEEu0.css",
+    "file": "assets/app-calendar-C3iBCY30.css",
     "src": "resources/assets/vendor/scss/pages/app-calendar.scss",
     "isEntry": true
   },
   "resources/assets/vendor/scss/pages/app-chat.scss": {
-    "file": "assets/app-chat-CMXDymRP.css",
+    "file": "assets/app-chat-1kssu56B.css",
     "src": "resources/assets/vendor/scss/pages/app-chat.scss",
     "isEntry": true
   },
   "resources/assets/vendor/scss/pages/app-ecommerce.scss": {
-    "file": "assets/app-ecommerce-DXxnAml6.css",
+    "file": "assets/app-ecommerce-BI0bQkX0.css",
     "src": "resources/assets/vendor/scss/pages/app-ecommerce.scss",
     "isEntry": true
   },
   "resources/assets/vendor/scss/pages/app-email.scss": {
-    "file": "assets/app-email-CQw3VoP-.css",
+    "file": "assets/app-email-AoiTrL_g.css",
     "src": "resources/assets/vendor/scss/pages/app-email.scss",
     "isEntry": true
   },
@@ -4889,52 +4889,52 @@
     "isEntry": true
   },
   "resources/assets/vendor/scss/pages/app-invoice.scss": {
-    "file": "assets/app-invoice-BzbIEoCZ.css",
+    "file": "assets/app-invoice-CJp-hiJy.css",
     "src": "resources/assets/vendor/scss/pages/app-invoice.scss",
     "isEntry": true
   },
   "resources/assets/vendor/scss/pages/app-kanban.scss": {
-    "file": "assets/app-kanban-B7eRUUhw.css",
+    "file": "assets/app-kanban-nbn3Ajyj.css",
     "src": "resources/assets/vendor/scss/pages/app-kanban.scss",
     "isEntry": true
   },
   "resources/assets/vendor/scss/pages/app-logistics-dashboard.scss": {
-    "file": "assets/app-logistics-dashboard-Cptf-bW9.css",
+    "file": "assets/app-logistics-dashboard-C7EjtmO1.css",
     "src": "resources/assets/vendor/scss/pages/app-logistics-dashboard.scss",
     "isEntry": true
   },
   "resources/assets/vendor/scss/pages/app-logistics-fleet.scss": {
-    "file": "assets/app-logistics-fleet-CHqHd3A1.css",
+    "file": "assets/app-logistics-fleet-UdC5TMrA.css",
     "src": "resources/assets/vendor/scss/pages/app-logistics-fleet.scss",
     "isEntry": true
   },
   "resources/assets/vendor/scss/pages/card-analytics.scss": {
-    "file": "assets/card-analytics-BTsXVCUa.css",
+    "file": "assets/card-analytics-CWLCqdhg.css",
     "src": "resources/assets/vendor/scss/pages/card-analytics.scss",
     "isEntry": true
   },
   "resources/assets/vendor/scss/pages/front-page-help-center.scss": {
-    "file": "assets/front-page-help-center-Cq5ZL36h.css",
+    "file": "assets/front-page-help-center-O3Ik8jJX.css",
     "src": "resources/assets/vendor/scss/pages/front-page-help-center.scss",
     "isEntry": true
   },
   "resources/assets/vendor/scss/pages/front-page-landing.scss": {
-    "file": "assets/front-page-landing-DC0l7-l8.css",
+    "file": "assets/front-page-landing-B5qc28hQ.css",
     "src": "resources/assets/vendor/scss/pages/front-page-landing.scss",
     "isEntry": true
   },
   "resources/assets/vendor/scss/pages/front-page-payment.scss": {
-    "file": "assets/front-page-payment-CfP9gUfW.css",
+    "file": "assets/front-page-payment-YUZc5CY2.css",
     "src": "resources/assets/vendor/scss/pages/front-page-payment.scss",
     "isEntry": true
   },
   "resources/assets/vendor/scss/pages/front-page-pricing.scss": {
-    "file": "assets/front-page-pricing-DS4LRYlj.css",
+    "file": "assets/front-page-pricing-BK3YAsnH.css",
     "src": "resources/assets/vendor/scss/pages/front-page-pricing.scss",
     "isEntry": true
   },
   "resources/assets/vendor/scss/pages/front-page.scss": {
-    "file": "assets/front-page-De2_yEvX.css",
+    "file": "assets/front-page-CTX_Nzm-.css",
     "src": "resources/assets/vendor/scss/pages/front-page.scss",
     "isEntry": true
   },
@@ -4944,12 +4944,12 @@
     "isEntry": true
   },
   "resources/assets/vendor/scss/pages/page-auth.scss": {
-    "file": "assets/page-auth-CKhTyhYv.css",
+    "file": "assets/page-auth-CRRHSqaO.css",
     "src": "resources/assets/vendor/scss/pages/page-auth.scss",
     "isEntry": true
   },
   "resources/assets/vendor/scss/pages/page-faq.scss": {
-    "file": "assets/page-faq-CVydBvWU.css",
+    "file": "assets/page-faq-q_46u2JW.css",
     "src": "resources/assets/vendor/scss/pages/page-faq.scss",
     "isEntry": true
   },
@@ -4964,17 +4964,17 @@
     "isEntry": true
   },
   "resources/assets/vendor/scss/pages/page-pricing.scss": {
-    "file": "assets/page-pricing-BxNP8irw.css",
+    "file": "assets/page-pricing-BPGyxk7_.css",
     "src": "resources/assets/vendor/scss/pages/page-pricing.scss",
     "isEntry": true
   },
   "resources/assets/vendor/scss/pages/page-profile.scss": {
-    "file": "assets/page-profile-BJHZqwPA.css",
+    "file": "assets/page-profile-CkYa_r6f.css",
     "src": "resources/assets/vendor/scss/pages/page-profile.scss",
     "isEntry": true
   },
   "resources/assets/vendor/scss/pages/page-user-view.scss": {
-    "file": "assets/page-user-view-CXSOJGdH.css",
+    "file": "assets/page-user-view-DEKhDsVU.css",
     "src": "resources/assets/vendor/scss/pages/page-user-view.scss",
     "isEntry": true
   },
@@ -4984,22 +4984,22 @@
     "isEntry": true
   },
   "resources/assets/vendor/scss/pages/wizard-ex-checkout.scss": {
-    "file": "assets/wizard-ex-checkout-Bd3u66KN.css",
+    "file": "assets/wizard-ex-checkout-ClVXnXG5.css",
     "src": "resources/assets/vendor/scss/pages/wizard-ex-checkout.scss",
     "isEntry": true
   },
   "resources/assets/vendor/scss/rtl/core-dark.scss": {
-    "file": "assets/core-dark-f51gEmTt.css",
+    "file": "assets/core-dark-DTGLaiL9.css",
     "src": "resources/assets/vendor/scss/rtl/core-dark.scss",
     "isEntry": true
   },
   "resources/assets/vendor/scss/rtl/core.scss": {
-    "file": "assets/core-CSOdJVt0.css",
+    "file": "assets/core-BU4hWDtz.css",
     "src": "resources/assets/vendor/scss/rtl/core.scss",
     "isEntry": true
   },
   "resources/assets/vendor/scss/rtl/theme-bordered-dark.scss": {
-    "file": "assets/theme-bordered-dark-BEGOWeiE.css",
+    "file": "assets/theme-bordered-dark-KULdlA6_.css",
     "src": "resources/assets/vendor/scss/rtl/theme-bordered-dark.scss",
     "isEntry": true
   },
@@ -5009,7 +5009,7 @@
     "isEntry": true
   },
   "resources/assets/vendor/scss/rtl/theme-default-dark.scss": {
-    "file": "assets/theme-default-dark-BZoglPzx.css",
+    "file": "assets/theme-default-dark-CDMp3qHj.css",
     "src": "resources/assets/vendor/scss/rtl/theme-default-dark.scss",
     "isEntry": true
   },
@@ -5019,7 +5019,7 @@
     "isEntry": true
   },
   "resources/assets/vendor/scss/rtl/theme-raspberry-dark.scss": {
-    "file": "assets/theme-raspberry-dark-x9hZ7u2P.css",
+    "file": "assets/theme-raspberry-dark-BvZPEdJk.css",
     "src": "resources/assets/vendor/scss/rtl/theme-raspberry-dark.scss",
     "isEntry": true
   },
@@ -5029,7 +5029,7 @@
     "isEntry": true
   },
   "resources/assets/vendor/scss/rtl/theme-semi-dark-dark.scss": {
-    "file": "assets/theme-semi-dark-dark-uL88mQnr.css",
+    "file": "assets/theme-semi-dark-dark-Cy3VManj.css",
     "src": "resources/assets/vendor/scss/rtl/theme-semi-dark-dark.scss",
     "isEntry": true
   },
@@ -5039,7 +5039,7 @@
     "isEntry": true
   },
   "resources/assets/vendor/scss/theme-bordered-dark.scss": {
-    "file": "assets/theme-bordered-dark-wNiM9Q5u.css",
+    "file": "assets/theme-bordered-dark-CFeOmslv.css",
     "src": "resources/assets/vendor/scss/theme-bordered-dark.scss",
     "isEntry": true
   },
@@ -5049,7 +5049,7 @@
     "isEntry": true
   },
   "resources/assets/vendor/scss/theme-default-dark.scss": {
-    "file": "assets/theme-default-dark-C2g8hWMp.css",
+    "file": "assets/theme-default-dark-C3Zob7qM.css",
     "src": "resources/assets/vendor/scss/theme-default-dark.scss",
     "isEntry": true
   },
@@ -5059,7 +5059,7 @@
     "isEntry": true
   },
   "resources/assets/vendor/scss/theme-raspberry-dark.scss": {
-    "file": "assets/theme-raspberry-dark-C4Uukf12.css",
+    "file": "assets/theme-raspberry-dark-BghIMkcB.css",
     "src": "resources/assets/vendor/scss/theme-raspberry-dark.scss",
     "isEntry": true
   },
@@ -5069,7 +5069,7 @@
     "isEntry": true
   },
   "resources/assets/vendor/scss/theme-semi-dark-dark.scss": {
-    "file": "assets/theme-semi-dark-dark-hS9dXjEK.css",
+    "file": "assets/theme-semi-dark-dark-Bmk0Ousx.css",
     "src": "resources/assets/vendor/scss/theme-semi-dark-dark.scss",
     "isEntry": true
   },
