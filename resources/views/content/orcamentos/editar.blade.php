@@ -20,6 +20,7 @@
 @vite([
 'resources/assets/js/forms-selects.js'
 ])
+@include('content.orcamentos.scripts-edit')
 @endsection
 @section('content')
 
@@ -130,7 +131,7 @@ if ($produto->estoque < $produto->pivot->quantidade) {
                         <label for="data" class="form-label">
                             <i class="bx bx-calendar"></i> Data
                         </label>
-                        <input type="date" class="form-control" name="data" id="data" value="{{ $orcamento->data }}" required>
+                        <input type="date" class="form-control" name="data" id="data" value="{{ \Carbon\Carbon::parse($orcamento->data)->format('Y-m-d') }}" required>
                         @error('data')
                         <small class="text-danger fw-bold">{{ $message }}</small>
                         @enderror
@@ -140,7 +141,7 @@ if ($produto->estoque < $produto->pivot->quantidade) {
                         <label for="validade" class="form-label">
                             <i class="bx bx-calendar-check"></i> Validade do Orçamento
                         </label>
-                        <input type="date" class="form-control" name="validade" id="validade" value="{{ $orcamento->validade }}" required>
+                        <input type="date" class="form-control" name="validade" id="validade" value="{{ \Carbon\Carbon::parse($orcamento->validade)->format('Y-m-d') }}" required>
                         @error('validade')
                         <small class="text-danger fw-bold">{{ $message }}</small>
                         @enderror
@@ -439,7 +440,6 @@ if ($produto->estoque < $produto->pivot->quantidade) {
 
     {{-- @include('content.orcamentos.partials.modal_produto')  --}}
     {{-- @include('content.orcamentos.criar.partials.modal_produto')  --}}
-    @include('content.orcamentos.scripts-edit')
 
 
     @endsection
