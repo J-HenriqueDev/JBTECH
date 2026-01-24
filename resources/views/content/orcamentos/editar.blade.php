@@ -392,6 +392,12 @@
                                                         <option value="30 Dias"
                                                             {{ old('periodicidade_boleto', $orcamento->periodicidade_boleto) == '30 Dias' ? 'selected' : '' }}>
                                                             A cada 30 Dias</option>
+                                                        <option value="45 Dias"
+                                                            {{ old('periodicidade_boleto', $orcamento->periodicidade_boleto) == '45 Dias' ? 'selected' : '' }}>
+                                                            A cada 45 Dias</option>
+                                                        <option value="60 Dias"
+                                                            {{ old('periodicidade_boleto', $orcamento->periodicidade_boleto) == '60 Dias' ? 'selected' : '' }}>
+                                                            A cada 60 Dias</option>
                                                     </select>
                                                 </div>
                                             </div>
@@ -399,54 +405,41 @@
                                     </div>
                                 </div>
                             </div>
-                            <option value="45 Dias"
-                                {{ $orcamento->periodicidade_boleto == '45 Dias' ? 'selected' : '' }}>A cada 45 Dias
-                            </option>
-                            <option value="60 Dias"
-                                {{ $orcamento->periodicidade_boleto == '60 Dias' ? 'selected' : '' }}>A cada 60 Dias
-                            </option>
-                            </select>
                         </div>
                     </div>
                 </div>
+
+                <style>
+                    .hover-effect:hover {
+                        border-color: #696cff !important;
+                        background-color: #f8f9fa;
+                    }
+                </style>
+
+                <!-- Observações -->
+                <div class="mb-3">
+                    <label for="observacoes" class="form-label">
+                        <i class="bx bx-comment"></i> Observações
+                    </label>
+                    <textarea class="form-control" name="observacoes" id="observacoes" rows="3">{{ $orcamento->observacoes }}</textarea>
+                </div>
+
+                <!-- Botões -->
+                <div class="card-footer d-flex justify-content-end">
+                    <button type="submit" class="btn btn-md btn-primary fw-bold me-2">
+                        <i class="bx bx-save"></i> Salvar Alterações
+                    </button>
+                    <a href="{{ route('orcamentos.gerarPdf', $orcamento->id) }}" target="_blank"
+                        class="btn btn-md btn-success fw-bold me-2">
+                        <i class="bx bx-file"></i> Exibir PDF
+                    </a>
+                    <button type="button" class="btn btn-outline-secondary" onclick="history.back();">
+                        <i class="bx bx-x"></i> Cancelar
+                    </button>
+                </div>
+
             </div>
-    </div>
-    </div>
-    </div>
-    </div>
-    </div>
-
-    <style>
-        .hover-effect:hover {
-            border-color: #696cff !important;
-            background-color: #f8f9fa;
-        }
-    </style>
-
-    <!-- Observações -->
-    <div class="mb-3">
-        <label for="observacoes" class="form-label">
-            <i class="bx bx-comment"></i> Observações
-        </label>
-        <textarea class="form-control" name="observacoes" id="observacoes" rows="3">{{ $orcamento->observacoes }}</textarea>
-    </div>
-
-    <!-- Botões -->
-    <div class="card-footer d-flex justify-content-end">
-        <button type="submit" class="btn btn-md btn-primary fw-bold me-2">
-            <i class="bx bx-save"></i> Salvar Alterações
-        </button>
-        <a href="{{ route('orcamentos.gerarPdf', $orcamento->id) }}" target="_blank"
-            class="btn btn-md btn-success fw-bold me-2">
-            <i class="bx bx-file"></i> Exibir PDF
-        </a>
-        <button type="button" class="btn btn-outline-secondary" onclick="history.back();">
-            <i class="bx bx-x"></i> Cancelar
-        </button>
-    </div>
-
-    </div>
-    </form>
+        </form>
     </div>
 
     <!-- Modal para Adicionar Produtos -->
