@@ -391,15 +391,25 @@ class ConfiguracaoController extends Controller
         ];
 
         foreach ($configuracoesPadrao as $config) {
-            Configuracao::updateOrCreate(
-                ['chave' => $config['chave'], 'user_id' => null],
-                [
+            $existing = Configuracao::where('chave', $config['chave'])->whereNull('user_id')->first();
+
+            if (!$existing) {
+                Configuracao::create([
+                    'chave' => $config['chave'],
+                    'user_id' => null,
                     'valor' => $config['valor'],
                     'grupo' => $config['grupo'],
                     'tipo' => $config['tipo'],
                     'descricao' => $config['descricao'],
-                ]
-            );
+                ]);
+            } else {
+                // Atualiza apenas metadados, preservando o valor definido pelo usuário
+                $existing->update([
+                    'grupo' => $config['grupo'],
+                    'tipo' => $config['tipo'],
+                    'descricao' => $config['descricao'],
+                ]);
+            }
         }
     }
 
