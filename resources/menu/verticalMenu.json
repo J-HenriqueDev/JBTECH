@@ -70,6 +70,12 @@
       "slug": "cobrancas"
     },
     {
+      "url": "/dashboard/contratos",
+      "name": "Contratos",
+      "icon": "menu-icon tf-icons bx bx-briefcase text-info",
+      "slug": "contratos"
+    },
+    {
       "url": "/dashboard/contas-pagar",
       "name": "Contas a Pagar",
       "icon": "menu-icon tf-icons bx bx-money-withdraw text-danger",
@@ -83,6 +89,12 @@
       "name": "Naturezas Operação",
       "icon": "menu-icon tf-icons bx bx-category text-success",
       "slug": "naturezas"
+    },
+    {
+      "url": "/dashboard/servicos",
+      "name": "Modelos de Serviços",
+      "icon": "menu-icon tf-icons bx bx-list-check text-primary",
+      "slug": "servicos"
     },
     {
       "url": "/dashboard/nfe",

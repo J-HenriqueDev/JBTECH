@@ -10,6 +10,7 @@ class Cobranca extends Model
 
     protected $fillable = [
         'venda_id',
+        'contrato_id',
         'metodo_pagamento',
         'status',
         'valor',
@@ -34,6 +35,23 @@ class Cobranca extends Model
     public function venda()
     {
         return $this->belongsTo(Venda::class);
+    }
+
+    // Relacionamento com o contrato
+    public function contrato()
+    {
+        return $this->belongsTo(Contrato::class);
+    }
+
+    public function getClienteAttribute()
+    {
+        if ($this->venda) {
+            return $this->venda->cliente;
+        }
+        if ($this->contrato) {
+            return $this->contrato->cliente;
+        }
+        return null;
     }
 
     // Verifica se a cobrança é recorrente

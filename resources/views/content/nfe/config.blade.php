@@ -201,9 +201,9 @@ $senhaConfigurada = $senhaBanco !== null && $senhaBanco !== '';
                   <p class="mb-0">
                     <strong>Status:</strong>
                     @if($certificadoInfo['expirado'])
-                    <span class="badge bg-danger">Expirado</span>
+                    <span class="badge bg-danger text-black">Expirado</span>
                     @else
-                    <span class="badge bg-success">Válido ({{ $certificadoInfo['dias_restantes'] }} dias restantes)</span>
+                    <span class="badge bg-success text-black">Válido ({{ $certificadoInfo['dias_restantes'] }} dias restantes)</span>
                     @endif
                   </p>
                 </div>

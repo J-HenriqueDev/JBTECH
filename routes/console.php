@@ -18,3 +18,7 @@ Schedule::command('nfe:processar-destinadas')->hourly();
 
 // Despacho de notificações agendadas (lembretes)
 Schedule::command('notifications:dispatch')->everyFiveMinutes();
+
+// Processamento automático de contratos (gera cobranças e NFS-e)
+// Roda diariamente às 08:00
+Schedule::command('contratos:processar')->dailyAt('08:00');

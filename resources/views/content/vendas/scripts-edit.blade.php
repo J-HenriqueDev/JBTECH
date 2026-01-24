@@ -172,6 +172,11 @@
           width: '100%'
       });
 
+      // Autofocus no Select2 ao abrir o modal
+      $('#modalAdicionarProduto').on('shown.bs.modal', function () {
+          $('#produto_id').select2('open');
+      });
+
     atualizarProdutos();
 
 

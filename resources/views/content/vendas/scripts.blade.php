@@ -128,6 +128,11 @@ $(document).ready(function () {
     });
     limparCamposModal();
 
+    // Autofocus no Select2 ao abrir o modal
+    $('#modalAdicionarProduto').on('shown.bs.modal', function () {
+        $('#produto_id').select2('open');
+    });
+
      // Carrega os produtos ao carregar a página
      atualizarProdutos();
 

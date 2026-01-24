@@ -341,6 +341,9 @@ class ConfiguracaoController extends Controller
             ['chave' => 'empresa_uf', 'valor' => env('NFE_UF', 'RJ'), 'grupo' => 'geral', 'tipo' => 'text', 'descricao' => 'UF'],
             ['chave' => 'empresa_cep', 'valor' => env('NFE_CEP', '27520000'), 'grupo' => 'geral', 'tipo' => 'text', 'descricao' => 'CEP'],
 
+            // Configurações Produtos
+            ['chave' => 'produtos_metodo_lucro', 'valor' => 'markup', 'grupo' => 'produtos', 'tipo' => 'select', 'descricao' => 'Método de Cálculo de Lucro'],
+
             // Configurações Financeiro
             ['chave' => 'financeiro_taxa_debito', 'valor' => '1.99', 'grupo' => 'financeiro', 'tipo' => 'number', 'descricao' => 'Taxa Débito (%)'],
             ['chave' => 'financeiro_taxa_pix', 'valor' => '0.99', 'grupo' => 'financeiro', 'tipo' => 'number', 'descricao' => 'Taxa PIX (%)'],
@@ -486,6 +489,8 @@ INI;
 
         // Tenta localizar e configurar o diretório de módulos do OpenSSL (crítico para Windows/Git Bash)
         $possibleModulePaths = [
+            'C:\\xampp\\php\\extras\\ssl',
+            'C:\\xampp\\apache\\lib\\ossl-modules',
             'C:\\Program Files\\Git\\mingw64\\lib\\ossl-modules',
             'C:\\Program Files\\Git\\usr\\lib\\ossl-modules',
             'C:\\OpenSSL-Win64\\lib\\ossl-modules',

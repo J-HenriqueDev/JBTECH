@@ -511,3 +511,19 @@
         height: 1.25rem !important;
     }
 }
+
+/* Fixes for Dark Mode Hover on Tables */
+.dark-style .table-hover tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    color: inherit;
+}
+
+/* Fix for Products Table in Dark Mode */
+.dark-style #productsTable tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.dark-style #productsTable tbody tr:hover .editable-field {
+    background-color: #2b2c40 !important;
+    color: #fff !important;
+}

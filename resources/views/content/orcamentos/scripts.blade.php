@@ -133,7 +133,8 @@
                 success: function(produtos) {
                     console.log('Produtos carregados:', produtos);
                     $('#produto_id').empty();
-                    $('#produto_id').append('<option value="" disabled selected>Selecione um produto</option>');
+                    $('#produto_id').append(
+                        '<option value="" disabled selected>Selecione um produto</option>');
 
                     produtos.forEach(function(produto) {
                         const option = new Option(
@@ -208,7 +209,7 @@
             $('#barcode-input').prop('disabled', true);
 
             $.ajax({
-                url: '{{ route("produtos.buscar-codigo") }}', // Rota deve existir (usada no NFe)
+                url: '{{ route('produtos.buscar-codigo') }}', // Rota deve existir (usada no NFe)
                 method: 'POST',
                 data: {
                     _token: '{{ csrf_token() }}',
@@ -233,7 +234,8 @@
                 },
                 error: function(xhr) {
                     console.error(xhr);
-                    showFlashMessage('danger', 'Erro ao buscar produto: ' + (xhr.responseJSON?.message || 'Erro desconhecido'));
+                    showFlashMessage('danger', 'Erro ao buscar produto: ' + (xhr.responseJSON?.message ||
+                        'Erro desconhecido'));
                     $('#barcode-input').val('').select();
                 },
                 complete: function() {
@@ -286,6 +288,11 @@
                 placeholder: 'Selecione um produto',
                 width: '100%',
                 allowClear: true
+            });
+
+            // Autofocus no Select2 ao abrir o modal
+            $('#modalAdicionarProduto').on('shown.bs.modal', function() {
+                $('#produto_id').select2('open');
             });
 
             // Inicializa Select2 Clientes
@@ -459,7 +466,8 @@
 
             $('#calcularDistancia').on('click', function() {
                 if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
-                    showFlashMessage('danger', 'Funcionalidade indisponível: Chave API Google Maps não configurada.');
+                    showFlashMessage('danger',
+                        'Funcionalidade indisponível: Chave API Google Maps não configurada.');
                     return;
                 }
 
@@ -472,7 +480,8 @@
                     return;
                 }
 
-                btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin me-1"></i> Calculando...');
+                btn.prop('disabled', true).html(
+                    '<i class="bx bx-loader-alt bx-spin me-1"></i> Calculando...');
 
                 const service = new google.maps.DistanceMatrixService();
                 service.getDistanceMatrix({
@@ -498,8 +507,10 @@
                     const custoEstimado = distanciaKm * 2 * custoPorKm;
 
                     custoCombustivel = custoEstimado;
-                    $('#valorCombustivelAlert').text(formatMoney(custoEstimado) + ` (${results.distance.text})`);
-                    $('#alertCustoCombustivel').removeClass('d-none').removeClass('alert-danger').addClass('alert-warning');
+                    $('#valorCombustivelAlert').text(formatMoney(custoEstimado) +
+                        ` (${results.distance.text})`);
+                    $('#alertCustoCombustivel').removeClass('d-none').removeClass(
+                        'alert-danger').addClass('alert-warning');
 
                     validarValorServico();
                 });

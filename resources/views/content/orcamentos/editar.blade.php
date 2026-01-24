@@ -190,9 +190,9 @@
                     <div class="divider-text"><i class="fas fa-briefcase"></i>Produtos</div>
                 </div>
 
-                <div class="mb-3 d-flex align-items-start gap-2">
-                    <div>
-                        <div class="input-group input-group-sm" style="width: 100%; max-width: 300px;">
+                <div class="mb-3 d-flex align-items-start gap-2 flex-wrap">
+                    <div class="flex-grow-1" style="min-width: 200px; max-width: 400px;">
+                        <div class="input-group input-group-sm">
                             <span class="input-group-text"><i class="bx bx-barcode"></i></span>
                             <input type="text" id="barcode-input" class="form-control" placeholder="Qtd * Código * Preço"
                                 autocomplete="off">
@@ -361,7 +361,7 @@
                                             style="{{ in_array('boleto', old('formas_pagamento', $formasPagamento)) ? '' : 'display: none;' }}"
                                             class="mt-3 pt-2 border-top">
                                             <div class="row g-2">
-                                                <div class="col-6">
+                                                <div class="col-12 col-sm-6">
                                                     <label class="form-label mb-1 text-muted small">Parcelas:</label>
                                                     <div class="input-group input-group-sm">
                                                         <input type="number" name="parcelas_boleto" class="form-control"
@@ -370,7 +370,7 @@
                                                         <span class="input-group-text">x</span>
                                                     </div>
                                                 </div>
-                                                <div class="col-6">
+                                                <div class="col-12 col-sm-6">
                                                     <label class="form-label mb-1 text-muted small">Intervalo:</label>
                                                     <select name="periodicidade_boleto"
                                                         class="form-select form-select-sm">

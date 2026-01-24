@@ -30,7 +30,8 @@ class NotaFiscalServicoController extends Controller
     public function create()
     {
         $clientes = Clientes::all(); // Otimizar se tiver muitos clientes
-        return view('content.nfse.create', compact('clientes'));
+        $servicos = \App\Models\Servico::where('ativo', true)->get();
+        return view('content.nfse.create', compact('clientes', 'servicos'));
     }
 
     public function store(Request $request)

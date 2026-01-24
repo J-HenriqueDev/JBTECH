@@ -46,6 +46,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
   Route::resource('dashboard/contas-pagar', ContaPagarController::class);
   Route::resource('dashboard/compras', CompraController::class);
   Route::put('/dashboard/compras/items/{id}/status', [CompraController::class, 'updateItemStatus'])->name('compras.updateItemStatus');
+  Route::resource('dashboard/contratos', \App\Http\Controllers\ContratoController::class);
+  Route::resource('dashboard/servicos', \App\Http\Controllers\ServicoController::class);
   Route::resource('dashboard/os', OSController::class);
   Route::get('/dashboard/os/{id}/pdf', [OSController::class, 'gerarPdf'])->name('os.pdf');
 

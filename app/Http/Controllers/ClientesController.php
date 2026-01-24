@@ -62,7 +62,7 @@ class ClientesController extends Controller
                 $query->orderBy('created_at', 'desc')->limit(10);
             },
             'cobrancas' => function ($query) {
-                $query->orderBy('created_at', 'desc')->limit(10);
+                $query->orderBy('cobrancas.created_at', 'desc')->limit(10);
             }
         ])->findOrFail($id);
 

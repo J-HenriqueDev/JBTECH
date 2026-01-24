@@ -331,6 +331,11 @@
             }
         });
 
+        // Autofocus no Select2 ao abrir o modal
+        $('#modalAdicionarProduto').on('shown.bs.modal', function() {
+            $('#produto_id').select2('open');
+        });
+
         $('#adicionarProduto').on('click', function() {
             const id = $('#produto_id').val();
             const nome = $('#produto_id option:selected').text().split(' - R$')[0];

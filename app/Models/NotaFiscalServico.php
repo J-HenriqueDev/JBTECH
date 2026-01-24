@@ -31,6 +31,7 @@ class NotaFiscalServico extends Model
         'valor_total',
         'discriminacao',
         'codigo_servico',
+        'codigo_nbs',
         'cnae',
         'municipio_prestacao',
         'status',

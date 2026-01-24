@@ -269,6 +269,23 @@
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">
+                                            <i class="bx bx-calculator me-1"></i> Método de Cálculo de Lucro
+                                        </label>
+                                        <select name="produtos_metodo_lucro" class="form-select">
+                                            <option value="markup"
+                                                {{ Configuracao::get('produtos_metodo_lucro', 'markup') == 'markup' ? 'selected' : '' }}>
+                                                Markup (Sobre o Custo)</option>
+                                            <option value="margem"
+                                                {{ Configuracao::get('produtos_metodo_lucro', 'markup') == 'margem' ? 'selected' : '' }}>
+                                                Margem (Sobre a Venda)</option>
+                                        </select>
+                                        <small class="form-text text-muted">
+                                            <i class="bx bx-info-circle"></i> Define como o lucro percentual é calculado no
+                                            cadastro de produtos.
+                                        </small>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">
                                             <i class="bx bx-edit-alt me-1"></i> Edição Inline de Produtos
                                         </label>
                                         <select name="produtos_edicao_inline" class="form-select">
@@ -328,6 +345,23 @@
                                         <small class="form-text text-muted">
                                             <i class="bx bx-info-circle"></i> Permite vender produtos mesmo com estoque
                                             insuficiente
+                                        </small>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">
+                                            <i class="bx bx-money me-1"></i> Exibir Valor do Lucro (R$)
+                                        </label>
+                                        <select name="produtos_exibir_lucro_valor" class="form-select">
+                                            <option value="0"
+                                                {{ Configuracao::get('produtos_exibir_lucro_valor', '0') == '0' ? 'selected' : '' }}>
+                                                Não Exibir</option>
+                                            <option value="1"
+                                                {{ Configuracao::get('produtos_exibir_lucro_valor', '0') == '1' ? 'selected' : '' }}>
+                                                Exibir</option>
+                                        </select>
+                                        <small class="form-text text-muted">
+                                            <i class="bx bx-info-circle"></i> Exibe o valor monetário do lucro ao lado da
+                                            porcentagem no cadastro de produtos.
                                         </small>
                                     </div>
                                     <div class="col-md-6 mb-3">
@@ -500,6 +534,30 @@
                                 <input type="hidden" name="grupo" value="financeiro">
 
                                 <div class="row">
+                                    <div class="col-12 mb-4">
+                                        <h5 class="fw-bold"><i class="bx bx-timer me-2"></i>Automação de Contratos</h5>
+                                        <p class="text-muted">Configurações para geração automática de cobranças e notas
+                                            fiscais.</p>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Dias de Antecedência (Geração)</label>
+                                        <div class="input-group">
+                                            <input type="number" name="contratos_dias_antecedencia" class="form-control"
+                                                value="{{ Configuracao::get('contratos_dias_antecedencia', '7') }}"
+                                                min="1" max="30">
+                                            <span class="input-group-text">dias</span>
+                                        </div>
+                                        <small class="form-text text-muted">
+                                            <i class="bx bx-info-circle"></i> Quantos dias antes do vencimento a Cobrança e
+                                            NFS-e serão geradas.
+                                        </small>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <hr class="my-4">
+                                    </div>
+
                                     <div class="col-12 mb-4">
                                         <h5 class="fw-bold"><i class="bx bx-credit-card me-2"></i>Taxas da Maquininha e
                                             Pagamentos</h5>
@@ -937,8 +995,8 @@
                                         <div class="col-md-6 mb-3">
                                             <label class="form-label">Itens por Página</label>
                                             <input type="number" name="sistema_paginacao" class="form-control"
-                                                value="{{ Configuracao::get('sistema_paginacao', '15') }}" min="5"
-                                                max="100">
+                                                value="{{ Configuracao::get('sistema_paginacao', '15') }}"
+                                                min="5" max="100">
                                         </div>
                                     </div>
 
@@ -1127,7 +1185,7 @@
                                 e.preventDefault();
                                 alert(
                                     'É necessário fornecer a senha do certificado para validar antes de salvar.'
-                                    );
+                                );
                                 return false;
                             }
                         }
