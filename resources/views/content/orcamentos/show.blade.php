@@ -92,6 +92,33 @@
                     </div>
                 </div>
                 @endif
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <strong><i class="fas fa-wallet"></i> Formas de Pagamento:</strong><br>
+                        @php
+                            $formas = $orcamento->formas_pagamento ?? [];
+                            $labels = [
+                                'avista' => 'À Vista',
+                                'boleto' => 'Boleto Parcelado',
+                                'cartao' => 'Cartão de Crédito'
+                            ];
+                        @endphp
+                        @if(empty($formas))
+                            <span class="text-muted">Não especificadas</span>
+                        @else
+                            <ul class="mb-0 ps-3">
+                            @foreach($formas as $forma)
+                                <li>
+                                    {{ $labels[$forma] ?? ucfirst($forma) }}
+                                    @if($forma == 'boleto' && $orcamento->parcelas_boleto)
+                                        <span class="text-muted">({{ $orcamento->parcelas_boleto }}x @if($orcamento->periodicidade_boleto) - {{ $orcamento->periodicidade_boleto }} @endif)</span>
+                                    @endif
+                                </li>
+                            @endforeach
+                            </ul>
+                        @endif
+                    </div>
+                </div>
                 @if($orcamento->usuario)
                 <div class="row">
                     <div class="col-md-6">

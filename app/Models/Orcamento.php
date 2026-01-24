@@ -22,12 +22,16 @@ class Orcamento extends Model
         'valor_total',
         'status',
         'user_id',
+        'formas_pagamento',
+        'parcelas_boleto',
+        'periodicidade_boleto',
     ];
 
     protected $casts = [
         'data' => 'date',
         'validade' => 'date',
         'valor_total' => 'decimal:2',
+        'formas_pagamento' => 'array',
     ];
 
     /**

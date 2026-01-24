@@ -198,6 +198,92 @@ $custoPorKm = \App\Models\Configuracao::get('vendas_custo_km', '1.50');
         </div>
       </div>
 
+      <!-- Formas de Pagamento -->
+      <div class="row mb-4">
+        <h5 class="mb-3"><i class="bx bx-wallet-alt me-2"></i>Formas de Pagamento</h5>
+        <div class="col-md-12">
+          <div class="row g-3">
+            <!-- À Vista -->
+            <div class="col-md-4">
+              <label class="card h-100 border cursor-pointer position-relative shadow-sm hover-effect" for="pagamento_avista" style="cursor: pointer;">
+                <div class="card-body d-flex align-items-center p-3">
+                  <div class="form-check me-3">
+                    <input class="form-check-input" type="checkbox" name="formas_pagamento[]" value="avista" id="pagamento_avista" checked>
+                  </div>
+                  <div>
+                    <h6 class="mb-1 fw-bold text-dark"><i class="bx bx-money text-success fs-4 align-middle me-1"></i> À Vista</h6>
+                    <small class="text-muted">Dinheiro ou PIX</small>
+                  </div>
+                </div>
+              </label>
+            </div>
+
+            <!-- Cartão de Crédito -->
+            <div class="col-md-4">
+              <label class="card h-100 border cursor-pointer position-relative shadow-sm hover-effect" for="pagamento_cartao" style="cursor: pointer;">
+                <div class="card-body d-flex align-items-center p-3">
+                  <div class="form-check me-3">
+                    <input class="form-check-input" type="checkbox" name="formas_pagamento[]" value="cartao" id="pagamento_cartao" checked>
+                  </div>
+                  <div>
+                    <h6 class="mb-1 fw-bold text-dark"><i class="bx bx-credit-card text-primary fs-4 align-middle me-1"></i> Cartão de Crédito</h6>
+                    <small class="text-muted">Parcelamento até 12x</small>
+                  </div>
+                </div>
+              </label>
+            </div>
+
+            <!-- Boleto Parcelado -->
+            <div class="col-md-4">
+              <div class="card h-100 border shadow-sm hover-effect">
+                <div class="card-body p-3">
+                  <label class="d-flex align-items-center cursor-pointer mb-0 w-100" for="pagamento_boleto" style="cursor: pointer;">
+                    <div class="form-check me-3">
+                      <input class="form-check-input" type="checkbox" name="formas_pagamento[]" value="boleto" id="pagamento_boleto">
+                    </div>
+                    <div>
+                      <h6 class="mb-0 fw-bold text-dark"><i class="bx bx-barcode text-warning fs-4 align-middle me-1"></i> Boleto Parcelado</h6>
+                    </div>
+                  </label>
+
+                  <div id="div_parcelas_boleto" style="display: none;" class="mt-3 pt-2 border-top">
+                    <div class="row g-2">
+                      <div class="col-6">
+                        <label class="form-label mb-1 text-muted small">Parcelas:</label>
+                        <div class="input-group input-group-sm">
+                          <input type="number" name="parcelas_boleto" class="form-control" placeholder="Qtd" min="1" max="48">
+                          <span class="input-group-text">x</span>
+                        </div>
+                      </div>
+                      <div class="col-6">
+                        <label class="form-label mb-1 text-muted small">Intervalo:</label>
+                        <select name="periodicidade_boleto" class="form-select form-select-sm">
+                          <option value="Mensal">Mensal</option>
+                          <option value="Quinzenal">Quinzenal</option>
+                          <option value="Semanal">Semanal</option>
+                          <option value="7 Dias" selected>A cada 7 Dias</option>
+                          <option value="15 Dias">A cada 15 Dias</option>
+                          <option value="30 Dias">A cada 30 Dias</option>
+                          <option value="45 Dias">A cada 45 Dias</option>
+                          <option value="60 Dias">A cada 60 Dias</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <style>
+        .hover-effect:hover {
+          border-color: #696cff !important;
+          background-color: #f8f9fa;
+        }
+      </style>
+
       <hr class="my-4">
 
       <!-- Finalização -->

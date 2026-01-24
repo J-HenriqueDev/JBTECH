@@ -19,7 +19,7 @@ class ProdutosController extends Controller
      */
     public function index()
     {
-        $produtos = Produto::with('categoria')->get(); // Obtém todos os produtos com categoria
+        $produtos = Produto::with('categoria')->orderBy('id', 'desc')->get(); // Obtém todos os produtos com categoria, ordenados por ID decrescente
         $categorias = Categoria::all(); // Obtém todas as categorias
 
         // Busca a configuração do usuário autenticado

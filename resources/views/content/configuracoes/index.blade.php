@@ -295,7 +295,7 @@ use Illuminate\Support\Facades\Storage;
                                         <option value="0" {{ Configuracao::get('produtos_gerar_codigo_barras', '1') == '0' ? 'selected' : '' }}>Não</option>
                                     </select>
                                     <small class="form-text text-muted">
-                                        <i class="bx bx-info-circle"></i> Gera código de barras automaticamente ao criar produto
+                                        <i class="bx bx-info-circle"></i> Gera código de barras automaticamente ao criar produto. Se "Não", o campo ficará vazio.
                                     </small>
                                 </div>
                                 <div class="col-md-6 mb-3">
@@ -405,6 +405,36 @@ use Illuminate\Support\Facades\Storage;
                                         <i class="bx bx-info-circle"></i> Valor utilizado para cálculo de deslocamento em orçamentos (ida e volta)
                                     </small>
                                 </div>
+                            </div>
+
+                            <div class="d-flex justify-content-end">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bx bx-save"></i> Salvar Configurações
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Aba Financeiro -->
+                    <div class="tab-pane fade" id="financeiro" role="tabpanel">
+                        <form action="{{ route('configuracoes.store') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="grupo" value="financeiro">
+
+                            <h5 class="mb-4 text-primary">Taxas de Cartão de Crédito (%)</h5>
+                            <div class="row">
+                                @for ($i = 1; $i <= 12; $i++)
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">
+                                        <i class="bx bx-credit-card me-1"></i> {{ $i }}x Parcela{{ $i > 1 ? 's' : '' }}
+                                    </label>
+                                    <input type="number" name="taxa_cartao_{{ $i }}x" class="form-control"
+                                        value="{{ Configuracao::get('taxa_cartao_' . $i . 'x', '0') }}" min="0" step="0.01">
+                                    <small class="form-text text-muted">
+                                        Taxa para {{ $i }}x
+                                    </small>
+                                </div>
+                                @endfor
                             </div>
 
                             <div class="d-flex justify-content-end">

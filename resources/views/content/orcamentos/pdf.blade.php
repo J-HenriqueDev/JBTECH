@@ -6,6 +6,7 @@
     <title>Orçamento #{{ str_pad($orcamento->id, 5, '0', STR_PAD_LEFT) }}</title>
     <style>
         @page {
+            size: A4;
             margin: 1cm 1cm 3.5cm 1cm;
         }
 
@@ -134,20 +135,6 @@
             background-color: #eee;
         }
 
-        .footer {
-            position: fixed;
-            bottom: -3cm;
-            left: 0;
-            right: 0;
-            height: 90px;
-            border-top: 1px solid #ccc;
-            padding-top: 10px;
-            text-align: center;
-            font-size: 10px;
-            color: #777;
-            background-color: #fff;
-        }
-
         .clearfix::after {
             content: "";
             clear: both;
@@ -177,23 +164,7 @@
 
 <body>
 
-    <!-- Footer -->
-    <div class="footer">
-        <p style="margin-bottom: 5px; font-weight: bold;">
-            {{ \App\Models\Configuracao::get('empresa_nome', 'JB Tech Soluções') }} -
-            CNPJ: {{ formatarCpfCnpj(\App\Models\Configuracao::get('empresa_cnpj', '00.000.000/0001-00')) }}
-        </p>
-        <p style="margin-bottom: 5px;">
-            {{ \App\Models\Configuracao::get('empresa_endereco') }}, {{ \App\Models\Configuracao::get('empresa_numero') }} -
-            {{ \App\Models\Configuracao::get('empresa_bairro') }} -
-            {{ \App\Models\Configuracao::get('empresa_cidade') }}/{{ \App\Models\Configuracao::get('empresa_uf') }}
-        </p>
-        <p style="margin-bottom: 5px;">
-            Tel: {{ \App\Helpers\FormatacaoHelper::telefone(\App\Models\Configuracao::get('empresa_telefone')) }} -
-            Email: {{ \App\Models\Configuracao::get('empresa_email') }}
-        </p>
-        <p style="margin-top: 10px; font-size: 9px;">Obrigado pela preferência!</p>
-    </div>
+    @include('layouts.pdf_footer')
 
     <!-- Header -->
     <div class="header-center">
@@ -328,26 +299,83 @@
             <tbody>
                 @php
                 $totalGeral = $subtotalProdutos + $valorServico;
-                $valorPix = $totalGeral;
-                $valor10x = $totalGeral * (1 + 0.12436);
+                $formasPagamento = $orcamento->formas_pagamento ?? [];
                 @endphp
+
+                {{-- À Vista --}}
+                @if(in_array('avista', $formasPagamento))
                 <tr>
-                    <td>Pix</td>
+                    <td>Dinheiro / Pix</td>
                     <td>À vista</td>
                     <td>0%</td>
-                    <td>R$ {{ number_format($valorPix, 2, ',', '.') }}</td>
+                    <td>R$ {{ number_format($totalGeral, 2, ',', '.') }}</td>
                 </tr>
+                @endif
+
+                {{-- Boleto --}}
+                @if(in_array('boleto', $formasPagamento))
+                @php
+                $qtdParcelas = $orcamento->parcelas_boleto ?? 1;
+                $valorParcelaBoleto = $totalGeral / $qtdParcelas;
+                $periodicidade = $orcamento->periodicidade_boleto ?? 'Mensal';
+                @endphp
                 <tr>
-                    <td>Cartão</td>
-                    <td>10x</td>
-                    <td>12,44%</td>
-                    <td>R$ {{ number_format($valor10x, 2, ',', '.') }}</td>
+                    <td>Boleto Bancário</td>
+                    <td>
+                        {{ $qtdParcelas }}x de R$ {{ number_format($valorParcelaBoleto, 2, ',', '.') }}
+                        <br>
+                        <small style="color: #555;">(Vencimento: {{ $periodicidade }})</small>
+                    </td>
+                    <td>0%</td>
+                    <td>R$ {{ number_format($totalGeral, 2, ',', '.') }}</td>
                 </tr>
+                @endif
             </tbody>
         </table>
-    </div>
 
-    @include('layouts.pdf_footer')
+        {{-- Cartão de Crédito (Grid Layout) --}}
+        @if(in_array('cartao', $formasPagamento))
+        @php
+        $taxas = json_decode(\App\Models\Configuracao::get('vendas_taxa_cartao', '[]'), true);
+        @endphp
+        <div style="margin-top: 10px;">
+            <div style="font-weight: bold; font-size: 11px; margin-bottom: 3px; border-bottom: 1px solid #eee; padding-bottom: 2px;">
+                SIMULAÇÃO CARTÃO DE CRÉDITO
+            </div>
+            <table style="width: 100%; border-collapse: collapse;">
+                @for($row = 0; $row < 3; $row++)
+                    <tr>
+                    @for($col = 1; $col <= 4; $col++)
+                        @php
+                        $i=($row * 4) + $col;
+                        $taxa=0;
+                        foreach($taxas as $t) {
+                        if(isset($t['parcelas']) && $t['parcelas']==$i) {
+                        $taxa=floatval(str_replace(',', '.' , $t['taxa']));
+                        break;
+                        }
+                        }
+                        $valorComTaxa=$totalGeral * (1 + ($taxa / 100));
+                        $valorParcela=$valorComTaxa / $i;
+                        @endphp
+                        <td style="width: 25%; border: 1px solid #ddd; padding: 5px; font-size: 11px; background-color: #fafafa;">
+                        <div style="font-weight: bold; color: #333;">{{ $i }}x de R$ {{ number_format($valorParcela, 2, ',', '.') }}</div>
+                        <div style="color: #666; font-size: 10px;">
+                            Total: R$ {{ number_format($valorComTaxa, 2, ',', '.') }}
+                            @if($taxa > 0)
+                            <span style="color: #888;">({{ number_format($taxa, 2, ',', '.') }}%)</span>
+                            @else
+                            <span style="color: #28a745;">(S/ Juros)</span>
+                            @endif
+                        </div>
+                        </td>
+                        @endfor
+                        </tr>
+                        @endfor
+            </table>
+        </div>
+        @endif
+    </div>
 </body>
 
 </html>

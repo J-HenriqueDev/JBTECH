@@ -123,7 +123,7 @@ class ConfiguracaoController extends Controller
                     str_contains($chave, 'ambiente') || str_contains($chave, 'porta') || str_contains($chave, 'paginacao') ||
                     str_contains($chave, 'desconto') || str_contains($chave, 'comissao') || str_contains($chave, 'limite') ||
                     str_contains($chave, 'prazo') || str_contains($chave, 'periodo') || str_contains($chave, 'estoque_minimo') ||
-                    str_contains($chave, 'garantia')
+                    str_contains($chave, 'garantia') || str_contains($chave, 'taxa')
                 ) {
                     $configTipo = 'number';
                 } elseif (
@@ -144,6 +144,14 @@ class ConfiguracaoController extends Controller
                     str_contains($chave, 'cep') || str_contains($chave, 'telefone')
                 ) {
                     $valor = preg_replace('/[^0-9]/', '', $valor);
+                }
+
+                // Substitui vírgula por ponto em campos decimais (taxas, comissões, descontos)
+                if (
+                    str_contains($chave, 'taxa') || str_contains($chave, 'comissao') ||
+                    str_contains($chave, 'desconto') || str_contains($chave, 'valor')
+                ) {
+                    $valor = str_replace(',', '.', $valor);
                 }
 
                 // Garante que valores boolean sejam salvos como '1' ou '0'

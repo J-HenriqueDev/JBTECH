@@ -147,6 +147,19 @@ class OrcamentoController extends Controller
             'produtos' => 'required|array',
             'produtos.*.quantidade' => 'required|numeric|min:1|max:10000', // Limitar a quantidade
             'produtos.*.valor_unitario' => 'required|string',
+            'formas_pagamento' => 'nullable|array',
+            'parcelas_boleto' => [
+                'nullable',
+                'integer',
+                'min:1',
+                'max:48',
+                function ($attribute, $value, $fail) use ($request) {
+                    if (in_array('boleto', $request->input('formas_pagamento', [])) && empty($value)) {
+                        $fail('O número de parcelas é obrigatório quando Boleto Parcelado é selecionado.');
+                    }
+                },
+            ],
+            'periodicidade_boleto' => 'nullable|string|max:50',
         ]);
 
         // Iniciar a transação com DB facade
@@ -154,7 +167,7 @@ class OrcamentoController extends Controller
         try {
             // Criar o orçamento sem o valor do serviço inicialmente
             $orcamento = Orcamento::create(array_merge(
-                $request->only(['cliente_id', 'data', 'validade', 'observacoes']),
+                $request->only(['cliente_id', 'data', 'validade', 'observacoes', 'formas_pagamento', 'parcelas_boleto', 'periodicidade_boleto']),
                 ['user_id' => Auth::id(), 'status' => Orcamento::STATUS_PENDENTE]
             ));
             Log::info('Orçamento criado', ['orcamento' => $orcamento]);
@@ -270,6 +283,19 @@ class OrcamentoController extends Controller
             'produtos' => 'required|array',
             'produtos.*.quantidade' => 'required|integer|min:1',
             'produtos.*.valor_unitario' => 'required|string',
+            'formas_pagamento' => 'nullable|array',
+            'parcelas_boleto' => [
+                'nullable',
+                'integer',
+                'min:1',
+                'max:48',
+                function ($attribute, $value, $fail) use ($request) {
+                    if (in_array('boleto', $request->input('formas_pagamento', [])) && empty($value)) {
+                        $fail('O número de parcelas é obrigatório quando Boleto Parcelado é selecionado.');
+                    }
+                },
+            ],
+            'periodicidade_boleto' => 'nullable|string|max:50',
         ]);
 
         DB::beginTransaction();
@@ -277,7 +303,7 @@ class OrcamentoController extends Controller
         try {
             // Localizar o orçamento e atualizar os campos principais
             $orcamento = Orcamento::findOrFail($id);
-            $orcamento->update($request->only(['cliente_id', 'data', 'validade', 'observacoes']));
+            $orcamento->update($request->only(['cliente_id', 'data', 'validade', 'observacoes', 'formas_pagamento', 'parcelas_boleto', 'periodicidade_boleto']));
 
             // Remover os produtos antigos associados ao orçamento
             $orcamento->produtos()->detach();

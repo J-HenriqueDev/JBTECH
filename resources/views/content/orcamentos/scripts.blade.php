@@ -299,6 +299,18 @@
             // Carrega produtos
             atualizarProdutos();
 
+            // Toggle parcelas boleto
+            function toggleParcelasBoleto() {
+                if ($('#pagamento_boleto').is(':checked')) {
+                    $('#div_parcelas_boleto').slideDown();
+                } else {
+                    $('#div_parcelas_boleto').slideUp();
+                }
+            }
+
+            $('#pagamento_boleto').on('change', toggleParcelasBoleto);
+            toggleParcelasBoleto(); // Init state
+
             // Eventos
             $('#produto_id').on('select2:opening', function(e) {
                 if (!produtosCarregados && !carregandoProdutos) {
@@ -491,6 +503,17 @@
 
                     validarValorServico();
                 });
+            });
+
+            // Toggle Boleto Parcels
+            $('#pagamento_boleto').on('change', function() {
+                if ($(this).is(':checked')) {
+                    $('#div_parcelas_boleto').fadeIn();
+                    $('input[name="parcelas_boleto"]').focus();
+                } else {
+                    $('#div_parcelas_boleto').fadeOut();
+                    $('input[name="parcelas_boleto"]').val('');
+                }
             });
         });
     }
