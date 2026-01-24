@@ -341,6 +341,26 @@ class ConfiguracaoController extends Controller
             ['chave' => 'empresa_uf', 'valor' => env('NFE_UF', 'RJ'), 'grupo' => 'geral', 'tipo' => 'text', 'descricao' => 'UF'],
             ['chave' => 'empresa_cep', 'valor' => env('NFE_CEP', '27520000'), 'grupo' => 'geral', 'tipo' => 'text', 'descricao' => 'CEP'],
 
+            // Configurações Financeiro
+            ['chave' => 'financeiro_taxa_debito', 'valor' => '1.99', 'grupo' => 'financeiro', 'tipo' => 'number', 'descricao' => 'Taxa Débito (%)'],
+            ['chave' => 'financeiro_taxa_pix', 'valor' => '0.99', 'grupo' => 'financeiro', 'tipo' => 'number', 'descricao' => 'Taxa PIX (%)'],
+            ['chave' => 'financeiro_taxa_boleto_fixa', 'valor' => '2.50', 'grupo' => 'financeiro', 'tipo' => 'money', 'descricao' => 'Taxa Boleto (R$)'],
+            ['chave' => 'financeiro_taxa_boleto_porcentagem', 'valor' => '0.00', 'grupo' => 'financeiro', 'tipo' => 'number', 'descricao' => 'Taxa Boleto (%)'],
+
+            // Taxas Cartão (1x a 12x)
+            ['chave' => 'financeiro_taxa_cartao_1x', 'valor' => '3.19', 'grupo' => 'financeiro', 'tipo' => 'number', 'descricao' => 'Taxa Crédito 1x (%)'],
+            ['chave' => 'financeiro_taxa_cartao_2x', 'valor' => '4.59', 'grupo' => 'financeiro', 'tipo' => 'number', 'descricao' => 'Taxa Crédito 2x (%)'],
+            ['chave' => 'financeiro_taxa_cartao_3x', 'valor' => '5.99', 'grupo' => 'financeiro', 'tipo' => 'number', 'descricao' => 'Taxa Crédito 3x (%)'],
+            ['chave' => 'financeiro_taxa_cartao_4x', 'valor' => '7.39', 'grupo' => 'financeiro', 'tipo' => 'number', 'descricao' => 'Taxa Crédito 4x (%)'],
+            ['chave' => 'financeiro_taxa_cartao_5x', 'valor' => '8.79', 'grupo' => 'financeiro', 'tipo' => 'number', 'descricao' => 'Taxa Crédito 5x (%)'],
+            ['chave' => 'financeiro_taxa_cartao_6x', 'valor' => '10.19', 'grupo' => 'financeiro', 'tipo' => 'number', 'descricao' => 'Taxa Crédito 6x (%)'],
+            ['chave' => 'financeiro_taxa_cartao_7x', 'valor' => '11.59', 'grupo' => 'financeiro', 'tipo' => 'number', 'descricao' => 'Taxa Crédito 7x (%)'],
+            ['chave' => 'financeiro_taxa_cartao_8x', 'valor' => '12.99', 'grupo' => 'financeiro', 'tipo' => 'number', 'descricao' => 'Taxa Crédito 8x (%)'],
+            ['chave' => 'financeiro_taxa_cartao_9x', 'valor' => '14.39', 'grupo' => 'financeiro', 'tipo' => 'number', 'descricao' => 'Taxa Crédito 9x (%)'],
+            ['chave' => 'financeiro_taxa_cartao_10x', 'valor' => '15.79', 'grupo' => 'financeiro', 'tipo' => 'number', 'descricao' => 'Taxa Crédito 10x (%)'],
+            ['chave' => 'financeiro_taxa_cartao_11x', 'valor' => '17.19', 'grupo' => 'financeiro', 'tipo' => 'number', 'descricao' => 'Taxa Crédito 11x (%)'],
+            ['chave' => 'financeiro_taxa_cartao_12x', 'valor' => '18.59', 'grupo' => 'financeiro', 'tipo' => 'number', 'descricao' => 'Taxa Crédito 12x (%)'],
+
             // Configurações NF-e
             ['chave' => 'nfe_ambiente', 'valor' => env('NFE_AMBIENTE', '2'), 'grupo' => 'nfe', 'tipo' => 'number', 'descricao' => 'Ambiente (1=Produção, 2=Homologação)'],
             ['chave' => 'nfe_razao_social', 'valor' => env('NFE_RAZAO_SOCIAL', 'JBTECH Informática'), 'grupo' => 'nfe', 'tipo' => 'text', 'descricao' => 'Razão Social'],

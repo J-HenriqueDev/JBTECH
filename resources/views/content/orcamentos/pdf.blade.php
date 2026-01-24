@@ -198,15 +198,16 @@
                 <td><strong>Validade:</strong></td>
                 <td>{{ \Carbon\Carbon::parse($orcamento->validade)->format('d/m/Y') }}</td>
             </tr>
-            @if($orcamento->cliente->endereco)
-            <tr>
-                <td><strong>Endereço:</strong></td>
-                <td colspan="3">
-                    {{ $orcamento->cliente->endereco->endereco }}, {{ $orcamento->cliente->endereco->numero }}
-                    {{ $orcamento->cliente->endereco->complemento ? ' - ' . $orcamento->cliente->endereco->complemento : '' }}
-                    - {{ $orcamento->cliente->endereco->bairro }}, {{ $orcamento->cliente->endereco->cidade }}/{{ $orcamento->cliente->endereco->estado }}
-                </td>
-            </tr>
+            @if ($orcamento->cliente->endereco)
+                <tr>
+                    <td><strong>Endereço:</strong></td>
+                    <td colspan="3">
+                        {{ $orcamento->cliente->endereco->endereco }}, {{ $orcamento->cliente->endereco->numero }}
+                        {{ $orcamento->cliente->endereco->complemento ? ' - ' . $orcamento->cliente->endereco->complemento : '' }}
+                        - {{ $orcamento->cliente->endereco->bairro }},
+                        {{ $orcamento->cliente->endereco->cidade }}/{{ $orcamento->cliente->endereco->estado }}
+                    </td>
+                </tr>
             @endif
         </table>
     </div>
@@ -224,32 +225,32 @@
         </thead>
         <tbody>
             @php
-            $subtotalProdutos = 0;
-            $valorServico = 0;
+                $subtotalProdutos = 0;
+                $valorServico = 0;
             @endphp
-            @foreach($orcamento->produtos as $index => $produto)
-            @php
-            $valorTotalProduto = $produto->pivot->quantidade * $produto->pivot->valor_unitario;
-            // Lógica para separar serviços (Assumindo ID 1 ou categoria se houvesse)
-            // Mantendo lógica anterior: ID 1 é serviço
-            if ($produto->id == 1) {
-            $valorServico += $valorTotalProduto;
-            } else {
-            $subtotalProdutos += $valorTotalProduto;
-            }
-            @endphp
-            <tr>
-                <td class="text-center">{{ $index + 1 }}</td>
-                <td>
-                    <strong>{{ $produto->nome }}</strong>
-                    @if($produto->descricao)
-                    <br><small style="color: #666;">{{ $produto->descricao }}</small>
-                    @endif
-                </td>
-                <td class="text-center">{{ $produto->pivot->quantidade }}</td>
-                <td class="text-right">R$ {{ number_format($produto->pivot->valor_unitario, 2, ',', '.') }}</td>
-                <td class="text-right">R$ {{ number_format($valorTotalProduto, 2, ',', '.') }}</td>
-            </tr>
+            @foreach ($orcamento->produtos as $index => $produto)
+                @php
+                    $valorTotalProduto = $produto->pivot->quantidade * $produto->pivot->valor_unitario;
+                    // Lógica para separar serviços (Assumindo ID 1 ou categoria se houvesse)
+                    // Mantendo lógica anterior: ID 1 é serviço
+                    if ($produto->id == 1) {
+                        $valorServico += $valorTotalProduto;
+                    } else {
+                        $subtotalProdutos += $valorTotalProduto;
+                    }
+                @endphp
+                <tr>
+                    <td class="text-center">{{ $index + 1 }}</td>
+                    <td>
+                        <strong>{{ $produto->nome }}</strong>
+                        @if ($produto->descricao)
+                            <br><small style="color: #666;">{{ $produto->descricao }}</small>
+                        @endif
+                    </td>
+                    <td class="text-center">{{ $produto->pivot->quantidade }}</td>
+                    <td class="text-right">R$ {{ number_format($produto->pivot->valor_unitario, 2, ',', '.') }}</td>
+                    <td class="text-right">R$ {{ number_format($valorTotalProduto, 2, ',', '.') }}</td>
+                </tr>
             @endforeach
         </tbody>
     </table>
@@ -257,17 +258,17 @@
     <!-- Totals -->
     <div class="clearfix">
         <table class="totals-table">
-            @if($subtotalProdutos > 0)
-            <tr>
-                <td class="text-right"><strong>Total Produtos:</strong></td>
-                <td class="text-right">R$ {{ number_format($subtotalProdutos, 2, ',', '.') }}</td>
-            </tr>
+            @if ($subtotalProdutos > 0)
+                <tr>
+                    <td class="text-right"><strong>Total Produtos:</strong></td>
+                    <td class="text-right">R$ {{ number_format($subtotalProdutos, 2, ',', '.') }}</td>
+                </tr>
             @endif
-            @if($valorServico > 0)
-            <tr>
-                <td class="text-right"><strong>Total Serviços:</strong></td>
-                <td class="text-right">R$ {{ number_format($valorServico, 2, ',', '.') }}</td>
-            </tr>
+            @if ($valorServico > 0)
+                <tr>
+                    <td class="text-right"><strong>Total Serviços:</strong></td>
+                    <td class="text-right">R$ {{ number_format($valorServico, 2, ',', '.') }}</td>
+                </tr>
             @endif
             <tr class="total-final">
                 <td class="text-right">TOTAL GERAL:</td>
@@ -278,10 +279,10 @@
 
     <!-- Observations -->
     @if (!empty($orcamento->observacoes))
-    <div class="box" style="margin-top: 20px; background-color: #fff;">
-        <span class="box-title">OBSERVAÇÕES</span>
-        <p style="margin: 0; font-size: 11px;">{{ $orcamento->observacoes }}</p>
-    </div>
+        <div class="box" style="margin-top: 20px; background-color: #fff;">
+            <span class="box-title">OBSERVAÇÕES</span>
+            <p style="margin: 0; font-size: 11px;">{{ $orcamento->observacoes }}</p>
+        </div>
     @endif
 
     <!-- Payment Methods -->
@@ -298,82 +299,84 @@
             </thead>
             <tbody>
                 @php
-                $totalGeral = $subtotalProdutos + $valorServico;
-                $formasPagamento = $orcamento->formas_pagamento ?? [];
+                    $totalGeral = $subtotalProdutos + $valorServico;
+                    $formasPagamento = $orcamento->formas_pagamento ?? [];
                 @endphp
 
                 {{-- À Vista --}}
-                @if(in_array('avista', $formasPagamento))
-                <tr>
-                    <td>Dinheiro / Pix</td>
-                    <td>À vista</td>
-                    <td>0%</td>
-                    <td>R$ {{ number_format($totalGeral, 2, ',', '.') }}</td>
-                </tr>
+                @if (in_array('avista', $formasPagamento))
+                    <tr>
+                        <td>Dinheiro / Pix</td>
+                        <td>À vista</td>
+                        <td>0%</td>
+                        <td>R$ {{ number_format($totalGeral, 2, ',', '.') }}</td>
+                    </tr>
                 @endif
 
                 {{-- Boleto --}}
-                @if(in_array('boleto', $formasPagamento))
-                @php
-                $qtdParcelas = $orcamento->parcelas_boleto ?? 1;
-                $valorParcelaBoleto = $totalGeral / $qtdParcelas;
-                $periodicidade = $orcamento->periodicidade_boleto ?? 'Mensal';
-                @endphp
-                <tr>
-                    <td>Boleto Bancário</td>
-                    <td>
-                        {{ $qtdParcelas }}x de R$ {{ number_format($valorParcelaBoleto, 2, ',', '.') }}
-                        <br>
-                        <small style="color: #555;">(Vencimento: {{ $periodicidade }})</small>
-                    </td>
-                    <td>0%</td>
-                    <td>R$ {{ number_format($totalGeral, 2, ',', '.') }}</td>
-                </tr>
+                @if (in_array('boleto', $formasPagamento))
+                    @php
+                        $qtdParcelas = $orcamento->parcelas_boleto ?? 1;
+                        $valorParcelaBoleto = $totalGeral / $qtdParcelas;
+                        $periodicidade = $orcamento->periodicidade_boleto ?? 'Mensal';
+                    @endphp
+                    <tr>
+                        <td>Boleto Bancário</td>
+                        <td>
+                            {{ $qtdParcelas }}x de R$ {{ number_format($valorParcelaBoleto, 2, ',', '.') }}
+                            <br>
+                            <small style="color: #555;">(Vencimento: {{ $periodicidade }})</small>
+                        </td>
+                        <td>0%</td>
+                        <td>R$ {{ number_format($totalGeral, 2, ',', '.') }}</td>
+                    </tr>
                 @endif
             </tbody>
         </table>
 
         {{-- Cartão de Crédito (Grid Layout) --}}
-        @if(in_array('cartao', $formasPagamento))
-        @php
-        $taxas = json_decode(\App\Models\Configuracao::get('vendas_taxa_cartao', '[]'), true);
-        @endphp
-        <div style="margin-top: 10px;">
-            <div style="font-weight: bold; font-size: 11px; margin-bottom: 3px; border-bottom: 1px solid #eee; padding-bottom: 2px;">
-                SIMULAÇÃO CARTÃO DE CRÉDITO
-            </div>
-            <table style="width: 100%; border-collapse: collapse;">
-                @for($row = 0; $row < 3; $row++)
-                    <tr>
-                    @for($col = 1; $col <= 4; $col++)
-                        @php
-                        $i=($row * 4) + $col;
-                        $taxa=0;
-                        foreach($taxas as $t) {
-                        if(isset($t['parcelas']) && $t['parcelas']==$i) {
-                        $taxa=floatval(str_replace(',', '.' , $t['taxa']));
-                        break;
-                        }
-                        }
-                        $valorComTaxa=$totalGeral * (1 + ($taxa / 100));
-                        $valorParcela=$valorComTaxa / $i;
-                        @endphp
-                        <td style="width: 25%; border: 1px solid #ddd; padding: 5px; font-size: 11px; background-color: #fafafa;">
-                        <div style="font-weight: bold; color: #333;">{{ $i }}x de R$ {{ number_format($valorParcela, 2, ',', '.') }}</div>
-                        <div style="color: #666; font-size: 10px;">
-                            Total: R$ {{ number_format($valorComTaxa, 2, ',', '.') }}
-                            @if($taxa > 0)
-                            <span style="color: #888;">({{ number_format($taxa, 2, ',', '.') }}%)</span>
-                            @else
-                            <span style="color: #28a745;">(S/ Juros)</span>
-                            @endif
-                        </div>
-                        </td>
-                        @endfor
+        @if (in_array('cartao', $formasPagamento))
+            <div style="margin-top: 10px;">
+                <div
+                    style="font-weight: bold; font-size: 11px; margin-bottom: 3px; border-bottom: 1px solid #eee; padding-bottom: 2px;">
+                    SIMULAÇÃO CARTÃO DE CRÉDITO
+                </div>
+                <table style="width: 100%; border-collapse: collapse;">
+                    @for ($row = 0; $row < 3; $row++)
+                        <tr>
+                            @for ($col = 1; $col <= 4; $col++)
+                                @php
+                                    $i = $row * 4 + $col;
+                                    $taxa = floatval(
+                                        str_replace(
+                                            ',',
+                                            '.',
+                                            \App\Models\Configuracao::get('financeiro_taxa_cartao_' . $i . 'x', 0),
+                                        ),
+                                    );
+
+                                    $valorComTaxa = $totalGeral * (1 + $taxa / 100);
+                                    $valorParcela = $valorComTaxa / $i;
+                                @endphp
+                                <td
+                                    style="width: 25%; border: 1px solid #ddd; padding: 5px; font-size: 11px; background-color: #fafafa;">
+                                    <div style="font-weight: bold; color: #333;">{{ $i }}x de R$
+                                        {{ number_format($valorParcela, 2, ',', '.') }}</div>
+                                    <div style="color: #666; font-size: 10px;">
+                                        Total: R$ {{ number_format($valorComTaxa, 2, ',', '.') }}
+                                        @if ($taxa > 0)
+                                            <span
+                                                style="color: #888;">({{ number_format($taxa, 2, ',', '.') }}%)</span>
+                                        @else
+                                            <span style="color: #28a745;">(S/ Juros)</span>
+                                        @endif
+                                    </div>
+                                </td>
+                            @endfor
                         </tr>
-                        @endfor
-            </table>
-        </div>
+                    @endfor
+                </table>
+            </div>
         @endif
     </div>
 </body>
