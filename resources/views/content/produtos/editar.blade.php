@@ -36,7 +36,7 @@
         });
 
         // Funções de formatação e cálculo
-        function formatCurrency(input) {
+        function formatCurrencyInput(input) {
             let value = input.value.replace(/\D/g, '');
             value = (value / 100).toFixed(2) + '';
             value = value.replace(".", ",");
@@ -342,7 +342,7 @@
                                                 id="preco_custo"
                                                 value="{{ number_format($produto->preco_custo, 2, ',', '.') }}"
                                                 placeholder="0,00" required
-                                                oninput="formatCurrency(this); calculateProfit();">
+                                                oninput="formatCurrencyInput(this); calculateProfit();">
                                         </div>
                                     </div>
                                     <div class="col-md-3">
@@ -353,7 +353,7 @@
                                                 id="preco_venda"
                                                 value="{{ number_format($produto->preco_venda, 2, ',', '.') }}"
                                                 placeholder="0,00" required
-                                                oninput="formatCurrency(this); calculateProfit();">
+                                                oninput="formatCurrencyInput(this); calculateProfit();">
                                         </div>
                                     </div>
                                     <div class="col-md-3">
@@ -602,7 +602,7 @@
                                         <label class="form-label">Preço Atacado</label>
                                         <input type="text" class="form-control" name="preco_atacado"
                                             value="{{ number_format($produto->preco_atacado, 2, ',', '.') }}"
-                                            oninput="formatCurrency(this)">
+                                            oninput="formatCurrencyInput(this)">
                                     </div>
                                     <div class="col-md-3">
                                         <label class="form-label">Qtd. Mín. Atacado</label>
@@ -613,7 +613,7 @@
                                         <label class="form-label">Preço Promocional</label>
                                         <input type="text" class="form-control" name="preco_promocional"
                                             value="{{ number_format($produto->preco_promocional, 2, ',', '.') }}"
-                                            oninput="formatCurrency(this)">
+                                            oninput="formatCurrencyInput(this)">
                                     </div>
                                 </div>
                                 <div class="row">

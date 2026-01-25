@@ -204,6 +204,12 @@ class NFeController extends Controller
             // Cria o rascunho da NF-e
             $notaFiscal = $this->nfeService->criarNotaDeVenda($venda);
 
+            // Se retornar null, significa que todos os itens foram para NFS-e (ou não havia itens para NF-e)
+            if (!$notaFiscal) {
+                 return redirect()->route('vendas.index') // Ou redirecionar para lista de NFS-e se preferir
+                    ->with('success', 'NFS-e gerada automaticamente! Nenhum item de mercadoria para emitir NF-e.');
+            }
+
             LogService::registrar(
                 'NF-e',
                 'Criar Rascunho',

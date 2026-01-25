@@ -285,6 +285,12 @@
                 <td class="text-right">R$ {{ number_format($valorServico, 2, ',', '.') }}</td>
             </tr>
             @endif
+            @if($pagamento = $venda->cobrancas->where('status', 'pago')->first())
+            <tr>
+                <td class="text-right" style="color: green; font-weight: bold;">PAGO EM:</td>
+                <td class="text-right" style="color: green; font-weight: bold;">{{ \Carbon\Carbon::parse($pagamento->data_pagamento ?? $pagamento->updated_at)->format('d/m/Y') }}</td>
+            </tr>
+            @endif
             <tr class="total-final">
                 <td class="text-right">TOTAL GERAL:</td>
                 <td class="text-right">R$ {{ number_format($subtotalProdutos + $valorServico, 2, ',', '.') }}</td>

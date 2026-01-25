@@ -40,13 +40,44 @@ class VendaController extends Controller
     }
 
     /**
+     * Registra pagamento imediato (Pagar na Hora).
+     */
+    public function pagarNaHora(Request $request, $id)
+    {
+        $venda = Venda::findOrFail($id);
+
+        // Verifica se já existe cobrança paga
+        $cobrancaPaga = $venda->cobrancas()->where('status', 'pago')->exists();
+        if ($cobrancaPaga) {
+             return back()->with('warning', 'Esta venda já possui um pagamento registrado.');
+        }
+
+        // Cria cobrança paga (Assumindo Dinheiro como padrão para pagamento rápido)
+        // Se precisar de opção, poderia vir do request
+        $cobranca = \App\Models\Cobranca::create([
+            'venda_id' => $venda->id,
+            'metodo_pagamento' => 'dinheiro',
+            'valor' => $venda->valor_total,
+            'status' => 'pago',
+            'data_vencimento' => now(),
+            'recorrente' => false,
+            'enviar_email' => false,
+            'enviar_whatsapp' => false,
+        ]);
+
+        LogService::registrar('Venda', 'Pagamento Imediato', "Pagamento registrado na hora para Venda ID {$venda->id}");
+
+        return back()->with('success', 'Pagamento registrado com sucesso!');
+    }
+
+    /**
      * Exibe o formulário para criar uma nova venda.
      */
     public function create()
     {
         $clientes = Clientes::all();
         $produtos = Produto::all();
-        
+
         // Aplica configurações padrão
         $formaPagamentoPadrao = Configuracao::get('vendas_forma_pagamento_padrao', 'dinheiro');
         $descontoMaximo = Configuracao::get('vendas_desconto_maximo', '10');
@@ -106,7 +137,7 @@ class VendaController extends Controller
                     })->where('status', 'pendente')
                       ->where('data_vencimento', '<', now())
                       ->count();
-                    
+
                     if ($cobrancasPendentes > 0) {
                         return redirect()->back()
                             ->withErrors("Atenção: Este cliente possui {$cobrancasPendentes} cobrança(s) vencida(s). Verifique antes de prosseguir.")
@@ -122,14 +153,14 @@ class VendaController extends Controller
 
             foreach ($request->produtos as $produto) {
                 $produtoModel = Produto::findOrFail($produto['id']);
-                
+
                 // Verifica estoque se controle estiver habilitado
                 if ($controleEstoque && !$permitirEstoqueNegativo) {
                     if ($produtoModel->estoque < $produto['quantidade']) {
                         return redirect()->back()->withErrors("Estoque insuficiente para o produto {$produtoModel->nome}. Estoque disponível: {$produtoModel->estoque}");
                     }
                 }
-                
+
                 $valorUnitario = str_replace(['R$', '.', ','], ['', '', '.'], $produto['valor_unitario']);
                 $quantidade = $produto['quantidade'];
                 $valorTotal = (float) $valorUnitario * $quantidade; // Calcula o valor total do produto
@@ -141,7 +172,7 @@ class VendaController extends Controller
                 ]);
 
                 $valorTotalVenda += $valorTotal; // Soma ao valor total da venda
-                
+
                 // Atualiza estoque se controle estiver habilitado
                 if ($controleEstoque) {
                     $produtoModel->estoque -= $quantidade;
@@ -177,7 +208,7 @@ class VendaController extends Controller
             // Aplica configurações de venda
             $imprimirAutomatico = Configuracao::get('vendas_imprimir_automatico', '0') == '1';
             $enviarEmail = Configuracao::get('vendas_enviar_email', '0') == '1';
-            
+
             // Envia email se configurado
             if ($enviarEmail && $cliente->email) {
                 try {
@@ -190,7 +221,7 @@ class VendaController extends Controller
 
             // Mensagem de sucesso
             $mensagemSucesso = "Venda #{$venda->id} para o cliente {$cliente->nome} foi processada com sucesso!";
-            
+
             // Se impressão automática estiver habilitada, redireciona para PDF
             if ($imprimirAutomatico) {
                 return redirect()->route('vendas.exportarPdf', $venda->id);
@@ -268,6 +299,8 @@ class VendaController extends Controller
                 'cliente_id' => 'required|exists:clientes,id',
                 'data_venda' => 'required|date',
                 'observacoes' => 'nullable|string',
+                'forma_pagamento' => 'nullable|string',
+                'status' => 'nullable|string|in:pendente,pago,cancelado,orcamento',
                 'produtos' => 'required|json', // Valida se é um JSON válido
             ]);
 
@@ -284,6 +317,8 @@ class VendaController extends Controller
                 'cliente_id' => $request->cliente_id,
                 'data_venda' => $request->data_venda,
                 'observacoes' => $request->observacoes,
+                'forma_pagamento' => $request->forma_pagamento,
+                'status' => $request->status,
             ]);
 
             Log::info('Venda atualizada:', $venda->toArray());
@@ -340,6 +375,33 @@ class VendaController extends Controller
     }
 
     /**
+     * Finaliza a venda e redireciona para emissão de NFe.
+     */
+    public function finalizarParaNfe(Request $request, $id)
+    {
+        $venda = Venda::findOrFail($id);
+
+        $validatedData = $request->validate([
+            'forma_pagamento' => 'required|string',
+            'status' => 'required|string|in:pendente,pago,cancelado,orcamento',
+        ]);
+
+        $venda->update([
+            'forma_pagamento' => $request->forma_pagamento,
+            'status' => $request->status,
+            'bloqueado' => true,
+        ]);
+
+        LogService::registrar(
+            'Venda',
+            'Finalizar para NFe',
+            "Venda ID: {$venda->id} finalizada para emissão de NFe. Status: {$venda->status}, Pagamento: {$venda->forma_pagamento}"
+        );
+
+        return redirect()->route('nfe.create', ['venda_id' => $venda->id]);
+    }
+
+    /**
      * Remove uma venda do banco de dados.
      */
     public function destroy(Venda $venda)
@@ -373,7 +435,7 @@ class VendaController extends Controller
         } else {
             $logoBase64 = base64_encode(file_get_contents(public_path('assets/img/front-pages/landing-page/jblogo_black.png')));
         }
-        
+
         // Aplica configuração de cabeçalho
         $imprimirCabecalho = Configuracao::get('relatorios_imprimir_cabecalho', '1') == '1';
 
@@ -450,7 +512,7 @@ class VendaController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('Erro ao gerar cobrança:', ['error' => $e->getMessage()]);
-            
+
             LogService::registrar(
                 'Venda',
                 'Erro',

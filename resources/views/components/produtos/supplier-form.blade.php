@@ -18,7 +18,7 @@
       </label>
       <div class="input-group">
         <span class="input-group-text">R$</span>
-        <input type="text" class="form-control" name="produtos[{{ $index }}][preco_custo]" id="preco_custo_{{ $index }}" required value="{{ old('produtos.'.$index.'.preco_custo', $product['preco_custo'] ?? '') }}" oninput="formatCurrency(this); calculateProfit({{ $index }});">
+        <input type="text" class="form-control" name="produtos[{{ $index }}][preco_custo]" id="preco_custo_{{ $index }}" required value="{{ old('produtos.'.$index.'.preco_custo', $product['preco_custo'] ?? '') }}" oninput="formatCurrencyInput(this); calculateProfit({{ $index }});">
       </div>
       @error('produtos.'.$index.'.preco_custo')
       <small class="text-danger fw-bold">{{ $message }}</small>
@@ -33,7 +33,7 @@
       </label>
       <div class="input-group">
         <span class="input-group-text">R$</span>
-        <input type="text" class="form-control" name="produtos[{{ $index }}][preco_venda]" id="preco_venda_{{ $index }}" required value="{{ old('produtos.'.$index.'.preco_venda', $product['preco_venda'] ?? '') }}" oninput="formatCurrency(this); calculateProfit({{ $index }});">
+        <input type="text" class="form-control" name="produtos[{{ $index }}][preco_venda]" id="preco_venda_{{ $index }}" required value="{{ old('produtos.'.$index.'.preco_venda', $product['preco_venda'] ?? '') }}" oninput="formatCurrencyInput(this); calculateProfit({{ $index }});">
       </div>
       @error('produtos.'.$index.'.preco_venda')
       <small class="text-danger fw-bold">{{ $message }}</small>

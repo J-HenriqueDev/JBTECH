@@ -39,7 +39,7 @@
         });
 
         // Funções de formatação e cálculo
-        function formatCurrency(input) {
+        function formatCurrencyInput(input) {
             let value = input.value.replace(/\D/g, '');
             value = (value / 100).toFixed(2) + '';
             value = value.replace(".", ",");
@@ -333,7 +333,7 @@
                                             <span class="input-group-text">R$</span>
                                             <input type="text" class="form-control" name="produtos[0][preco_custo]"
                                                 id="preco_custo_0" placeholder="0,00" required
-                                                oninput="formatCurrency(this); calculateProfit(0);">
+                                                oninput="formatCurrencyInput(this); calculateProfit(0);">
                                         </div>
                                     </div>
                                     <div class="col-md-3">
@@ -342,7 +342,7 @@
                                             <span class="input-group-text">R$</span>
                                             <input type="text" class="form-control" name="produtos[0][preco_venda]"
                                                 id="preco_venda_0" placeholder="0,00" required
-                                                oninput="formatCurrency(this); calculateProfit(0);">
+                                                oninput="formatCurrencyInput(this); calculateProfit(0);">
                                         </div>
                                     </div>
                                     <div class="col-md-3">
@@ -362,7 +362,8 @@
                                 <div class="row">
                                     <div class="col-md-4">
                                         <label for="tipo_item_0" class="form-label">Tipo do Item</label>
-                                        <select class="form-select" name="produtos[0][tipo_item]" id="tipo_item_0">
+                                        <select class="form-select" name="produtos[0][tipo_item]" id="tipo_item_0"
+                                            onchange="toggleServiceCode(0)">
                                             <option value="00" selected>00 - Mercadoria para Revenda</option>
                                             <option value="01">01 - Matéria-Prima</option>
                                             <option value="02">02 - Embalagem</option>
@@ -373,225 +374,232 @@
                                             <option value="07">07 - Material de Uso e Consumo</option>
                                             <option value="08">08 - Ativo Imobilizado</option>
                                             <option value="09">09 - Serviços</option>
-                                            <option value="99">99 - Outros</option>
+                                            <option value="99">99 - Outras</option>
                                         </select>
                                     </div>
+                                    <div class="col-md-4" id="div_codigo_servico_0" style="display: none;">
+                                        <label for="codigo_servico_0" class="form-label">Código de Serviço (LC116)</label>
+                                        <input type="text" class="form-control" name="produtos[0][codigo_servico]"
+                                            id="codigo_servico_0" placeholder="Ex: 14.01">
+                                    </div>
+                                    <option value="09">09 - Serviços</option>
+                                    <option value="99">99 - Outros</option>
+                                    </select>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- ABA ESTOQUE -->
-                            <div class="tab-pane fade" id="estoque" role="tabpanel" aria-labelledby="estoque-tab">
-                                <div class="row mb-3">
-                                    <div class="col-md-3">
-                                        <label for="estoque_0" class="form-label">Estoque Atual</label>
-                                        <input type="number" class="form-control" name="produtos[0][estoque]"
-                                            id="estoque_0" value="0">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label for="estoque_minimo_0" class="form-label">Estoque Mínimo</label>
-                                        <input type="number" class="form-control" name="produtos[0][estoque_minimo]"
-                                            id="estoque_minimo_0" value="0">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label for="estoque_maximo_0" class="form-label">Estoque Máximo</label>
-                                        <input type="number" class="form-control" name="produtos[0][estoque_maximo]"
-                                            id="estoque_maximo_0">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label for="localizacao_0" class="form-label">Localização</label>
-                                        <input type="text" class="form-control" name="produtos[0][localizacao]"
-                                            id="localizacao_0" placeholder="Corredor A, Prateleira 2">
-                                    </div>
+                        <!-- ABA ESTOQUE -->
+                        <div class="tab-pane fade" id="estoque" role="tabpanel" aria-labelledby="estoque-tab">
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label for="estoque_0" class="form-label">Estoque Atual</label>
+                                    <input type="number" class="form-control" name="produtos[0][estoque]"
+                                        id="estoque_0" value="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="estoque_minimo_0" class="form-label">Estoque Mínimo</label>
+                                    <input type="number" class="form-control" name="produtos[0][estoque_minimo]"
+                                        id="estoque_minimo_0" value="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="estoque_maximo_0" class="form-label">Estoque Máximo</label>
+                                    <input type="number" class="form-control" name="produtos[0][estoque_maximo]"
+                                        id="estoque_maximo_0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="localizacao_0" class="form-label">Localização</label>
+                                    <input type="text" class="form-control" name="produtos[0][localizacao]"
+                                        id="localizacao_0" placeholder="Corredor A, Prateleira 2">
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- ABA TRIBUTAÇÃO -->
-                            <div class="tab-pane fade" id="tributacao" role="tabpanel" aria-labelledby="tributacao-tab">
-                                <div class="alert alert-info">
-                                    <i class="fas fa-info-circle"></i> Use o botão de busca na aba "Geral" (ao lado do
-                                    código de barras) para preencher automaticamente.
-                                </div>
-                                <div class="row mb-3">
-                                    <div class="col-md-3">
-                                        <label class="form-label">NCM</label>
-                                        <div class="input-group">
-                                            <input type="text" class="form-control" name="produtos[0][ncm]"
-                                                id="ncm_0">
-                                            <button class="btn btn-outline-secondary" type="button"
-                                                onclick="buscarNCMPorNome('nome_0', 'ncm_0')" title="Buscar NCM por nome">
-                                                <i class="fas fa-search"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label">Unid. Comercial</label>
-                                        <input type="text" class="form-control" name="produtos[0][unidade_comercial]"
-                                            id="unidade_comercial_0" value="UN" maxlength="6">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label">CEST</label>
-                                        <input type="text" class="form-control" name="produtos[0][cest]"
-                                            id="cest_0">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label">CFOP Interno</label>
-                                        <input type="text" class="form-control" name="produtos[0][cfop_interno]"
-                                            id="cfop_interno_0" placeholder="5102">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label">CFOP Externo</label>
-                                        <input type="text" class="form-control" name="produtos[0][cfop_externo]"
-                                            id="cfop_externo_0" placeholder="6102">
+                        <!-- ABA TRIBUTAÇÃO -->
+                        <div class="tab-pane fade" id="tributacao" role="tabpanel" aria-labelledby="tributacao-tab">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> Use o botão de busca na aba "Geral" (ao lado do
+                                código de barras) para preencher automaticamente.
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">NCM</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" name="produtos[0][ncm]"
+                                            id="ncm_0">
+                                        <button class="btn btn-outline-secondary" type="button"
+                                            onclick="buscarNCMPorNome('nome_0', 'ncm_0')" title="Buscar NCM por nome">
+                                            <i class="fas fa-search"></i>
+                                        </button>
                                     </div>
                                 </div>
-                                <div class="row mb-3">
-                                    <div class="col-md-3">
-                                        <label class="form-label">Origem</label>
-                                        <select class="form-select" name="produtos[0][origem]" id="origem_0">
-                                            <option value="0">0 - Nacional</option>
-                                            <option value="1">1 - Estrangeira (Imp. Direta)</option>
-                                            <option value="2">2 - Estrangeira (Adq. no Int.)</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label">CSOSN (Simples)</label>
-                                        <input type="text" class="form-control" name="produtos[0][csosn_icms]"
-                                            id="csosn_icms_0" placeholder="102">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label">CST ICMS</label>
-                                        <input type="text" class="form-control" name="produtos[0][cst_icms]"
-                                            id="cst_icms_0" placeholder="00">
-                                    </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Unid. Comercial</label>
+                                    <input type="text" class="form-control" name="produtos[0][unidade_comercial]"
+                                        id="unidade_comercial_0" value="UN" maxlength="6">
                                 </div>
-                                <div class="row mb-3">
-                                    <div class="col-md-4">
-                                        <label class="form-label">Alíquota ICMS (%)</label>
-                                        <input type="number" step="0.01" class="form-control"
-                                            name="produtos[0][aliquota_icms]" id="aliquota_icms_0" value="0.00">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Alíquota PIS (%)</label>
-                                        <input type="number" step="0.01" class="form-control"
-                                            name="produtos[0][aliquota_pis]" id="aliquota_pis_0" value="0.00">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Alíquota COFINS (%)</label>
-                                        <input type="number" step="0.01" class="form-control"
-                                            name="produtos[0][aliquota_cofins]" id="aliquota_cofins_0" value="0.00">
-                                    </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">CEST</label>
+                                    <input type="text" class="form-control" name="produtos[0][cest]" id="cest_0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">CFOP Interno</label>
+                                    <input type="text" class="form-control" name="produtos[0][cfop_interno]"
+                                        id="cfop_interno_0" placeholder="5102">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">CFOP Externo</label>
+                                    <input type="text" class="form-control" name="produtos[0][cfop_externo]"
+                                        id="cfop_externo_0" placeholder="6102">
                                 </div>
                             </div>
-
-                            <!-- ABA FORNECEDORES -->
-                            <div class="tab-pane fade" id="fornecedores" role="tabpanel"
-                                aria-labelledby="fornecedores-tab">
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <label class="form-label">Selecione os Fornecedores deste produto</label>
-                                        <select class="select2 form-select" name="produtos[0][fornecedores][]" multiple>
-                                            @foreach ($fornecedores as $fornecedor)
-                                                <option value="{{ $fornecedor->id }}">{{ $fornecedor->nome }}
-                                                    ({{ $fornecedor->cnpj ?? 'S/ CNPJ' }})
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        <small class="text-muted">Você pode selecionar múltiplos fornecedores.</small>
-                                    </div>
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Origem</label>
+                                    <select class="form-select" name="produtos[0][origem]" id="origem_0">
+                                        <option value="0">0 - Nacional</option>
+                                        <option value="1">1 - Estrangeira (Imp. Direta)</option>
+                                        <option value="2">2 - Estrangeira (Adq. no Int.)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">CSOSN (Simples)</label>
+                                    <input type="text" class="form-control" name="produtos[0][csosn_icms]"
+                                        id="csosn_icms_0" placeholder="102">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">CST ICMS</label>
+                                    <input type="text" class="form-control" name="produtos[0][cst_icms]"
+                                        id="cst_icms_0" placeholder="00">
                                 </div>
                             </div>
-
-                            <!-- ABA CÓDIGOS ADICIONAIS -->
-                            <div class="tab-pane fade" id="codigos" role="tabpanel" aria-labelledby="codigos-tab">
-                                <div class="table-responsive">
-                                    <table class="table table-bordered" id="tabelaCodigos">
-                                        <thead>
-                                            <tr>
-                                                <th>Código de Barras</th>
-                                                <th>Descrição (Ex: Caixa, Unidade)</th>
-                                                <th style="width: 50px;">Ação</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <!-- Linhas adicionadas via JS -->
-                                        </tbody>
-                                    </table>
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Alíquota ICMS (%)</label>
+                                    <input type="number" step="0.01" class="form-control"
+                                        name="produtos[0][aliquota_icms]" id="aliquota_icms_0" value="0.00">
                                 </div>
-                                <button type="button" class="btn btn-outline-primary mt-2" onclick="adicionarCodigo()">
-                                    <i class="fas fa-plus"></i> Adicionar Código
-                                </button>
-                            </div>
-
-                            <!-- ABA OUTROS -->
-                            <div class="tab-pane fade" id="outros" role="tabpanel" aria-labelledby="outros-tab">
-                                <div class="row mb-3">
-                                    <div class="col-md-12">
-                                        <h5>Dimensões e Peso (Para Frete)</h5>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <label class="form-label">Peso Líq. (kg)</label>
-                                        <input type="number" step="0.001" class="form-control"
-                                            name="produtos[0][peso_liquido]">
-                                    </div>
-                                    <div class="col-md-2">
-                                        <label class="form-label">Peso Bruto (kg)</label>
-                                        <input type="number" step="0.001" class="form-control"
-                                            name="produtos[0][peso_bruto]">
-                                    </div>
-                                    <div class="col-md-2">
-                                        <label class="form-label">Largura (cm)</label>
-                                        <input type="number" step="0.01" class="form-control"
-                                            name="produtos[0][largura]">
-                                    </div>
-                                    <div class="col-md-2">
-                                        <label class="form-label">Altura (cm)</label>
-                                        <input type="number" step="0.01" class="form-control"
-                                            name="produtos[0][altura]">
-                                    </div>
-                                    <div class="col-md-2">
-                                        <label class="form-label">Comprimento (cm)</label>
-                                        <input type="number" step="0.01" class="form-control"
-                                            name="produtos[0][comprimento]">
-                                    </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Alíquota PIS (%)</label>
+                                    <input type="number" step="0.01" class="form-control"
+                                        name="produtos[0][aliquota_pis]" id="aliquota_pis_0" value="0.00">
                                 </div>
-                                <hr>
-                                <div class="row mb-3">
-                                    <div class="col-md-12">
-                                        <h5>Preços Avançados</h5>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label">Preço Atacado</label>
-                                        <input type="text" class="form-control" name="produtos[0][preco_atacado]"
-                                            oninput="formatCurrency(this)">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label">Qtd. Mín. Atacado</label>
-                                        <input type="number" class="form-control" name="produtos[0][qtd_min_atacado]">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label">Preço Promocional</label>
-                                        <input type="text" class="form-control" name="produtos[0][preco_promocional]"
-                                            oninput="formatCurrency(this)">
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <label class="form-label">Observações Internas</label>
-                                        <textarea class="form-control" name="produtos[0][observacoes_internas]" rows="3"></textarea>
-                                    </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Alíquota COFINS (%)</label>
+                                    <input type="number" step="0.01" class="form-control"
+                                        name="produtos[0][aliquota_cofins]" id="aliquota_cofins_0" value="0.00">
                                 </div>
                             </div>
+                        </div>
 
-                        </div> <!-- End Tab Content -->
+                        <!-- ABA FORNECEDORES -->
+                        <div class="tab-pane fade" id="fornecedores" role="tabpanel" aria-labelledby="fornecedores-tab">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label class="form-label">Selecione os Fornecedores deste produto</label>
+                                    <select class="select2 form-select" name="produtos[0][fornecedores][]" multiple>
+                                        @foreach ($fornecedores as $fornecedor)
+                                            <option value="{{ $fornecedor->id }}">{{ $fornecedor->nome }}
+                                                ({{ $fornecedor->cnpj ?? 'S/ CNPJ' }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <small class="text-muted">Você pode selecionar múltiplos fornecedores.</small>
+                                </div>
+                            </div>
+                        </div>
 
-                        <div class="mt-4 text-end">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-save me-1"></i> Salvar Produto
+                        <!-- ABA CÓDIGOS ADICIONAIS -->
+                        <div class="tab-pane fade" id="codigos" role="tabpanel" aria-labelledby="codigos-tab">
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="tabelaCodigos">
+                                    <thead>
+                                        <tr>
+                                            <th>Código de Barras</th>
+                                            <th>Descrição (Ex: Caixa, Unidade)</th>
+                                            <th style="width: 50px;">Ação</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Linhas adicionadas via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <button type="button" class="btn btn-outline-primary mt-2" onclick="adicionarCodigo()">
+                                <i class="fas fa-plus"></i> Adicionar Código
                             </button>
                         </div>
+
+                        <!-- ABA OUTROS -->
+                        <div class="tab-pane fade" id="outros" role="tabpanel" aria-labelledby="outros-tab">
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <h5>Dimensões e Peso (Para Frete)</h5>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Peso Líq. (kg)</label>
+                                    <input type="number" step="0.001" class="form-control"
+                                        name="produtos[0][peso_liquido]">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Peso Bruto (kg)</label>
+                                    <input type="number" step="0.001" class="form-control"
+                                        name="produtos[0][peso_bruto]">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Largura (cm)</label>
+                                    <input type="number" step="0.01" class="form-control"
+                                        name="produtos[0][largura]">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Altura (cm)</label>
+                                    <input type="number" step="0.01" class="form-control"
+                                        name="produtos[0][altura]">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Comprimento (cm)</label>
+                                    <input type="number" step="0.01" class="form-control"
+                                        name="produtos[0][comprimento]">
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <h5>Preços Avançados</h5>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Preço Atacado</label>
+                                    <input type="text" class="form-control" name="produtos[0][preco_atacado]"
+                                        oninput="formatCurrencyInput(this)">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Qtd. Mín. Atacado</label>
+                                    <input type="number" class="form-control" name="produtos[0][qtd_min_atacado]">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Preço Promocional</label>
+                                    <input type="text" class="form-control" name="produtos[0][preco_promocional]"
+                                        oninput="formatCurrencyInput(this)">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label class="form-label">Observações Internas</label>
+                                    <textarea class="form-control" name="produtos[0][observacoes_internas]" rows="3"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div> <!-- End Tab Content -->
+
+                    <div class="mt-4 text-end">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save me-1"></i> Salvar Produto
+                        </button>
                     </div>
-                </form>
             </div>
+            </form>
         </div>
+    </div>
     </div>
 @endsection

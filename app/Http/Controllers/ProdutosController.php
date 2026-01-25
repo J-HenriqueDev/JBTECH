@@ -543,6 +543,7 @@ class ProdutosController extends Controller
             // Novos campos (Tabs)
             'ativo' => 'boolean',
             'tipo_item' => 'nullable|string|max:2',
+            'codigo_servico' => 'nullable|string|max:20',
             'estoque_minimo' => 'nullable|integer',
             'estoque_maximo' => 'nullable|integer',
             'localizacao' => 'nullable|string|max:255',

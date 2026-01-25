@@ -49,7 +49,7 @@
                     <label for="valor" class="form-label">
                         <i class="bx bx-money"></i> Valor
                     </label>
-                    <input type="text" class="form-control" name="valor" id="valor" value="{{ number_format($cobranca->valor, 2, ',', '.') }}" oninput="formatCurrency(this)">
+                    <input type="text" class="form-control" name="valor" id="valor" value="{{ number_format($cobranca->valor, 2, ',', '.') }}" oninput="formatCurrencyInput(this)">
                 </div>
                 <div class="col-md-6">
                     <label for="status" class="form-label">

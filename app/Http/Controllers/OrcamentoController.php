@@ -536,6 +536,9 @@ class OrcamentoController extends Controller
                 $mensagemSucesso .= " Solicitação de compra #{$compra->id} criada para itens faltantes.";
             }
 
+            // Adiciona botão para ver a venda
+            $mensagemSucesso .= " <a href='" . route('vendas.edit', $venda->id) . "' class='btn btn-sm btn-dark ms-2'>Ver Venda</a>";
+
             Log::info('Orçamento autorizado com sucesso:', ['mensagem' => $mensagemSucesso]);
 
             // Registra um log

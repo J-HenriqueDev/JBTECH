@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\NotaFiscal;
+use App\Models\NotaFiscalServico;
 use App\Models\Venda;
 use App\Models\Clientes;
 use App\Models\Produto;
@@ -18,6 +19,7 @@ use NFePHP\NFe\Tools;
 use NFePHP\Common\Certificate;
 use NFePHP\NFe\Common\Standardize;
 use NFePHP\NFe\Complements;
+use stdClass;
 use Exception;
 
 class NFeService
@@ -556,11 +558,44 @@ INI;
             $destinatario = $this->getDadosDestinatario($cliente);
 
             // Produtos
-            $produtos = [];
-            $itemIndex = 1;
-            foreach ($venda->produtos as $produto) {
-                $produtos[] = $this->getDadosProduto($produto, $venda, $itemIndex++);
+        $produtos = [];
+        $itemIndex = 1;
+        $valorTotalNFe = 0;
+
+        // Arrays para separar serviços
+        $servicosNFSe = [];
+        $valorTotalServicos = 0;
+
+        foreach ($venda->produtos as $produto) {
+            // Pula serviços (tipo_item 09 ou tem servico_id)
+            if ($produto->tipo_item === '09' || !empty($produto->servico_id)) {
+                $servicosNFSe[] = $produto;
+                $valorTotalServicos += ($produto->pivot->quantidade * $produto->pivot->valor_unitario);
+                continue;
             }
+
+            $dadosProd = $this->getDadosProduto($produto, $venda, $itemIndex++);
+            $produtos[] = $dadosProd;
+
+            // Soma valor total (vProd ou valor_total)
+            $vProd = isset($dadosProd['vProd']) ? (float)$dadosProd['vProd'] : (isset($dadosProd['valor_total']) ? (float)$dadosProd['valor_total'] : 0);
+            $valorTotalNFe += $vProd;
+        }
+
+        // Processa NFS-e se houver serviços
+        if (!empty($servicosNFSe)) {
+            try {
+                $this->gerarNFSeParaVenda($venda, $servicosNFSe, $valorTotalServicos);
+            } catch (\Exception $e) {
+                Log::error('Erro ao gerar NFS-e automática para venda #' . $venda->id . ': ' . $e->getMessage());
+                // Não interrompe o fluxo da NF-e, mas loga o erro
+            }
+        }
+
+        // Se não sobrar produtos (só tinha serviços), retorna null para não criar NFe vazia
+        if (empty($produtos)) {
+            return null;
+        }
 
             $naturezaPadrao = NaturezaOperacao::where('tipo', 'saida')
                 ->where('padrao', true)
@@ -584,7 +619,7 @@ INI;
                 'numero_nfe' => null,
                 'chave_acesso' => null,
                 'status' => 'pendente',
-                'valor_total' => $venda->valor_total,
+                'valor_total' => $valorTotalNFe,
                 'data_emissao' => null,
                 'dados_destinatario' => $destinatario,
                 'produtos' => $produtos,
@@ -850,7 +885,7 @@ INI;
 
         // 1. Identificação (tagide)
         $serie = $notaFiscal->serie ?: (Configuracao::get('nfe_serie') ?: 1);
-        $nfeNumero = $notaFiscal->numero_nfe ?: $this->getNextNfeNumber();
+        $nfeNumero = $notaFiscal->numero_nfe ?: $this->getNextNfeNumber($serie);
 
         // Atualiza número se ainda não tiver (para garantir consistência na visualização)
         if (!$notaFiscal->numero_nfe) {
@@ -1372,7 +1407,7 @@ INI;
 
             // Garante número e série antes de montar XML
             $serie = Configuracao::get('nfe_serie') ?: 1;
-            $nfeNumero = $notaFiscal->numero_nfe ?: $this->getNextNfeNumber();
+            $nfeNumero = $notaFiscal->numero_nfe ?: $this->getNextNfeNumber($serie);
 
             $notaFiscal->update([
                 'numero_nfe' => $nfeNumero,
@@ -1983,11 +2018,22 @@ INI;
         return $ufs[$sigla] ?? '33';
     }
 
-    protected function getNextNfeNumber()
+    protected function getNextNfeNumber($serie = null)
     {
-        $lastDb = NotaFiscal::whereNotNull('numero_nfe')->max('numero_nfe');
+        $serie = $serie ?: (Configuracao::get('nfe_serie') ?: 1);
+
+        $lastDb = NotaFiscal::where('serie', $serie)
+            ->whereNotNull('numero_nfe')
+            ->max('numero_nfe');
+
+        // Busca configuração específica da série (se existir) ou geral
+        // Idealmente, deveríamos ter nfe_ultimo_numero_serie_X
+        // Mas para manter compatibilidade, vamos usar a geral se for a série padrão
+        // Ou se o usuário configurou manualmente o 'nfe_ultimo_numero' esperando que seja para a série atual.
         $lastConfig = (int) Configuracao::get('nfe_ultimo_numero', 0);
 
+        // Se a configuração for maior que o banco para ESSA série, usa a configuração
+        // Isso permite "pular" números ou iniciar uma nova série corretamente
         $last = max($lastDb, $lastConfig);
 
         return $last ? $last + 1 : 1;
@@ -2053,5 +2099,96 @@ INI;
         }
 
         return $std;
+    }
+
+    /**
+     * Gera e emite uma NFS-e automaticamente para serviços de uma venda
+     */
+    protected function gerarNFSeParaVenda(Venda $venda, array $servicos, float $valorTotal)
+    {
+        Log::info("Iniciando geração automática de NFS-e para venda #{$venda->id}");
+
+        $cliente = $venda->cliente;
+        if (!$cliente) {
+            throw new Exception("Cliente não encontrado para venda #{$venda->id}");
+        }
+
+        // Verifica se já existe NFS-e para esta venda
+        $existe = NotaFiscalServico::where('venda_id', $venda->id)
+            ->whereIn('status', ['autorizada', 'pendente', 'processamento'])
+            ->exists();
+
+        if ($existe) {
+            Log::info("NFS-e já existe para venda #{$venda->id}, pulando geração.");
+            return;
+        }
+
+        // Pega o código de serviço do primeiro item (assumindo que todos são do mesmo tipo ou usa o primeiro)
+        $primeiroServico = $servicos[0];
+        $codigoServico = $primeiroServico->servico->codigo_servico ?? Configuracao::get('nfse_codigo_servico_padrao') ?? '0000';
+        $codigoNbs = $primeiroServico->servico->codigo_nbs ?? null;
+
+        // Se houver um modelo de serviço vinculado, usa a discriminação dele
+        if ($primeiroServico->servico && !empty($primeiroServico->servico->discriminacao_padrao)) {
+            $discriminacao = $primeiroServico->servico->discriminacao_padrao;
+             // Adiciona detalhes da venda se necessário, ou mantém apenas o padrão
+             // Vamos concatenar para garantir
+             $discriminacao .= "\nRef. Venda #{$venda->id}";
+        } else {
+             // Discriminação dos serviços padrão
+            $discriminacao = "Serviços ref. Venda #{$venda->id}: ";
+            $itensDesc = [];
+            foreach ($servicos as $servico) {
+                $itensDesc[] = $servico->nome . " (x" . $servico->pivot->quantidade . ")";
+            }
+            $discriminacao .= implode(', ', $itensDesc);
+        }
+
+        // Cria o registro da NFS-e
+        $nfse = new NotaFiscalServico();
+        $nfse->venda_id = $venda->id;
+        $nfse->cliente_id = $cliente->id;
+        $nfse->user_id = auth()->id() ?? 1;
+        $nfse->valor_servico = $valorTotal;
+
+        // Impostos (simplificado, deve vir de config ou cadastro de serviço)
+        $aliquotaIss = (float) ($primeiroServico->servico->aliquota_iss ?? Configuracao::get('nfse_aliquota_iss', 0));
+        $nfse->aliquota_iss = $aliquotaIss;
+        $nfse->valor_iss = ($valorTotal * $aliquotaIss) / 100;
+        $nfse->iss_retido = $primeiroServico->servico->iss_retido ?? false;
+        $nfse->valor_total = $valorTotal;
+
+        $nfse->discriminacao = substr($discriminacao, 0, 2000);
+        $nfse->codigo_servico = $codigoServico;
+        $nfse->codigo_nbs = $codigoNbs;
+        $nfse->status = 'pendente';
+
+        $nfse->save();
+
+        // Tenta emitir
+        try {
+            // Instancia o serviço de NFS-e
+            $nfseService = app(NFSeService::class);
+
+            $resultado = $nfseService->emitir($nfse);
+
+            if ($resultado['status']) {
+                Log::info("NFS-e emitida com sucesso para venda #{$venda->id}");
+
+                // Tenta baixar PDF se autorizada
+                if ($nfse->status == 'autorizada' && $nfse->chave_acesso) {
+                    try {
+                        $nfseService->downloadPdf($nfse);
+                    } catch (\Exception $e) {
+                        Log::warning("Falha ao baixar PDF da NFS-e venda #{$venda->id}: " . $e->getMessage());
+                    }
+                }
+            } else {
+                Log::error("Erro ao emitir NFS-e venda #{$venda->id}: " . ($resultado['message'] ?? 'Erro desconhecido'));
+            }
+
+        } catch (\Exception $e) {
+            Log::error("Exceção ao emitir NFS-e venda #{$venda->id}: " . $e->getMessage());
+        }
     }
 }

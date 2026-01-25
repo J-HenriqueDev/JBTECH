@@ -33,10 +33,16 @@
 
     // Formata o valor do campo de serviço
     function formatCurrencyService(input) {
-        if (typeof window.formatCurrency === 'function') {
-            window.formatCurrency(input);
+        if (typeof window.formatCurrencyInput === 'function') {
+            window.formatCurrencyInput(input);
             return;
         }
+        if (typeof window.formatCurrency === 'function' && window.formatCurrency.length === 1 && window.formatCurrency
+            .name !== 'formatCurrency') {
+            // Fallback only if we are sure it's the input version (hard to know without name, but checking length is something).
+            // Actually, let's just rely on formatCurrencyInput or local logic.
+        }
+
         let value = input.value.replace(/\D/g, '');
         if (value === '') {
             input.value = 'R$ 0,00';

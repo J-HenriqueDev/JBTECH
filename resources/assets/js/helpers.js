@@ -95,7 +95,7 @@ function formatCPFCNPJ(input) {
 }
 
 // Formatação de moeda
-function formatCurrency(input) {
+function formatCurrencyInput(input) {
     let value = input.value.replace(/\D/g, '');
     value = (value / 100).toFixed(2) + '';
     value = value.replace('.', ',');

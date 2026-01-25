@@ -60,9 +60,26 @@
             <div class="divider my-6">
                 <div class="divider-text"><i class="fas fa-briefcase"></i> Produtos</div>
             </div>
+
+            <!-- Quick Add Section (Moved from Modal) -->
+            <div class="mb-3 p-3 bg-light rounded border">
+                <label for="inputQuickAdd" class="form-label fw-bold text-primary">
+                    <i class="bx bx-bolt-circle"></i> Adição Rápida
+                </label>
+                <div class="input-group">
+                    <input type="text" id="inputQuickAdd" class="form-control"
+                        placeholder="Digite: Qtd * Código * Preço (ex: 2 * 789 * 10,00) ou Código de Barras"
+                        autofocus>
+                    <button type="button" id="btnQuickAdd" class="btn btn-primary">
+                        <i class="bx bx-plus"></i> Adicionar
+                    </button>
+                </div>
+                <div class="form-text">Pressione ENTER para adicionar automaticamente.</div>
+            </div>
+
             <div class="mb-3">
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAdicionarProduto">
-                    <i class="bx bx-plus-circle"></i> Adicionar Produto
+                    <i class="bx bx-plus-circle"></i> Pesquisar Produto
                 </button>
             </div>
             <div class="table-responsive mb-3">
@@ -142,6 +159,23 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <!-- Quick Add Section -->
+                <div class="mb-3 p-3 bg-light rounded border">
+                    <label for="inputQuickAdd" class="form-label fw-bold text-primary">
+                        <i class="bx bx-bolt-circle"></i> Adição Rápida
+                    </label>
+                    <div class="input-group">
+                        <input type="text" id="inputQuickAdd" class="form-control"
+                            placeholder="Digite: Quantidade * Código (ex: 2 * 789...) ou Leitor de Código de Barras"
+                            autofocus>
+                        <button type="button" id="btnQuickAdd" class="btn btn-primary">
+                            <i class="bx bx-plus"></i> Adicionar
+                        </button>
+                    </div>
+                    <div class="form-text">Pressione ENTER para adicionar automaticamente.</div>
+                </div>
+                <hr class="my-3">
+
                 <div class="row mb-3">
                     <div class="col-md-8">
                         <label for="produto_id" class="form-label">Selecionar Produto</label>

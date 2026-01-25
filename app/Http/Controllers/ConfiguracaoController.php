@@ -287,9 +287,10 @@ class ConfiguracaoController extends Controller
                 'nfe_ie' => 'text',
                 'nfe_crt' => 'text',
                 'nfe_ambiente' => 'number',
-                'nfe_serie' => 'number',
-                'nfe_ultimo_numero' => 'number',
-                'nfe_csc' => 'text',
+            'nfe_serie' => 'number',
+            'nfe_ultimo_numero' => 'number',
+            'nfse_ultimo_numero' => 'number',
+            'nfe_csc' => 'text',
                 'nfe_csc_id' => 'text',
             ];
 

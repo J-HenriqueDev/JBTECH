@@ -47,6 +47,15 @@ class NFSeService
     public function emitir(NotaFiscalServico $nfse)
     {
         try {
+            // 0. Atribui numeração RPS sequencial se não houver
+            if (empty($nfse->numero_rps)) {
+                $lastRps = (int) Configuracao::get('nfse_ultimo_numero', 0);
+                $nfse->numero_rps = $lastRps + 1;
+                // Série RPS: Se houver config específica usa, senão usa a geral ou '1'
+                $nfse->serie_rps = Configuracao::get('nfse_serie') ?? Configuracao::get('nfe_serie', '1');
+                $nfse->save();
+            }
+
             // 1. Validação básica
             $this->validarDados($nfse);
 
@@ -126,16 +135,20 @@ class NFSeService
 
             // CORREÇÃO: Sobrescrever o atributo Id do infDPS com o valor calculado corretamente
             // A biblioteca gera um ID incorreto (fora do padrão SPED)
-            if (isset($std->infdps->Id)) {
+            if (isset($std->infDPS->Id)) {
                 $infDpsElement = $dom->getElementsByTagName('infDPS')->item(0);
                 if ($infDpsElement) {
-                    $infDpsElement->setAttribute('Id', $std->infdps->Id);
-                }
+                $infDpsElement->setAttribute('Id', $std->infDPS->Id);
+                $infDpsElement->setIdAttribute('Id', true);
+                 // Force namespace on infDPS to ensure consistency during C14N
+                 $infDpsElement->setAttribute('xmlns', 'http://www.sped.fazenda.gov.br/nfse');
             }
+        }
 
             $xmlDps = $dom->saveXML($dom->documentElement);
 
-            Log::info('NFSeService: XML DPS Gerado', ['xml' => $xmlDps]);
+            // Log XML gerado para debug
+            Log::info('NFSeService: XML DPS Gerado para envio', ['xml' => $xmlDps]);
 
             // O Tools::enviaDps espera o conteúdo para assinar.
             // O método sign do Tools assina o XML.
@@ -168,21 +181,51 @@ class NFSeService
             // Vamos salvar o retorno completo
             $nfse->xml_retorno = json_encode($response);
 
-            // Verificando campos comuns de sucesso
-            // Se tiver 'chave' ou 'numero', sucesso.
-            // A estrutura de retorno pode variar.
+            // Analisa a resposta para atualizar o status
+            $dadosRetorno = $response;
+            if (isset($response['response'])) {
+                $dadosRetorno = $response['response'];
+            }
 
-            // Ajuste conforme retorno real. Por enquanto, assumo sucesso se não tiver erro explícito
-            // e tiver algum identificador.
-
-            // Na falta de documentação clara, vamos salvar e marcar como 'processamento'.
-            // Se for síncrono e vier a chave:
-
-            if (isset($response['chave'])) { // Hipótese
+            if (isset($dadosRetorno['chaveAcesso'])) {
                 $nfse->status = 'autorizada';
-                $nfse->chave_acesso = $response['chave'];
+                $nfse->chave_acesso = $dadosRetorno['chaveAcesso'];
+
+                // Link oficial para download
+                $nfse->link_nfse = "https://www.nfse.gov.br/EmissorNacional/Notas/Download/DANFSe/" . $nfse->chave_acesso;
+
+                // Salvar XML retornado (se disponível e válido)
+                if (isset($dadosRetorno['nfseXmlGZipB64'])) {
+                    try {
+                        $xmlDecoded = gzdecode(base64_decode($dadosRetorno['nfseXmlGZipB64']));
+                        if ($xmlDecoded) {
+                            $nfse->xml_retorno = $xmlDecoded;
+                        }
+                    } catch (Exception $e) {
+                        Log::warning('Erro ao decodificar XML da NFS-e: ' . $e->getMessage());
+                    }
+                }
+
                 $nfse->save();
-                return ['status' => true, 'message' => 'NFS-e enviada com sucesso!', 'data' => $response];
+
+                // Atualiza o último número RPS utilizado nas configurações
+                try {
+                    Configuracao::set('nfse_ultimo_numero', $nfse->numero_rps, 'nfe', 'number');
+                } catch (\Exception $e) {
+                    Log::warning('Falha ao atualizar nfse_ultimo_numero: ' . $e->getMessage());
+                }
+
+                return ['status' => true, 'message' => 'NFS-e autorizada com sucesso!', 'data' => $response];
+            }
+
+            // Verifica erros na resposta interna
+            if (isset($dadosRetorno['erros'])) {
+                $erros = $dadosRetorno['erros'];
+                $msgErro = "Erro na API: ";
+                foreach ($erros as $erro) {
+                    $msgErro .= "[{$erro['Codigo']}] {$erro['Descricao']} ";
+                }
+                throw new Exception($msgErro);
             }
 
             // Fallback para debug
@@ -224,66 +267,62 @@ class NFSeService
         $std = new stdClass();
         $std->version = "1.00";
 
-        $std->infdps = new stdClass();
-        $std->infdps->tpamb = $this->config['ambiente'];
-        $std->infdps->dhemi = $nfse->created_at->format('Y-m-d\TH:i:sP');
-        $std->infdps->veraplic = "JBTECH_1.0";
-        $std->infdps->serie = "1"; // Série 1 padrão para MEI/Simples? Ajustável.
+        $std->infDPS = new stdClass();
+        $std->infDPS->tpAmb = $this->config['ambiente'];
+        $std->infDPS->dhEmi = $nfse->created_at->format('Y-m-d\TH:i:sP');
+        $std->infDPS->verAplic = "JBTECH_1.0";
+        $std->infDPS->serie = $nfse->serie_rps ?? Configuracao::get('nfe_serie', '1'); // Usa a série da nota ou configuração
+
+        // Determina o número do DPS (RPS)
+        // Se numero_rps não estiver definido, usa o ID da nota como fallback
+        $numeroRps = $nfse->numero_rps;
+        if (empty($numeroRps)) {
+            $numeroRps = $nfse->id;
+        }
 
         // CORREÇÃO: O ID do DPS deve seguir o padrão "DPS" + Cód.Mun (7) + Tipo Insc (1) + CNPJ (14) + Série (5) + Número (15)
         // Total: 3 + 7 + 1 + 14 + 5 + 15 = 45 caracteres
         // Ref: tiposSimples_v1.00.xsd -> TSIdDPS
 
         $codMunicipio = str_pad(preg_replace('/[^0-9]/', '', $this->config['cod_municipio']), 7, '0', STR_PAD_LEFT);
-        $tipoInscricao = '2'; // 2 = CNPJ (Padrão para emissor PJ)
+        $tipoInscricao = '2'; // 2 = CNPJ, 1 = CPF (Padrão Nacional)
         $cnpjPrestador = str_pad(preg_replace('/[^0-9]/', '', $this->config['cnpj']), 14, '0', STR_PAD_LEFT);
-        $serieDps = str_pad($std->infdps->serie, 5, '0', STR_PAD_LEFT);
-        $numeroDps = str_pad((string)$nfse->id, 15, '0', STR_PAD_LEFT);
+        $serieDps = str_pad($std->infDPS->serie, 5, '0', STR_PAD_LEFT);
+        $numeroDps = str_pad((string)$numeroRps, 15, '0', STR_PAD_LEFT);
 
-        $std->infdps->Id = "DPS" . $codMunicipio . $tipoInscricao . $cnpjPrestador . $serieDps . $numeroDps;
-        $std->infdps->ndps = (string)$nfse->id; // Aqui na tag nDPS vai o número normal
+        $std->infDPS->Id = "DPS" . $codMunicipio . $tipoInscricao . $cnpjPrestador . $serieDps . $numeroDps;
+
+        // Log::info('NFSeService: Generated ID components', [
+        //     'codMunicipio' => $codMunicipio,
+        //     'tipoInscricao' => $tipoInscricao,
+        //     'cnpjPrestador' => $cnpjPrestador,
+        //     'serieDps' => $serieDps,
+        //     'numeroDps' => $numeroDps,
+        //     'FullID' => $std->infDPS->Id
+        // ]);
+
+        // Padroniza campos no XML para bater com o ID
+        // nDPS e serie nas tags não podem ter zeros à esquerda para validação de tipo,
+        // mas o ID deve ser calculado com zeros à esquerda.
+        $std->infDPS->serie = (string)((int)$serieDps);
+        $std->infDPS->nDPS = (string)$numeroRps;
         // Mas o atributo Id na tag infDPS precisa ser o ID completo formatado
-        // A lib Dps provavelmente gera o ID automaticamente se não informado, ou usa o que passarmos.
-        // Vamos verificar se a lib aceita o atributo Id no stdClass.
-        // Se não aceitar, teremos que confiar que ela gera certo, mas o erro diz que o gerado está inválido.
-        // O erro mostra: "DPS25481991000012000001000000000000002"
-        // DPS + CNPJ (14) + "00001" (Série 5) + "000000000000002" (Número 15) = 3 + 14 + 5 + 15 = 37 chars.
-        // O valor gerado no log parece ter 37 caracteres. Vamos contar.
-        // DPS (3) + 25481991000012 (14, mas tem um 2 na frente?)
-        // O CNPJ configurado é 54819910000120.
-        // O erro mostra 25481991000012... O CNPJ está estranho, parece que tem um digito a mais ou a menos ou deslocado?
-        // Ah, o erro diz: DPS25481991000012000001000000000000002
-        // DPS (3)
-        // 25481991000012 (14 chars) -> CNPJ errado? O CNPJ correto é 54819910000120
-        // Parece que o CNPJ no ID está "25481991000012". Falta o 0 no final e tem um 2 no começo?
-        // Ou o CNPJ configurado está errado?
-        // Configuração: 54819910000120
-        // Log gerado: <CNPJ>54819910000120</CNPJ> (Correto na tag)
-        // Mas no ID ficou DPS25481991000012...
-        // Espere, 2 + 54819910000120 (Se o ambiente for 2?)
-        // Não, o padrão do ID é DPS + CNPJ + Série + Número.
-        // A lib Hadder/NfseNacional deve estar gerando o ID.
-        // Vamos ver como ela gera.
-        // Se a lib gera errado, temos que passar o ID explicitamente se possível.
 
-        // Tentar forçar o ID correto se a estrutura permitir
-        // $std->infdps->id = "DPS" . $cnpjPrestador . $serieDps . $numeroDps;
-
-        $std->infdps->dcompet = $nfse->created_at->format('Y-m-d');
-        $std->infdps->tpemit = 1; // 1=Prestador de serviço
-        $std->infdps->clocemi = $this->config['cod_municipio']; // IBGE do local de emissão
+        $std->infDPS->dCompet = $nfse->created_at->format('Y-m-d');
+        $std->infDPS->tpEmit = 1; // 1=Prestador de serviço
+        $std->infDPS->cLocEmi = preg_replace('/[^0-9]/', '', $this->config['cod_municipio']); // IBGE do local de emissão (Sanitized)
 
         // Prestador
-        $std->infdps->prest = new stdClass();
-        $std->infdps->prest->cnpj = preg_replace('/[^0-9]/', '', $this->config['cnpj']);
+        $std->infDPS->prest = new stdClass();
+        $std->infDPS->prest->CNPJ = preg_replace('/[^0-9]/', '', $this->config['cnpj']);
         if (!empty($this->config['im'])) {
-            $std->infdps->prest->im = preg_replace('/[^0-9]/', '', $this->config['im']);
+            $std->infDPS->prest->IM = preg_replace('/[^0-9]/', '', $this->config['im']);
         }
 
         // Regime Tributário
         $crt = Configuracao::get('nfe_crt', '1');
 
-        // Inicializa objeto regtrib explicitamente
+        // Inicializa objeto regTrib explicitamente
         $regTribObj = new stdClass();
 
         // Mapeia CRT para Opção Simples Nacional (1=Não Optante, 2=MEI, 3=ME/EPP)
@@ -298,131 +337,132 @@ class NFSeService
              $opSimpNac = 3; // Simples Nacional ME/EPP
         }
 
-        $regTribObj->opsimpnac = $opSimpNac;
-        $regTribObj->regesptrib = 0; // 0 = Nenhum (Padrão)
+        $regTribObj->opSimpNac = $opSimpNac;
+        $regTribObj->regEspTrib = 0; // 0 = Nenhum (Padrão)
 
         // Se for Optante Simples Nacional ME/EPP (3), exige Regime de Apuração
         if ($opSimpNac == 3) {
             // 1 - Regime de Caixa
             // 2 - Regime de Competência
             // Padrão: 1 (Caixa) - Pode ser transformado em configuração posteriormente
-            $regTribObj->regaptribsn = 1;
+            $regTribObj->regApTribSN = 1;
         }
 
-        $std->infdps->prest->regtrib = $regTribObj;
+        $std->infDPS->prest->regTrib = $regTribObj;
 
-        // Log para debug
-        Log::info('NFSeService: regtrib structure', ['regtrib' => $std->infdps->prest->regtrib]);
+        // Log::info('NFSeService: regTrib structure', ['regTrib' => $std->infDPS->prest->regTrib]);
 
         // Tomador
-        $std->infdps->toma = new stdClass();
+        $std->infDPS->toma = new stdClass();
         $cpfCnpjTomador = preg_replace('/[^0-9]/', '', $nfse->cliente->cpf_cnpj);
 
         if (strlen($cpfCnpjTomador) > 11) {
-            $std->infdps->toma->cnpj = $cpfCnpjTomador;
+            $std->infDPS->toma->CNPJ = $cpfCnpjTomador;
         } else {
-            $std->infdps->toma->cpf = $cpfCnpjTomador;
+            $std->infDPS->toma->CPF = $cpfCnpjTomador;
         }
-        $std->infdps->toma->xnome = $nfse->cliente->nome;
+        $std->infDPS->toma->xNome = $nfse->cliente->nome;
 
         // Endereço do Tomador (Obrigatório para evitar caracterização de exportação indevida)
         if ($nfse->cliente->endereco) {
-            $std->infdps->toma->end = new stdClass();
-            $std->infdps->toma->end->endnac = new stdClass();
+            $std->infDPS->toma->end = new stdClass();
+            $std->infDPS->toma->end->endNac = new stdClass();
 
             // Tenta obter o código IBGE
             $cMun = $this->config['cod_municipio']; // Default para mesmo município
             // TODO: Implementar busca correta de código IBGE baseada no nome da cidade/estado se diferente
             // Por enquanto, assume mesmo município se nomes baterem ou fallback
 
-            $std->infdps->toma->end->endnac->cmun = $cMun;
-            $std->infdps->toma->end->endnac->cep = preg_replace('/[^0-9]/', '', $nfse->cliente->endereco->cep);
+            $std->infDPS->toma->end->endNac->cMun = $cMun;
+            $std->infDPS->toma->end->endNac->CEP = preg_replace('/[^0-9]/', '', $nfse->cliente->endereco->cep);
 
-            $std->infdps->toma->end->xlgr = Str::limit($nfse->cliente->endereco->endereco, 60);
-            $std->infdps->toma->end->nro = Str::limit($nfse->cliente->endereco->numero ?? 'S/N', 10);
-            $std->infdps->toma->end->xbairro = Str::limit($nfse->cliente->endereco->bairro ?? 'Centro', 60);
+            $std->infDPS->toma->end->xLgr = Str::limit($nfse->cliente->endereco->endereco, 60);
+            $std->infDPS->toma->end->nro = Str::limit($nfse->cliente->endereco->numero ?? 'S/N', 10);
+            $std->infDPS->toma->end->xBairro = Str::limit($nfse->cliente->endereco->bairro ?? 'Centro', 60);
             if (!empty($nfse->cliente->endereco->complemento)) {
-                 $std->infdps->toma->end->xcpl = Str::limit($nfse->cliente->endereco->complemento, 60);
+                 $std->infDPS->toma->end->xCpl = Str::limit($nfse->cliente->endereco->complemento, 60);
             }
         }
 
         // Serviço
-        $std->infdps->serv = new stdClass();
-        $std->infdps->serv->cserv = new stdClass();
+        $std->infDPS->serv = new stdClass();
+        $std->infDPS->serv->cServ = new stdClass();
         // Remove caracteres não numéricos do código de tributação nacional (ex: 14.01 -> 1401)
         // Se tiver 4 dígitos (Item + Subitem), adiciona '01' como desdobro padrão
         // Se tiver 6 dígitos, mantém
         $cTribNacRaw = preg_replace('/[^0-9]/', '', $nfse->codigo_servico);
         if (strlen($cTribNacRaw) === 4) {
-            $std->infdps->serv->cserv->ctribnac = $cTribNacRaw . '01';
+            $std->infDPS->serv->cServ->cTribNac = $cTribNacRaw . '01';
         } else {
-            $std->infdps->serv->cserv->ctribnac = str_pad($cTribNacRaw, 6, '0', STR_PAD_RIGHT);
+            $std->infDPS->serv->cServ->cTribNac = str_pad($cTribNacRaw, 6, '0', STR_PAD_RIGHT);
         }
 
-        Log::info('NFSeService: cTribNac processed', [
-            'original' => $nfse->codigo_servico,
-            'cleaned' => $cTribNacRaw,
-            'final' => $std->infdps->serv->cserv->ctribnac
-        ]);
+        // Log::info('NFSeService: cTribNac processed', [
+        //     'original' => $nfse->codigo_servico,
+        //     'cleaned' => $cTribNacRaw,
+        //     'final' => $std->infDPS->serv->cServ->cTribNac
+        // ]);
 
         // Código NBS (Nomenclatura Brasileira de Serviços) - Obrigatório se houver exportação ou conforme regra municipal
         if (!empty($nfse->codigo_nbs)) {
-            $std->infdps->serv->cserv->cnbs = preg_replace('/[^0-9]/', '', $nfse->codigo_nbs);
+            $std->infDPS->serv->cServ->cNBS = preg_replace('/[^0-9]/', '', $nfse->codigo_nbs);
         }
 
-        // $std->infdps->serv->cserv->ctribmun = preg_replace('/[^0-9]/', '', $nfse->codigo_servico);
+        // $std->infDPS->serv->cServ->cTribMun = preg_replace('/[^0-9]/', '', $nfse->codigo_servico);
         // cTribMun (Código Tributação Municipal) deve ter 3 dígitos. Como codigo_servico é LC116 (ex: 14.01), não serve.
         // O campo é opcional (minOccurs=0), então vamos omitir para evitar erro de schema (RNG6110).
 
-        $std->infdps->serv->cserv->xdescserv = $nfse->discriminacao ?? 'Serviço Prestado'; // Obrigatório
+        $std->infDPS->serv->cServ->xDescServ = trim(preg_replace('/\s+/', ' ', $nfse->discriminacao ?? 'Serviço Prestado')); // Normalize whitespace
 
-        $std->infdps->serv->locprest = new stdClass();
-        $std->infdps->serv->locprest->clocprestacao = $nfse->municipio_prestacao ?? $this->config['cod_municipio'];
+        $std->infDPS->serv->locPrest = new stdClass();
+        $std->infDPS->serv->locPrest->cLocPrestacao = $nfse->municipio_prestacao ?? $this->config['cod_municipio'];
 
         // Valores
-        $std->infdps->valores = new stdClass();
-        $std->infdps->valores->vservprest = new stdClass();
-        $std->infdps->valores->vservprest->vserv = number_format($nfse->valor_servico, 2, '.', '');
+        $std->infDPS->valores = new stdClass();
+        $std->infDPS->valores->vServPrest = new stdClass();
+        $std->infDPS->valores->vServPrest->vServ = number_format($nfse->valor_servico, 2, '.', '');
 
         // Tributação Municipal (ISSQN)
-        $std->infdps->valores->trib = new stdClass();
-        $std->infdps->valores->trib->tribmun = new stdClass();
+        $std->infDPS->valores->trib = new stdClass();
+        $std->infDPS->valores->trib->tribMun = new stdClass();
 
         // Mapeamento Tributação ISSQN
-        // 1: Tributável (com incidência)
-        // 2: Tributável com Retenção
-        // 3: Isenta
-        // 4: Imune
+        // 1: Tributável
+        // 2: Imunidade
+        // 3: Exportação de serviço
+        // 4: Não Incidência
         $tribIssqn = 1; // Padrão Normal
 
-        // Se for MEI (opSimpNac = 2), geralmente é Imune/Isento na NFS-e (recolhe via DAS)
-        // Vamos tentar Isenta (3) ou Imune (4) se E999 persistir
-        // Mas por enquanto, vamos manter 1 e ver se o erro muda.
-        // Update: E999 com 1. Vamos tentar mudar para 3 (Isenta) se for MEI.
-         if ($opSimpNac == 2) {
-                $tribIssqn = 2; // Tentativa Imunidade
-            }
+        // Se for MEI (opSimpNac = 2)
+        if ($opSimpNac == 2) {
+             $tribIssqn = 1; // MEI Tributável no Nacional (sem alíquota)
+        }
 
         if ($nfse->iss_retido) {
-            $tribIssqn = 2; // Retido
+            $tribIssqn = 1; // Se for retido, deve ser tributável?
         }
-        $std->infdps->valores->trib->tribmun->tribissqn = $tribIssqn;
+        $std->infDPS->valores->trib->tribMun->tribISSQN = $tribIssqn;
 
         // Tipo de Retenção do ISSQN (Obrigatório)
         // 1 - Não Retido
         // 2 - Retido pelo Tomador
         // 3 - Retido pelo Intermediário
-        $std->infdps->valores->trib->tribmun->tpretissqn = ($nfse->iss_retido) ? 2 : 1;
+        $std->infDPS->valores->trib->tribMun->tpRetISSQN = ($nfse->iss_retido) ? 2 : 1;
+
+        // tpImunidade (Opcional)
+        if ($tribIssqn == 2) {
+             $std->infDPS->valores->trib->tribMun->tpImunidade = 0;
+        }
 
         // Se tiver alíquota definida
-        Log::info('NFSeService: Checking aliquota', ['aliquota_iss' => $nfse->aliquota_iss]);
-        if ($nfse->aliquota_iss > 0) {
-            $std->infdps->valores->trib->tribmun->paliq = number_format($nfse->aliquota_iss, 2, '.', '');
+        // Log::info('NFSeService: Checking aliquota', ['aliquota_iss' => $nfse->aliquota_iss]);
+        if ($nfse->aliquota_iss > 0 && $opSimpNac != 2) {
+            $std->infDPS->valores->trib->tribMun->pAliq = number_format($nfse->aliquota_iss, 2, '.', '');
         }
 
         // Totais Tributos (Obrigatório escolha de um tipo)
-        $std->infdps->valores->trib->tottrib = new stdClass();
-        $std->infdps->valores->trib->tottrib->indtottrib = 0; // 0 - Não informar nenhum valor estimado (Lei 12.741/2012)
+        $std->infDPS->valores->trib->totTrib = new stdClass();
+        $std->infDPS->valores->trib->totTrib->indTotTrib = 0; // 0 - Não informar nenhum valor estimado (Lei 12.741/2012)
 
         return $std;
     }
@@ -448,6 +488,59 @@ class NFSeService
         }
 
         return $pdfContent; // Deve ser o binário do PDF
+    }
+
+    /**
+     * Cancela uma NFS-e autorizada
+     *
+     * @param NotaFiscalServico $nfse
+     * @param string $codigoMotivo Código numérico (1=Erro Emissão, 2=Serviço não prestado, etc)
+     * @param string $descricaoMotivo Descrição detalhada (min 15 chars)
+     * @return array Resposta da API
+     */
+    public function cancelar(NotaFiscalServico $nfse, $codigoMotivo, $descricaoMotivo)
+    {
+        if ($nfse->status !== 'autorizada' || !$nfse->chave_acesso) {
+            throw new Exception("Apenas NFS-e autorizada pode ser cancelada.");
+        }
+
+        if (!$this->tools) {
+            if (!$this->certificate) $this->loadCertificate();
+            $toolsConfig = json_encode(['tpamb' => $this->config['ambiente']]);
+            $this->tools = new Tools($toolsConfig, $this->certificate);
+        }
+
+        $std = new stdClass();
+        $std->version = "1.00";
+        $std->infPedReg = new stdClass();
+        $std->infPedReg->tpAmb = $this->config['ambiente'];
+        $std->infPedReg->dhEvento = date('Y-m-d\TH:i:sP');
+        $std->infPedReg->verAplic = "JBTECH_1.0";
+
+        // Autor do evento (Prestador)
+        $std->infPedReg->CNPJAutor = preg_replace('/[^0-9]/', '', $this->config['cnpj']);
+
+        $std->infPedReg->chNFSe = $nfse->chave_acesso;
+
+        // Evento de Cancelamento (101101)
+        $std->infPedReg->e101101 = new stdClass();
+        $std->infPedReg->e101101->xDesc = "Cancelamento de NFS-e";
+        $std->infPedReg->e101101->cMotivo = $codigoMotivo;
+        $std->infPedReg->e101101->xMotivo = $descricaoMotivo;
+
+        try {
+             $response = $this->tools->cancelaNfse($std);
+
+             if (isset($response['erro'])) {
+                 throw new Exception("Erro API Cancelamento: " . json_encode($response));
+             }
+
+             return $response;
+
+        } catch (Exception $e) {
+            Log::error("Erro ao cancelar NFS-e {$nfse->id}: " . $e->getMessage());
+            throw $e;
+        }
     }
 
     // --- Métodos de Carregamento de Certificado (Duplicados de NFeService) ---

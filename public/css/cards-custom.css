@@ -2,37 +2,37 @@
 
 /* Cards Padrão - Tamanho e Espaçamento Uniforme */
 .card {
-    border-radius: 0.5rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    margin-bottom: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  margin-bottom: 1.5rem;
 }
 
 .card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-    transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
 }
 
 /* Card Body - Padding Padronizado */
 .card-body {
-    padding: 1.25rem;
+  padding: 1.25rem;
 }
 
 /* Card Header - Padronizado */
 .card-header {
-    padding: 1rem 1.25rem;
-    background-color: #f8f9fa;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 0.5rem 0.5rem 0 0 !important;
+  padding: 1rem 1.25rem;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 0.5rem 0.5rem 0 0 !important;
 }
 
 .card-header h5,
 .card-header .card-title {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #2c3e50;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2c3e50;
 }
 
 /* Cards com Fundo Colorido - Garantir Contraste */
@@ -42,7 +42,7 @@
 .card.bg-warning,
 .card.bg-danger,
 .card.bg-secondary {
-    color: #ffffff;
+  color: #ffffff;
 }
 
 .card.bg-primary .card-body,
@@ -51,7 +51,7 @@
 .card.bg-warning .card-body,
 .card.bg-danger .card-body,
 .card.bg-secondary .card-body {
-    color: #ffffff;
+  color: #ffffff;
 }
 
 .card.bg-primary .card-title,
@@ -60,7 +60,7 @@
 .card.bg-warning .card-title,
 .card.bg-danger .card-title,
 .card.bg-secondary .card-title {
-    color: #ffffff !important;
+  color: #ffffff !important;
 }
 
 .card.bg-primary h3,
@@ -69,7 +69,7 @@
 .card.bg-warning h3,
 .card.bg-danger h3,
 .card.bg-secondary h3 {
-    color: #ffffff;
+  color: #ffffff;
 }
 
 .card.bg-primary h6,
@@ -78,7 +78,7 @@
 .card.bg-warning h6,
 .card.bg-danger h6,
 .card.bg-secondary h6 {
-    color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .card.bg-primary p,
@@ -87,7 +87,7 @@
 .card.bg-warning p,
 .card.bg-danger p,
 .card.bg-secondary p {
-    color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .card.bg-primary small,
@@ -96,7 +96,7 @@
 .card.bg-warning small,
 .card.bg-danger small,
 .card.bg-secondary small {
-    color: rgba(255, 255, 255, 0.85);
+  color: #000000 !important;
 }
 
 /* Card Header com Fundo Colorido */
@@ -106,8 +106,8 @@
 .card-header.bg-warning,
 .card-header.bg-danger,
 .card-header.bg-secondary {
-    color: #ffffff;
-    border-bottom: none;
+  color: #ffffff;
+  border-bottom: none;
 }
 
 .card-header.bg-primary .card-title,
@@ -116,7 +116,7 @@
 .card-header.bg-warning .card-title,
 .card-header.bg-danger .card-title,
 .card-header.bg-secondary .card-title {
-    color: #ffffff !important;
+  color: #ffffff !important;
 }
 
 /* Remover text-dark de cards com fundo escuro */
@@ -126,7 +126,7 @@
 .card.bg-warning .text-dark,
 .card.bg-danger .text-dark,
 .card.bg-secondary .text-dark {
-    color: #ffffff !important;
+  color: #ffffff !important;
 }
 
 .card-header.bg-primary ~ .card-body .text-dark,
@@ -135,7 +135,7 @@
 .card-header.bg-warning ~ .card-body .text-dark,
 .card-header.bg-danger ~ .card-body .text-dark,
 .card-header.bg-secondary ~ .card-body .text-dark {
-    color: #212529 !important;
+  color: #212529 !important;
 }
 
 /* Cards de Estatísticas - Tamanho Compacto */
@@ -145,7 +145,7 @@
 .card.bg-warning .card-body,
 .card.bg-danger .card-body,
 .card.bg-secondary .card-body {
-    padding: 1rem 1.25rem;
+  padding: 1rem 1.25rem;
 }
 
 .card.bg-primary h3,
@@ -154,9 +154,9 @@
 .card.bg-warning h3,
 .card.bg-danger h3,
 .card.bg-secondary h3 {
-    font-size: 1.75rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
 }
 
 .card.bg-primary h6,
@@ -165,365 +165,366 @@
 .card.bg-warning h6,
 .card.bg-danger h6,
 .card.bg-secondary h6 {
-    font-size: 0.875rem;
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 /* Cards de Lista - Compactos */
 .card .list-group {
-    margin-bottom: 0;
+  margin-bottom: 0;
 }
 
 .card .list-group-item {
-    padding: 0.75rem 1rem;
-    border-left: none;
-    border-right: none;
+  padding: 0.75rem 1rem;
+  border-left: none;
+  border-right: none;
 }
 
 .card .list-group-item:first-child {
-    border-top: none;
+  border-top: none;
 }
 
 .card .list-group-item:last-child {
-    border-bottom: none;
+  border-bottom: none;
 }
 
 /* Cards com Tabelas - Compactos */
 .card .table {
-    margin-bottom: 0;
+  margin-bottom: 0;
 }
 
 .card .table thead th {
-    font-size: 0.875rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 0.75rem;
-    border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0.75rem;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.1);
 }
 
 .card .table tbody td {
-    padding: 0.75rem;
-    font-size: 0.9rem;
+  padding: 0.75rem;
+  font-size: 0.9rem;
 }
 
 /* Badges em Cards */
 .card .badge {
-    font-size: 0.75rem;
-    padding: 0.35em 0.65em;
-    font-weight: 500;
+  font-size: 0.75rem;
+  padding: 0.35em 0.65em;
+  font-weight: 500;
 }
 
 /* Botões em Cards */
 .card .btn {
-    font-size: 0.875rem;
-    padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
 }
 
 .card .btn-sm {
-    font-size: 0.8rem;
-    padding: 0.375rem 0.75rem;
+  font-size: 0.8rem;
+  padding: 0.375rem 0.75rem;
 }
 
 /* Cards de Dashboard - Altura Uniforme */
 .row .col-md-3 .card,
 .row .col-md-4 .card,
 .row .col-md-6 .card {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .row .col-md-3 .card .card-body,
 .row .col-md-4 .card .card-body,
 .row .col-md-6 .card .card-body {
-    flex: 1;
+  flex: 1;
 }
 
 /* Espaçamento entre Cards */
 .row.mb-4 {
-    margin-bottom: 1.5rem !important;
+  margin-bottom: 1.5rem !important;
 }
 
 /* Cards com Background Customizado */
-.card[style*="background-color"] {
-    color: #ffffff;
+.card[style*='background-color'] {
+  color: #ffffff;
 }
 
-.card[style*="background-color"] .card-body {
-    color: #ffffff;
+.card[style*='background-color'] .card-body {
+  color: #ffffff;
 }
 
-.card[style*="background-color"] .card-title {
-    color: #ffffff !important;
+.card[style*='background-color'] .card-title {
+  color: #ffffff !important;
 }
 
 /* Ajustes para Cards de Ações Rápidas */
 .card .d-grid {
-    gap: 0.5rem;
+  gap: 0.5rem;
 }
 
 /* Seção de Filtros - Design Melhorado */
 .card-body .card {
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .card-body .card .card-body {
-    padding: 1.25rem;
+  padding: 1.25rem;
 }
 
 .form-label {
-    font-size: 0.875rem;
-    margin-bottom: 0.5rem;
-    color: #495057;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+  color: #495057;
 }
 
 .form-label i {
-    font-size: 0.8rem;
+  font-size: 0.8rem;
 }
 
 .form-select[multiple] {
-    min-height: 100px;
-    padding: 0.5rem;
+  min-height: 100px;
+  padding: 0.5rem;
 }
 
 .form-select[multiple] option {
-    padding: 0.5rem;
-    border-radius: 0.25rem;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
 }
 
 .form-select[multiple] option:checked {
-    background-color: #0d6efd;
-    color: white;
+  background-color: #0d6efd;
+  color: white;
 }
 
 /* Badges de Status Selecionados */
 .badge a {
-    cursor: pointer;
-    font-weight: bold;
-    opacity: 0.8;
-    transition: opacity 0.2s;
+  cursor: pointer;
+  font-weight: bold;
+  opacity: 0.8;
+  transition: opacity 0.2s;
 }
 
 .badge a:hover {
-    opacity: 1;
+  opacity: 1;
 }
 
 /* Botões de Filtro Compactos */
 .btn[title] {
-    min-width: 40px;
+  min-width: 40px;
 }
 
 /* Estilos para Grid Editável de Produtos */
 .editable-field {
-    border: 1px solid #dee2e6;
-    border-radius: 0.375rem;
-    transition: all 0.2s ease;
-    background-color: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+  background-color: #fff;
 }
 
 .editable-field:hover {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.1);
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.1);
 }
 
 .editable-field:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
-    outline: 0;
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+  outline: 0;
 }
 
 .editable-field:disabled {
-    background-color: #f8f9fa;
-    opacity: 0.6;
-    cursor: not-allowed;
+  background-color: #f8f9fa;
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* Estilo para campos editáveis na tabela */
 #productsTable .editable-field {
-    font-size: 0.875rem;
-    padding: 0.375rem 0.5rem;
-    margin: 0;
+  font-size: 0.875rem;
+  padding: 0.375rem 0.5rem;
+  margin: 0;
 }
 
 #productsTable .editable-field.form-select-sm {
-    padding: 0.25rem 1.75rem 0.25rem 0.5rem;
+  padding: 0.25rem 1.75rem 0.25rem 0.5rem;
 }
 
 /* Feedback visual ao salvar */
 .editable-field.saving {
-    border-color: #ffc107;
-    background-color: #fffbf0;
+  border-color: #ffc107;
+  background-color: #fffbf0;
 }
 
 .editable-field.saved {
-    border-color: #28a745;
-    background-color: #f0fff4;
-    animation: pulse 0.5s ease;
+  border-color: #28a745;
+  background-color: #f0fff4;
+  animation: pulse 0.5s ease;
 }
 
 @keyframes pulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.4);
-    }
-    50% {
-        box-shadow: 0 0 0 0.3rem rgba(40, 167, 69, 0.1);
-    }
-    100% {
-        box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
-    }
+  0% {
+    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 0.3rem rgba(40, 167, 69, 0.1);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+  }
 }
 
 /* Toggle Switch Estilizado */
 .form-switch-lg .form-check-input {
-    width: 3rem !important;
-    height: 1.5rem !important;
-    cursor: pointer;
-    background-color: #6c757d;
-    border: none;
+  width: 3rem !important;
+  height: 1.5rem !important;
+  cursor: pointer;
+  background-color: #6c757d;
+  border: none;
 }
 
 .form-switch-lg .form-check-input:checked {
-    background-color: #198754;
-    border-color: #198754;
+  background-color: #198754;
+  border-color: #198754;
 }
 
 .form-switch-lg .form-check-input:focus {
-    box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+  box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
 }
 
 .form-switch-lg .form-check-input::before {
-    content: '';
-    position: absolute;
-    width: 1.25rem;
-    height: 1.25rem;
-    border-radius: 50%;
-    background-color: #fff;
-    transition: transform 0.2s ease;
-    transform: translateX(0.125rem);
+  content: '';
+  position: absolute;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  background-color: #fff;
+  transition: transform 0.2s ease;
+  transform: translateX(0.125rem);
 }
 
 .form-switch-lg .form-check-input:checked::before {
-    transform: translateX(1.5rem);
+  transform: translateX(1.5rem);
 }
 
 /* Badge de Status Animado */
 #statusEdicaoInline {
-    transition: all 0.3s ease;
-    padding: 0.5rem 0.75rem;
-    font-weight: 500;
+  transition: all 0.3s ease;
+  padding: 0.5rem 0.75rem;
+  font-weight: 500;
 }
 
 #statusEdicaoInline i {
-    font-size: 1rem;
+  font-size: 1rem;
 }
 
 /* Melhorias na Tabela de Produtos */
 #productsTable tbody tr:hover {
-    background-color: #f8f9fa;
+  background-color: #f8f9fa;
 }
 
 #productsTable tbody tr:hover .editable-field {
-    background-color: #fff;
+  background-color: #fff;
 }
 
 /* Indicador de Campo Editável */
 .editable-field::placeholder {
-    color: #adb5bd;
-    font-style: italic;
+  color: #adb5bd;
+  font-style: italic;
 }
 
 /* Badge de Modo Edição Ativo */
 .card-header .badge.bg-success {
-    animation: pulse-badge 2s infinite;
+  animation: pulse-badge 2s infinite;
 }
 
 @keyframes pulse-badge {
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.8;
-    }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
 }
 
 /* Melhorias visuais nos campos monetários */
 .money-input.text-end {
-    text-align: right;
-    font-weight: 500;
+  text-align: right;
+  font-weight: 500;
 }
 
 /* Ícones nos campos editáveis */
 .editable-field + i,
 .editable-field ~ i {
-    transition: color 0.2s ease;
+  transition: color 0.2s ease;
 }
 
 .editable-field:hover + i,
 .editable-field:focus ~ i {
-    color: #0d6efd !important;
+  color: #0d6efd !important;
 }
 
 /* Responsividade */
 @media (max-width: 768px) {
-    .card-body {
-        padding: 1rem;
-    }
-    
-    .card-header {
-        padding: 0.75rem 1rem;
-    }
-    
-    .card.bg-primary h3,
-    .card.bg-success h3,
-    .card.bg-info h3,
-    .card.bg-warning h3,
-    .card.bg-danger h3,
-    .card.bg-secondary h3 {
-        font-size: 1.5rem;
-    }
-    
-    .form-select[multiple] {
-        min-height: 80px;
-    }
-    
-    .col-md-1.d-flex {
-        flex-direction: row !important;
-        justify-content: flex-start !important;
-    }
-    
-    .col-md-1 .btn {
-        margin-right: 0.5rem;
-        margin-bottom: 0 !important;
-    }
-    
-    .editable-field {
-        font-size: 0.8rem !important;
-        padding: 0.25rem 0.4rem !important;
-    }
-    
-    .form-switch-lg .form-check-input {
-        width: 2.5rem !important;
-        height: 1.25rem !important;
-    }
+  .card-body {
+    padding: 1rem;
+  }
+
+  .card-header {
+    padding: 0.75rem 1rem;
+  }
+
+  .card.bg-primary h3,
+  .card.bg-success h3,
+  .card.bg-info h3,
+  .card.bg-warning h3,
+  .card.bg-danger h3,
+  .card.bg-secondary h3 {
+    font-size: 1.5rem;
+  }
+
+  .form-select[multiple] {
+    min-height: 80px;
+  }
+
+  .col-md-1.d-flex {
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+  }
+
+  .col-md-1 .btn {
+    margin-right: 0.5rem;
+    margin-bottom: 0 !important;
+  }
+
+  .editable-field {
+    font-size: 0.8rem !important;
+    padding: 0.25rem 0.4rem !important;
+  }
+
+  .form-switch-lg .form-check-input {
+    width: 2.5rem !important;
+    height: 1.25rem !important;
+  }
 }
 
 /* Fixes for Dark Mode Hover on Tables */
 .dark-style .table-hover tbody tr:hover {
-    background-color: rgba(255, 255, 255, 0.05) !important;
-    color: inherit;
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: inherit;
 }
 
 /* Fix for Products Table in Dark Mode */
 .dark-style #productsTable tbody tr:hover {
-    background-color: rgba(255, 255, 255, 0.05) !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
 }
 
 .dark-style #productsTable tbody tr:hover .editable-field {
-    background-color: #2b2c40 !important;
-    color: #fff !important;
+  background-color: #2b2c40 !important;
+  color: #fff !important;
 }

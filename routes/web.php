@@ -139,6 +139,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
   // Rotas para NFS-e (Nota Fiscal de Serviço)
   Route::get('/dashboard/nfse/visualizar-fake/{chave}', [\App\Http\Controllers\NotaFiscalServicoController::class, 'visualizarFake'])->name('nfse.visualizar-fake');
   Route::get('/dashboard/nfse/{id}/pdf', [\App\Http\Controllers\NotaFiscalServicoController::class, 'gerarPdf'])->name('nfse.pdf');
+  Route::get('/dashboard/nfse/{id}/xml', [\App\Http\Controllers\NotaFiscalServicoController::class, 'downloadXml'])->name('nfse.xml');
+  Route::post('/dashboard/nfse/{id}/cancelar', [\App\Http\Controllers\NotaFiscalServicoController::class, 'cancelar'])->name('nfse.cancelar');
   Route::resource('dashboard/nfse', \App\Http\Controllers\NotaFiscalServicoController::class);
   Route::post('/dashboard/nfse/{id}/emitir', [\App\Http\Controllers\NotaFiscalServicoController::class, 'emitir'])->name('nfse.emitir');
 
@@ -161,6 +163,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
   // Route::get('dashboard/vendas', [VendaController::class,'create'])->name('vendas');
   // Route::post('/vendas/{id}/gerar-cobranca', [VendaController::class, 'gerarCobranca'])->name('vendas.gerarCobranca');
   Route::post('/vendas/{id}/gerar-cobranca', [VendaController::class, 'gerarCobranca'])->name('vendas.gerarCobranca');
+  Route::post('/dashboard/vendas/{id}/pagar-na-hora', [VendaController::class, 'pagarNaHora'])->name('vendas.pagarNaHora');
+  Route::post('/dashboard/vendas/{id}/finalizar-nfe', [VendaController::class, 'finalizarParaNfe'])->name('vendas.finalizar_nfe');
   Route::get('/dashboard/vendas/{id}/pdf', [VendaController::class, 'exportarPdf'])->name('vendas.exportarPdf');
   Route::resource('/dashboard/vendas', VendaController::class);
 

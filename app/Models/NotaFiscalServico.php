@@ -12,6 +12,7 @@ class NotaFiscalServico extends Model
     protected $table = 'notas_fiscais_servico';
 
     protected $fillable = [
+        'venda_id',
         'cliente_id',
         'numero_rps',
         'serie_rps',
@@ -62,8 +63,24 @@ class NotaFiscalServico extends Model
         return $this->belongsTo(Clientes::class, 'cliente_id');
     }
 
+    public function venda()
+    {
+        return $this->belongsTo(Venda::class, 'venda_id');
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function getLinkNfseAttribute($value)
+    {
+        if (!empty($value)) {
+            return $value;
+        }
+        if ($this->chave_acesso) {
+             return "https://www.nfse.gov.br/EmissorNacional/Notas/Download/DANFSe/" . $this->chave_acesso;
+        }
+        return null;
     }
 }

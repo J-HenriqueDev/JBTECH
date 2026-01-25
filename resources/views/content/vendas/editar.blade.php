@@ -27,13 +27,27 @@
         </h1>
         <div>
             <!-- Botão para Emitir NF-e -->
-            <a href="{{ route('nfe.create', ['venda_id' => $venda->id]) }}" class="btn btn-primary">
-                <i class="bx bx-receipt"></i> Emitir NF-e
-            </a>
+            @if ($venda->bloqueado)
+                <a href="{{ route('nfe.create', ['venda_id' => $venda->id]) }}" class="btn btn-secondary">
+                    <i class="bx bx-receipt"></i> Ver Emissão NF-e
+                </a>
+            @else
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalPagamentoNfe">
+                    <i class="bx bx-receipt"></i> Emitir NF-e
+                </button>
+            @endif
         </div>
     </div>
 
     <div class="card mb-4">
+        @if ($venda->bloqueado)
+            <div class="card-body pb-0">
+                <div class="alert alert-warning mb-0">
+                    <i class="bx bx-lock-alt"></i> <strong>Venda Bloqueada:</strong> Esta venda foi finalizada para emissão
+                    de NF-e e não pode ser alterada.
+                </div>
+            </div>
+        @endif
         <form action="{{ route('vendas.update', $venda->id) }}" method="POST" id="formEditarVenda">
             @csrf
             @method('PUT')
@@ -54,7 +68,8 @@
                                         <i class="bx bx-plus"></i> Novo
                                     </a>
                                 </div>
-                                <select id="select2Cliente" class="select2 form-select" name="cliente_id" required>
+                                <select id="select2Cliente" class="select2 form-select" name="cliente_id" required
+                                    {{ $venda->bloqueado ? 'disabled' : '' }}>
                                     <option value="" disabled>Selecione um cliente</option>
                                     @foreach ($clientes as $cliente)
                                         <option value="{{ $cliente->id }}" data-email="{{ $cliente->email }}"
@@ -69,7 +84,52 @@
                                     <i class="bx bx-calendar"></i> Data da Venda
                                 </label>
                                 <input type="date" class="form-control" id="data_venda" name="data_venda"
-                                    value="{{ $venda->data_venda }}" required>
+                                    value="{{ $venda->data_venda }}" required {{ $venda->bloqueado ? 'disabled' : '' }}>
+                            </div>
+                        </div>
+
+                        <!-- Segunda Linha: Pagamento -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="forma_pagamento" class="form-label">
+                                    <i class="bx bx-money"></i> Forma de Pagamento
+                                </label>
+                                <select id="forma_pagamento" class="form-select" name="forma_pagamento">
+                                    <option value="" {{ empty($venda->forma_pagamento) ? 'selected' : '' }}>
+                                        Selecione...</option>
+                                    <option value="dinheiro" {{ $venda->forma_pagamento == 'dinheiro' ? 'selected' : '' }}>
+                                        Dinheiro</option>
+                                    <option value="pix" {{ $venda->forma_pagamento == 'pix' ? 'selected' : '' }}>PIX
+                                    </option>
+                                    <option value="cartao_credito"
+                                        {{ $venda->forma_pagamento == 'cartao_credito' ? 'selected' : '' }}>Cartão de
+                                        Crédito</option>
+                                    <option value="cartao_debito"
+                                        {{ $venda->forma_pagamento == 'cartao_debito' ? 'selected' : '' }}>Cartão de Débito
+                                    </option>
+                                    <option value="boleto" {{ $venda->forma_pagamento == 'boleto' ? 'selected' : '' }}>
+                                        Boleto</option>
+                                    <option value="transferencia"
+                                        {{ $venda->forma_pagamento == 'transferencia' ? 'selected' : '' }}>Transferência
+                                    </option>
+                                    <option value="outros" {{ $venda->forma_pagamento == 'outros' ? 'selected' : '' }}>
+                                        Outros</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="status_pagamento" class="form-label">
+                                    <i class="bx bx-check-circle"></i> Status do Pagamento (Pedido)
+                                </label>
+                                <select id="status_pagamento" class="form-select" name="status">
+                                    <option value="pendente" {{ $venda->status == 'pendente' ? 'selected' : '' }}>Pendente
+                                    </option>
+                                    <option value="pago" {{ $venda->status == 'pago' ? 'selected' : '' }}>Pago /
+                                        Concluído</option>
+                                    <option value="cancelado" {{ $venda->status == 'cancelado' ? 'selected' : '' }}>
+                                        Cancelado</option>
+                                    <option value="orcamento" {{ $venda->status == 'orcamento' ? 'selected' : '' }}>
+                                        Orçamento</option>
+                                </select>
                             </div>
                         </div>
 
@@ -77,11 +137,32 @@
                         <div class="divider my-6">
                             <div class="divider-text"><i class="fas fa-briefcase"></i> Produtos</div>
                         </div>
+
+                        <!-- Quick Add Section (Added for NFe alignment) -->
+                        @if (!$venda->bloqueado)
+                            <div class="mb-3 p-3 bg-light rounded border">
+                                <label for="inputQuickAdd" class="form-label fw-bold text-primary">
+                                    <i class="bx bx-bolt-circle"></i> Adição Rápida
+                                </label>
+                                <div class="input-group">
+                                    <input type="text" id="inputQuickAdd" class="form-control"
+                                        placeholder="Digite: Qtd * Código * Preço (ex: 2 * 789 * 10,00) ou Código de Barras"
+                                        autofocus>
+                                    <button type="button" id="btnQuickAdd" class="btn btn-primary">
+                                        <i class="bx bx-plus"></i> Adicionar
+                                    </button>
+                                </div>
+                                <div class="form-text">Pressione ENTER para adicionar automaticamente.</div>
+                            </div>
+                        @endif
+
                         <div class="mb-3">
-                            <button type="button" class="btn btn-primary" data-bs-toggle="modal"
-                                data-bs-target="#modalAdicionarProduto">
-                                <i class="bx bx-plus-circle"></i> Adicionar Produto
-                            </button>
+                            @if (!$venda->bloqueado)
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                                    data-bs-target="#modalAdicionarProduto">
+                                    <i class="bx bx-plus-circle"></i> Pesquisar Produto
+                                </button>
+                            @endif
                         </div>
                         <div class="table-responsive mb-3">
                             <table class="table table-bordered" id="tabelaProdutos">
@@ -120,9 +201,11 @@
                                                 <td class="valor-total">R$
                                                     {{ number_format($produto->pivot->valor_total, 2, ',', '.') }}</td>
                                                 <td>
+                                                    @if(!$venda->bloqueado)
                                                     <button type="button" class="btn btn-danger btn-remover-produto">
                                                         <i class="bx bx-trash"></i> Remover
                                                     </button>
+                                                    @endif
                                                 </td>
                                             </tr>
                                         @endforeach
@@ -139,6 +222,111 @@
                             </table>
                         </div>
 
+                        <!-- Seção de Documentos Fiscais -->
+                        <div class="divider my-4">
+                            <div class="divider-text"><i class="bx bx-file"></i> Documentos Fiscais</div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <!-- NF-e (Produtos) -->
+                            <div class="col-md-6">
+                                <h6 class="fw-bold">Nota Fiscal de Produto (NF-e)</h6>
+                                @if ($venda->notasFiscais->isEmpty())
+                                    <p class="text-muted small">Nenhuma NF-e emitida.</p>
+                                @else
+                                    <ul class="list-group">
+                                        @foreach ($venda->notasFiscais as $nfe)
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    @php
+                                                        $badgeColor = match ($nfe->status) {
+                                                            'autorizada' => 'success',
+                                                            'cancelada' => 'danger',
+                                                            'rejeitada' => 'danger',
+                                                            'processando' => 'info',
+                                                            default => 'warning',
+                                                        };
+                                                    @endphp
+                                                    <span class="badge bg-{{ $badgeColor }}">
+                                                        {{ ucfirst($nfe->status) }}
+                                                    </span>
+                                                    <small class="ms-2">#{{ $nfe->numero_nfe ?? 'N/A' }}</small>
+                                                </div>
+                                                <div>
+                                                    @if ($nfe->status == 'autorizada')
+                                                        <a href="{{ route('nfe.gerarDanfe', $nfe->id) }}" target="_blank"
+                                                            class="btn btn-sm btn-icon btn-outline-danger"
+                                                            title="PDF DANFE">
+                                                            <i class="bx bxs-file-pdf"></i>
+                                                        </a>
+                                                        <a href="{{ route('nfe.downloadXml', $nfe->id) }}"
+                                                            target="_blank"
+                                                            class="btn btn-sm btn-icon btn-outline-success"
+                                                            title="XML">
+                                                            <i class="bx bx-code-alt"></i>
+                                                        </a>
+                                                    @endif
+                                                    <a href="{{ route('nfe.show', $nfe->id) }}"
+                                                        class="btn btn-sm btn-icon btn-outline-info" title="Ver Detalhes">
+                                                        <i class="bx bx-show"></i>
+                                                    </a>
+                                                </div>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                @endif
+                            </div>
+
+                            <!-- NFS-e (Serviços) -->
+                            <div class="col-md-6">
+                                <h6 class="fw-bold">Nota Fiscal de Serviço (NFS-e)</h6>
+                                @if ($venda->notasFiscaisServico->isEmpty())
+                                    <p class="text-muted small">Nenhuma NFS-e emitida.</p>
+                                @else
+                                    <ul class="list-group">
+                                        @foreach ($venda->notasFiscaisServico as $nfse)
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    @php
+                                                        $badgeColorServ = match ($nfse->status) {
+                                                            'autorizada' => 'success',
+                                                            'cancelada' => 'danger',
+                                                            'rejeitada' => 'danger',
+                                                            'processando' => 'info',
+                                                            default => 'warning',
+                                                        };
+                                                    @endphp
+                                                    <span class="badge bg-{{ $badgeColorServ }}">
+                                                        {{ ucfirst($nfse->status) }}
+                                                    </span>
+                                                    <small class="ms-2">RPS
+                                                        #{{ $nfse->numero_rps ?? $nfse->id }}</small>
+                                                </div>
+                                                <div>
+                                                    @if ($nfse->status == 'autorizada' || $nfse->chave_acesso)
+                                                        <a href="{{ route('nfse.pdf', $nfse->id) }}" target="_blank"
+                                                            class="btn btn-sm btn-icon btn-outline-danger"
+                                                            title="PDF NFS-e">
+                                                            <i class="bx bxs-file-pdf"></i>
+                                                        </a>
+                                                        <a href="{{ route('nfse.xml', $nfse->id) }}" target="_blank"
+                                                            class="btn btn-sm btn-icon btn-outline-success"
+                                                            title="XML">
+                                                            <i class="bx bx-code-alt"></i>
+                                                        </a>
+                                                    @endif
+                                                    <a href="{{ route('nfse.show', $nfse->id) }}"
+                                                        class="btn btn-sm btn-icon btn-outline-info" title="Ver Detalhes">
+                                                        <i class="bx bx-show"></i>
+                                                    </a>
+                                                </div>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                @endif
+                            </div>
+                        </div>
+
                         <!-- Campo de Observação -->
                         <div class="mb-3">
                             <label for="observacoes" class="form-label">
@@ -153,6 +341,16 @@
                             <a href="{{ route('vendas.exportarPdf', $venda->id) }}" class="btn btn-success me-2">
                                 <i class="bx bx-download"></i> Exportar PDF
                             </a>
+                            @if (!$venda->cobrancas->where('status', 'pago')->count())
+                                <form action="{{ route('vendas.pagarNaHora', $venda->id) }}" method="POST"
+                                    class="d-inline">
+                                    @csrf
+                                    <button type="submit" class="btn btn-info me-2"
+                                        onclick="return confirm('Confirmar pagamento imediato em Dinheiro?')">
+                                        <i class="bx bx-dollar-circle"></i> Pagar na Hora
+                                    </button>
+                                </form>
+                            @endif
                             <button type="button" class="btn btn-primary me-2" id="abrirModalCobranca">
                                 <i class="bx bx-money"></i> Gerar Cobrança
                             </button>
@@ -183,6 +381,23 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <!-- Quick Add Section -->
+                    <div class="mb-3 p-3 bg-light rounded border">
+                        <label for="inputQuickAdd" class="form-label fw-bold text-primary">
+                            <i class="bx bx-bolt-circle"></i> Adição Rápida
+                        </label>
+                        <div class="input-group">
+                            <input type="text" id="inputQuickAdd" class="form-control"
+                                placeholder="Digite: Quantidade * Código (ex: 2 * 789...) ou Leitor de Código de Barras"
+                                autofocus>
+                            <button type="button" id="btnQuickAdd" class="btn btn-primary">
+                                <i class="bx bx-plus"></i> Adicionar
+                            </button>
+                        </div>
+                        <div class="form-text">Pressione ENTER para adicionar automaticamente.</div>
+                    </div>
+                    <hr class="my-3">
+
                     <div class="row mb-3">
                         <div class="col-md-8">
                             <label for="produto_id" class="form-label">Selecionar Produto</label>

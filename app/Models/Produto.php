@@ -30,6 +30,7 @@ class Produto extends Model
         'ativo_pdv',
         'ativo',
         'tipo_item',
+        'codigo_servico',
         'estoque_minimo',
         'estoque_maximo',
         'localizacao',
@@ -67,6 +68,11 @@ class Produto extends Model
     public function categoria()
     {
         return $this->belongsTo(Categoria::class); // Altere 'Categoria' se seu modelo tiver um nome diferente
+    }
+
+    public function servico()
+    {
+        return $this->belongsTo(Servico::class);
     }
 
     public function usuario()

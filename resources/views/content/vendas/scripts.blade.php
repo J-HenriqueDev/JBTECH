@@ -2,6 +2,7 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
 <script>
 let custoCombustivel = 0; // Variável global para armazenar o custo do combustível
+let listaProdutos = []; // Lista completa de produtos carregados
 
 // Função para atualizar os produtos
 function atualizarProdutos() {
@@ -13,6 +14,7 @@ function atualizarProdutos() {
       method: 'GET',
       success: function (produtos) {
           console.log('Produtos carregados:', produtos);
+          listaProdutos = produtos; // Salva na variável global
 
           // Limpa as opções atuais
           $('#produto_id').empty();
@@ -109,13 +111,13 @@ $(document).ready(function () {
     @else
     var formaPagamentoPadrao = 'dinheiro';
     @endif
-    
+
     @if(isset($descontoMaximo))
     var descontoMaximo = {{ $descontoMaximo }};
     @else
     var descontoMaximo = 10;
     @endif
-    
+
     // Configura o idioma do Select2
     $.fn.select2.defaults.set('language', 'pt-BR');
 
@@ -145,21 +147,21 @@ $(document).ready(function () {
 
     $('#produto_id').on('change', function () {
         const selectedId = $(this).val();
-        
+
         // Ignora se nenhum produto foi selecionado ou se é o placeholder
         if (!selectedId || selectedId === '') {
             $('#valor_unitario').val('');
             $('#valor_total').val('');
             return;
         }
-        
+
         const selectedOption = $(this).find('option[value="' + selectedId + '"]');
         const preco = parseFloat(selectedOption.data('preco')) || 0;
-        
+
         if (preco && preco > 0) {
             // Preenche o campo Valor do Produto
             $('#valor_unitario').val(formatCurrency(preco));
-            
+
             // Calcula e preenche o Valor Total (preço × quantidade)
             const quantidade = parseInt($('#quantidade').val() || 1);
             const valorTotal = preco * quantidade;
@@ -175,25 +177,19 @@ $(document).ready(function () {
         const preco = parseCurrency($('#valor_unitario').val());
         const quantidade = parseInt($(this).val() || 1);
         let valorTotal = preco * quantidade;
-        
+
         // Aplica desconto máximo se configurado (será implementado quando houver campo de desconto)
         // if (descontoMaximo > 0) {
         //     const desconto = Math.min(descontoMaximo, (valorTotal * descontoMaximo / 100));
         //     valorTotal -= desconto;
         // }
-        
+
         $('#valor_total').val(formatCurrency(valorTotal));
     });
 
     // Adiciona o produto na tabela
-    $('#adicionarProduto').on('click', function () {
-        const produtoId = $('#produto_id').val();
-        const produtoNome = $('#produto_id option:selected').text().split(' - ')[0];
-        const precoUnitario = parseCurrency($('#valor_unitario').val());
-        const quantidade = parseInt($('#quantidade').val() || 1);
-        const valorTotal = precoUnitario * quantidade;
-
-        if (!produtoId || precoUnitario <= 0 || quantidade <= 0) {
+    function adicionarProdutoTabela(produtoId, produtoNome, precoUnitario, quantidade, valorTotal) {
+         if (!produtoId || precoUnitario <= 0 || quantidade <= 0) {
             alert('Por favor, preencha todos os campos corretamente antes de adicionar um produto.');
             return;
         }
@@ -231,14 +227,25 @@ $(document).ready(function () {
             </tr>
         `);
 
-        // Fecha o modal e limpa os campos
+        // Fecha o modal e limpa os campos se estiver aberto
         $('#modalAdicionarProduto').modal('hide');
         limparCamposModal();
         atualizarMensagemTabela();
         atualizarValorTotalTabela();
-        
+
         // Reindexa os produtos após adicionar
         reindexarProdutos();
+    }
+
+    // Event listener para o botão do modal
+    $('#adicionarProduto').on('click', function () {
+        const produtoId = $('#produto_id').val();
+        const produtoNome = $('#produto_id option:selected').text().split(' - ')[0];
+        const precoUnitario = parseCurrency($('#valor_unitario').val());
+        const quantidade = parseInt($('#quantidade').val() || 1);
+        const valorTotal = precoUnitario * quantidade;
+
+        adicionarProdutoTabela(produtoId, produtoNome, precoUnitario, quantidade, valorTotal);
     });
 
     // Função para reindexar os produtos na tabela

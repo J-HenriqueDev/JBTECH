@@ -23,6 +23,7 @@ class Venda extends Model
       'sincronizado',
       'data_sincronizacao',
       'status',
+      'bloqueado',
   ];
 
     protected $casts = [
@@ -32,6 +33,7 @@ class Venda extends Model
         'troco' => 'decimal:2',
         'sincronizado' => 'boolean',
         'data_sincronizacao' => 'datetime',
+        'bloqueado' => 'boolean',
     ];
 
     // Relacionamento com o cliente
@@ -58,6 +60,12 @@ class Venda extends Model
     public function notasFiscais()
     {
         return $this->hasMany(NotaFiscal::class);
+    }
+
+    // Relacionamento com notas fiscais de serviço
+    public function notasFiscaisServico()
+    {
+        return $this->hasMany(NotaFiscalServico::class);
     }
 
     // Relacionamento com cobranças

@@ -151,6 +151,7 @@ class NFeConfigController extends Controller
                 'nfe_ambiente' => 'number',
                 'nfe_serie' => 'number',
                 'nfe_ultimo_numero' => 'number',
+                'nfse_ultimo_numero' => 'number',
                 'nfe_csc' => 'text',
                 'nfe_csc_id' => 'text',
                 'nfe_endereco_logradouro' => 'text',
