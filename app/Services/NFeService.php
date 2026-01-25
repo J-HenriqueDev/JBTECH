@@ -21,7 +21,6 @@ use NFePHP\NFe\Common\Standardize;
 use NFePHP\NFe\Complements;
 use stdClass;
 use Exception;
-use App\Models\NotaFiscalServico;
 use App\Services\NFSeService;
 
 class NFeService
