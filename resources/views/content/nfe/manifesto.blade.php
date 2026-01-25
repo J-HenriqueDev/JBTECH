@@ -62,7 +62,9 @@
                     <i class="bx bx-history me-1"></i> Resync Completo
                 </button>
             </form>
-
+            <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#modalAtalhos">
+                <i class="bx bx-keyboard me-1"></i> Atalhos
+            </button>
         </div>
 
     </div>
@@ -284,12 +286,59 @@
         </div>
     </div>
 
+    <!-- Modal Atalhos -->
+    <div class="modal fade" id="modalAtalhos" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalAtalhosTitle">Atalhos de Teclado</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span>Marcar Tudo</span>
+                        <span class="badge bg-label-primary">F4</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Desmarcar Tudo</span>
+                        <span class="badge bg-label-secondary">F5</span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const selectAll = document.getElementById('select-all');
             const checkboxes = document.querySelectorAll('.note-checkbox');
             const bulkActions = document.getElementById('bulk-actions');
             const selectedCount = document.getElementById('selected-count');
+
+            // Atalhos de teclado
+            document.addEventListener('keydown', function(event) {
+                // F4: Marca tudo
+                if (event.key === 'F4' || event.keyCode === 115) {
+                    event.preventDefault();
+                    if (selectAll) {
+                        selectAll.checked = true;
+                        checkboxes.forEach(cb => cb.checked = true);
+                        updateBulkActions();
+                    }
+                }
+                // F5: Desmarca tudo (se não houver modal aberto)
+                if (event.key === 'F5' || event.keyCode === 116) {
+                    event.preventDefault();
+                    if (selectAll) {
+                        selectAll.checked = false;
+                        checkboxes.forEach(cb => cb.checked = false);
+                        updateBulkActions();
+                    }
+                }
+            });
 
             function updateBulkActions() {
                 const count = document.querySelectorAll('.note-checkbox:checked').length;
@@ -330,7 +379,7 @@
             }
 
             if (!confirm('Tem certeza que deseja manifestar ' + selected + ' notas selecionadas como ' + tipo
-                .toUpperCase() + '?')) {
+                    .toUpperCase() + '?')) {
                 return;
             }
 

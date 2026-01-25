@@ -1803,14 +1803,26 @@ INI;
             $doc = $std->loteDistDFeInt->docZip;
 
             // O retorno pode ser um array se houver duplicidade (raro por chave) ou objeto
-            if (is_array($doc)) {
+            if (is_array($doc) && isset($doc[0]) && (is_object($doc[0]) || is_array($doc[0]))) {
                 $doc = $doc[0];
             }
 
             $schema = $doc->schema;
             $contentEncoded = $doc->{'$'} ?? $doc->{0} ?? null;
 
-            if (!$contentEncoded) {
+            if (is_object($doc)) {
+                $schema = $doc->schema ?? null;
+                $nsu = $doc->NSU ?? null;
+                $contentEncoded = $doc->{'$'} ?? $doc->{0} ?? null;
+            } elseif (is_array($doc)) {
+                $schema = $doc['schema'] ?? null;
+                $nsu = $doc['NSU'] ?? null;
+                $contentEncoded = $doc['$'] ?? $doc[0] ?? null;
+            } elseif (is_string($doc)) {
+                $contentEncoded = $doc;
+            }
+
+            if (!$contentEncoded && (is_object($doc) || is_array($doc))) {
                 // Fallback busca string
                 foreach ($doc as $key => $value) {
                     if (is_string($value) && strlen($value) > 20) {
@@ -1827,7 +1839,7 @@ INI;
             return [
                 'schema' => $schema,
                 'content' => gzdecode(base64_decode($contentEncoded)),
-                'nsu' => $doc->NSU
+                'nsu' => $nsu
             ];
         } catch (Exception $e) {
             Log::error('Erro ao baixar NFe por chave: ' . $e->getMessage());
