@@ -1611,6 +1611,16 @@ INI;
             }
         }
 
+        // Verifica intervalo de espera por consulta vazia (137)
+        $nextNSUCheck = Configuracao::get('nfe_next_nsu_check');
+        if ($nextNSUCheck) {
+            $nextNSUTime = \Carbon\Carbon::parse($nextNSUCheck);
+            if (now()->lt($nextNSUTime)) {
+                $diff = (int) ceil(now()->diffInMinutes($nextNSUTime));
+                throw new Exception("Aguardando intervalo de 1 hora após consulta vazia (Regra SEFAZ). Nova verificação em {$diff} minutos.");
+            }
+        }
+
         try {
             if (!$this->tools) {
                 $this->loadCertificate();
@@ -1627,7 +1637,8 @@ INI;
             if ($std->cStat == 656) {
                 Configuracao::set('nfe_next_dfe_query', now()->addHour()->toDateTimeString(), 'nfe', 'datetime', 'Próxima consulta DFe permitida');
             } elseif ($std->cStat == 137) {
-                Configuracao::set('nfe_next_dfe_query', now()->addMinutes(5)->toDateTimeString(), 'nfe', 'datetime', 'Próxima consulta DFe permitida');
+                // Define espera de 1 hora apenas para novas consultas por NSU
+                Configuracao::set('nfe_next_nsu_check', now()->addHour()->toDateTimeString(), 'nfe', 'datetime', 'Próxima consulta NSU permitida');
             }
 
             if ($std->cStat != 138 && $std->cStat != 137) { // 138: Documentos localizados, 137: Nenhum documento

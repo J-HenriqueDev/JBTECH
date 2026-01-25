@@ -33,7 +33,7 @@ class ProcessarNFeDestinadas extends Command
         $this->info('Iniciando processamento automático de NF-e destinadas...');
         Log::info('Command nfe:processar-destinadas iniciado.');
 
-        // 1. Verificação de Bloqueio (Consumo Indevido)
+        // 1. Verificação de Bloqueio (Consumo Indevido - Global)
         $nextQuery = Configuracao::get('nfe_next_dfe_query');
         if ($nextQuery) {
             $nextQueryTime = Carbon::parse($nextQuery);
@@ -47,87 +47,10 @@ class ProcessarNFeDestinadas extends Command
         }
 
         try {
-            // 2. Consultar Novas Notas (Resumos)
-            // Lógica similar ao NotaEntradaController::buscarNovas, mas simplificada
-            $lastNSU = Configuracao::get('nfe_last_nsu') ?: 0;
-            $maxLoops = 3; // Limite de segurança
-            $loopCount = 0;
-            $novasNotas = 0;
+            // 2. Manifestar e Baixar XMLs para notas apenas "detectadas" ou "pendente" (PRIORIDADE)
+            // Executamos antes de buscar novas para garantir que o backlog seja processado
+            // mesmo que estejamos em "wait" para novas consultas.
 
-            $this->info("Consultando SEFAZ a partir do NSU: $lastNSU");
-
-            do {
-                // Verifica bloqueio antes de cada loop
-                $nextQueryCheck = Configuracao::get('nfe_next_dfe_query');
-                if ($nextQueryCheck && now()->lt(Carbon::parse($nextQueryCheck))) {
-                    $this->warn('Bloqueio ativado durante o loop.');
-                    break;
-                }
-
-                $resp = $nfeService->consultarNotasDestinadas($lastNSU);
-                $ultNSU = $resp->ultNSU;
-                $maxNSU = $resp->maxNSU;
-
-                if (isset($resp->loteDistDFeInt->docZip)) {
-                    $docs = is_array($resp->loteDistDFeInt->docZip) ? $resp->loteDistDFeInt->docZip : [$resp->loteDistDFeInt->docZip];
-
-                    foreach ($docs as $doc) {
-                        // Proteção contra formatos inesperados
-                        if (!is_object($doc) && !is_array($doc)) {
-                            Log::warning("Formato inesperado em docZip: " . json_encode($doc));
-                            continue;
-                        }
-
-                        // Converte para objeto se for array, para padronizar acesso
-                        $docObj = (object) $doc;
-
-                        $nsu = $docObj->NSU ?? null;
-                        $schema = $docObj->schema ?? null;
-
-                        if (!$nsu) {
-                            continue;
-                        }
-
-                        // Extrai conteúdo
-                        $contentEncoded = $docObj->{'$'} ?? $docObj->{0} ?? null;
-                        if (!$contentEncoded) {
-                            foreach ($docObj as $key => $value) {
-                                if (is_string($value) && strlen($value) > 20) {
-                                    $contentEncoded = $value;
-                                    break;
-                                }
-                            }
-                        }
-
-                        if ($contentEncoded) {
-                            try {
-                                $xmlContent = gzdecode(base64_decode($contentEncoded));
-                                // Processa (Salva Resumo ou XML se já vier)
-                                $this->processarDocDFe($nsu, $schema, $xmlContent);
-                                $novasNotas++;
-                            } catch (\Exception $e) {
-                                Log::error("Erro ao processar doc NSU $nsu no command: " . $e->getMessage());
-                            }
-                        }
-                    }
-                }
-
-                // Atualiza NSU
-                Configuracao::set('nfe_last_nsu', $ultNSU, 'nfe', 'text', 'Último NSU consultado na SEFAZ');
-                $lastNSU = $ultNSU;
-                $loopCount++;
-
-                if ($ultNSU >= $maxNSU) {
-                    break;
-                }
-
-                // Rate limiting
-                sleep(2);
-            } while ($loopCount < $maxLoops);
-
-            $this->info("Consulta finalizada. {$novasNotas} documentos processados.");
-
-            // 3. Manifestar e Baixar XMLs para notas apenas "detectadas" ou "pendente" (Resumos)
             // Estratégia Agressiva: Pega até 50 notas por vez, priorizando as recém-detectadas (updated_at)
             $notasPendentes = NotaEntrada::whereIn('status', ['detectada', 'pendente'])
                 ->orderBy('updated_at', 'desc')
@@ -142,7 +65,7 @@ class ProcessarNFeDestinadas extends Command
                     $this->info("Processando nota: $chave");
 
                     try {
-                        // Verifica bloqueio antes de cada tentativa
+                        // Verifica bloqueio GLOBAL antes de cada tentativa
                         $nextQueryCheck = Configuracao::get('nfe_next_dfe_query');
                         if ($nextQueryCheck && now()->lt(Carbon::parse($nextQueryCheck))) {
                             $this->warn('Bloqueio detectado. Interrompendo downloads.');
@@ -168,6 +91,103 @@ class ProcessarNFeDestinadas extends Command
             } else {
                 $this->info("Nenhuma nota pendente de download.");
             }
+
+            // 3. Consultar Novas Notas (Resumos)
+            // Lógica similar ao NotaEntradaController::buscarNovas, mas simplificada
+
+            // Verifica intervalo de espera por consulta vazia (137) antes de tentar consultar NSU
+            $nextNSUCheck = Configuracao::get('nfe_next_nsu_check');
+            if ($nextNSUCheck && now()->lt(Carbon::parse($nextNSUCheck))) {
+                $this->info("Aguardando intervalo de verificação de novas notas (Regra SEFAZ 137). Pulando consulta NSU.");
+            } else {
+                $lastNSU = Configuracao::get('nfe_last_nsu') ?: 0;
+                $maxLoops = 3; // Limite de segurança
+                $loopCount = 0;
+                $novasNotas = 0;
+
+                $this->info("Consultando SEFAZ a partir do NSU: $lastNSU");
+
+                do {
+                    // Verifica bloqueio GLOBAL antes de cada loop
+                    $nextQueryCheck = Configuracao::get('nfe_next_dfe_query');
+                    if ($nextQueryCheck && now()->lt(Carbon::parse($nextQueryCheck))) {
+                        $this->warn('Bloqueio ativado durante o loop.');
+                        break;
+                    }
+
+                    try {
+                        $resp = $nfeService->consultarNotasDestinadas($lastNSU);
+                    } catch (\Exception $e) {
+                        if (str_contains($e->getMessage(), 'Aguardando intervalo')) {
+                            $this->info($e->getMessage());
+                            break;
+                        }
+                        throw $e;
+                    }
+
+                    $ultNSU = $resp->ultNSU;
+                    $maxNSU = $resp->maxNSU;
+
+                    if (isset($resp->loteDistDFeInt->docZip)) {
+                        $docs = is_array($resp->loteDistDFeInt->docZip) ? $resp->loteDistDFeInt->docZip : [$resp->loteDistDFeInt->docZip];
+
+                        foreach ($docs as $doc) {
+                            // Proteção contra formatos inesperados
+                            if (!is_object($doc) && !is_array($doc)) {
+                                Log::warning("Formato inesperado em docZip: " . json_encode($doc));
+                                continue;
+                            }
+
+                            // Converte para objeto se for array, para padronizar acesso
+                            $docObj = (object) $doc;
+
+                            $nsu = $docObj->NSU ?? null;
+                            $schema = $docObj->schema ?? null;
+
+                            if (!$nsu) {
+                                continue;
+                            }
+
+                            // Extrai conteúdo
+                            $contentEncoded = $docObj->{'$'} ?? $docObj->{0} ?? null;
+                            if (!$contentEncoded) {
+                                foreach ($docObj as $key => $value) {
+                                    if (is_string($value) && strlen($value) > 20) {
+                                        $contentEncoded = $value;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if ($contentEncoded) {
+                                try {
+                                    $xmlContent = gzdecode(base64_decode($contentEncoded));
+                                    // Processa (Salva Resumo ou XML se já vier)
+                                    $this->processarDocDFe($nsu, $schema, $xmlContent);
+                                    $novasNotas++;
+                                } catch (\Exception $e) {
+                                    Log::error("Erro ao processar doc NSU $nsu no command: " . $e->getMessage());
+                                }
+                            }
+                        }
+                    }
+
+                    // Atualiza NSU
+                    Configuracao::set('nfe_last_nsu', $ultNSU, 'nfe', 'text', 'Último NSU consultado na SEFAZ');
+                    $lastNSU = $ultNSU;
+                    $loopCount++;
+
+                    if ($ultNSU >= $maxNSU) {
+                        break;
+                    }
+
+                    // Rate limiting
+                    sleep(2);
+                } while ($loopCount < $maxLoops);
+
+                $this->info("Consulta finalizada. {$novasNotas} documentos processados.");
+            }
+
         } catch (\Exception $e) {
             $this->error('Erro fatal no command: ' . $e->getMessage());
             Log::error('Erro fatal no command nfe:processar-destinadas: ' . $e->getMessage());

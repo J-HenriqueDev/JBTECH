@@ -85,7 +85,7 @@
     </div>
 
     <div class="card">
-        <div class="card-header border-bottom bg-transparent">
+        <div class="card-header border-bottom">
             <div class="d-flex justify-content-between align-items-center row pb-2 gap-3 gap-md-0">
                 <div class="col-md-4 user_role"></div>
                 <div class="col-md-4 user_plan"></div>

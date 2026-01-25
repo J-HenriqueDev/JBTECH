@@ -43,12 +43,22 @@ class NotaEntradaController extends Controller
             if ($nextQuery) {
                 $nextQueryDate = \Carbon\Carbon::parse($nextQuery);
                 if (now()->lt($nextQueryDate)) {
-                    $diffMinutes = (int) ceil(now()->diffInMinutes($nextQueryDate));
-                    return redirect()->back()->with('error', "Aguarde {$diffMinutes} minutos para realizar uma nova busca (Regra da SEFAZ para evitar bloqueio).");
+                        $diffMinutes = (int) ceil(now()->diffInMinutes($nextQueryDate));
+                        return redirect()->back()->with('error', "Aguarde {$diffMinutes} minutos para realizar uma nova busca (Regra da SEFAZ para evitar bloqueio).");
+                    }
                 }
-            }
 
-            $lastNSU = \App\Models\Configuracao::get('nfe_last_nsu') ?: 0;
+                // Verifica intervalo de espera por consulta vazia (137)
+                $nextNSUCheck = \App\Models\Configuracao::get('nfe_next_nsu_check');
+                if ($nextNSUCheck) {
+                    $nextNSUCheckDate = \Carbon\Carbon::parse($nextNSUCheck);
+                    if (now()->lt($nextNSUCheckDate)) {
+                        $diffMinutes = (int) ceil(now()->diffInMinutes($nextNSUCheckDate));
+                        return redirect()->back()->with('warning', "Aguarde {$diffMinutes} minutos para nova busca (Intervalo obrigatório SEFAZ após resposta vazia).");
+                    }
+                }
+
+                $lastNSU = \App\Models\Configuracao::get('nfe_last_nsu') ?: 0;
 
             // Limite de loops para evitar timeout (máximo 10 páginas ou 500 documentos)
             $maxLoops = 10;
