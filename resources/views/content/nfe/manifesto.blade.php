@@ -117,7 +117,6 @@
             <form id="bulk-form" action="{{ route('nfe.manifesto.manifestar') }}" method="POST"
                 onsubmit="return validateBulkForm()">
                 @csrf
-                <input type="hidden" name="tipo" id="bulk-tipo">
 
                 <table class="table table-hover">
                     <thead>
@@ -280,6 +279,7 @@
                         @endforelse
                     </tbody>
                 </table>
+                <input type="hidden" name="tipo" id="bulk-tipo">
             </form>
         </div>
     </div>
@@ -315,8 +315,7 @@
 
         function validateBulkForm() {
             const tipo = document.getElementById('bulk-tipo').value;
-            // Permite submissão se o tipo estiver preenchido (via submitBulk)
-            // Se for submit manual sem tipo, bloqueia
+            // Se o campo tipo estiver vazio, impede o envio (exceto via submitBulk que preenche antes)
             if (!tipo) {
                 return false;
             }
@@ -335,13 +334,22 @@
                 return;
             }
 
-            const tipoInput = document.getElementById('bulk-tipo');
-            if (tipoInput) {
-                tipoInput.value = tipo;
-                document.getElementById('bulk-form').submit();
-            } else {
-                alert('Erro interno: Campo hidden "tipo" não encontrado.');
+            const form = document.getElementById('bulk-form');
+            let tipoInput = document.getElementById('bulk-tipo');
+
+            // Garante que o input existe e está dentro do form
+            if (!tipoInput) {
+                tipoInput = document.createElement('input');
+                tipoInput.type = 'hidden';
+                tipoInput.name = 'tipo';
+                tipoInput.id = 'bulk-tipo';
+                form.appendChild(tipoInput);
             }
+
+            tipoInput.value = tipo;
+
+            // Submete o formulário
+            form.submit();
         }
     </script>
 
