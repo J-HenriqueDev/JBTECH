@@ -342,11 +342,16 @@
 
             function updateBulkActions() {
                 const count = document.querySelectorAll('.note-checkbox:checked').length;
-                if (count > 0) {
-                    bulkActions.style.display = 'block';
-                    selectedCount.textContent = count + ' selecionados';
-                } else {
-                    bulkActions.style.display = 'none';
+
+                if (bulkActions) {
+                    if (count > 0) {
+                        bulkActions.style.display = 'block';
+                        if (selectedCount) {
+                            selectedCount.textContent = count + ' selecionados';
+                        }
+                    } else {
+                        bulkActions.style.display = 'none';
+                    }
                 }
             }
 
@@ -363,9 +368,9 @@
         });
 
         function validateBulkForm() {
-            const tipo = document.getElementById('bulk-tipo').value;
-            // Se o campo tipo estiver vazio, impede o envio (exceto via submitBulk que preenche antes)
-            if (!tipo) {
+            const tipoInput = document.getElementById('bulk-tipo');
+            // Se o campo tipo não existir ou estiver vazio, impede o envio
+            if (!tipoInput || !tipoInput.value) {
                 return false;
             }
             return true;
