@@ -91,36 +91,31 @@
                         <!-- Segunda Linha: Pagamento -->
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="forma_pagamento" class="form-label">
+                                <label for="forma_pagamento_display" class="form-label">
                                     <i class="bx bx-money"></i> Forma de Pagamento
                                 </label>
-                                <select id="forma_pagamento" class="form-select" name="forma_pagamento">
-                                    <option value="" {{ empty($venda->forma_pagamento) ? 'selected' : '' }}>
-                                        Selecione...</option>
-                                    <option value="dinheiro" {{ $venda->forma_pagamento == 'dinheiro' ? 'selected' : '' }}>
-                                        Dinheiro</option>
-                                    <option value="pix" {{ $venda->forma_pagamento == 'pix' ? 'selected' : '' }}>PIX
-                                    </option>
-                                    <option value="cartao_credito"
-                                        {{ $venda->forma_pagamento == 'cartao_credito' ? 'selected' : '' }}>Cartão de
-                                        Crédito</option>
-                                    <option value="cartao_debito"
-                                        {{ $venda->forma_pagamento == 'cartao_debito' ? 'selected' : '' }}>Cartão de Débito
-                                    </option>
-                                    <option value="boleto" {{ $venda->forma_pagamento == 'boleto' ? 'selected' : '' }}>
-                                        Boleto</option>
-                                    <option value="transferencia"
-                                        {{ $venda->forma_pagamento == 'transferencia' ? 'selected' : '' }}>Transferência
-                                    </option>
-                                    <option value="outros" {{ $venda->forma_pagamento == 'outros' ? 'selected' : '' }}>
-                                        Outros</option>
-                                </select>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="forma_pagamento_display"
+                                        value="{{ ucfirst(str_replace('_', ' ', $venda->forma_pagamento ?? 'Selecione...')) }}"
+                                        readonly
+                                        style="background-color: #fff; cursor: {{ $venda->bloqueado ? 'not-allowed' : 'pointer' }};"
+                                        @if (!$venda->bloqueado) onclick="new bootstrap.Modal(document.getElementById('modalSelecionarPagamento')).show()" @endif
+                                        {{ $venda->bloqueado ? 'disabled' : '' }}>
+                                    <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal"
+                                        data-bs-target="#modalSelecionarPagamento"
+                                        {{ $venda->bloqueado ? 'disabled' : '' }}>
+                                        <i class="bx bx-list-ul"></i>
+                                    </button>
+                                </div>
+                                <input type="hidden" name="forma_pagamento" id="forma_pagamento"
+                                    value="{{ $venda->forma_pagamento }}">
                             </div>
                             <div class="col-md-6">
                                 <label for="status_pagamento" class="form-label">
                                     <i class="bx bx-check-circle"></i> Status do Pagamento (Pedido)
                                 </label>
-                                <select id="status_pagamento" class="form-select" name="status">
+                                <select id="status_pagamento" class="form-select" name="status"
+                                    {{ $venda->bloqueado ? 'disabled' : '' }}>
                                     <option value="pendente" {{ $venda->status == 'pendente' ? 'selected' : '' }}>Pendente
                                     </option>
                                     <option value="pago" {{ $venda->status == 'pago' ? 'selected' : '' }}>Pago /
@@ -201,10 +196,10 @@
                                                 <td class="valor-total">R$
                                                     {{ number_format($produto->pivot->valor_total, 2, ',', '.') }}</td>
                                                 <td>
-                                                    @if(!$venda->bloqueado)
-                                                    <button type="button" class="btn btn-danger btn-remover-produto">
-                                                        <i class="bx bx-trash"></i> Remover
-                                                    </button>
+                                                    @if (!$venda->bloqueado)
+                                                        <button type="button" class="btn btn-danger btn-remover-produto">
+                                                            <i class="bx bx-trash"></i> Remover
+                                                        </button>
                                                     @endif
                                                 </td>
                                             </tr>
@@ -357,9 +352,11 @@
                             <button type="button" class="btn btn-secondary me-2" onclick="window.history.back();">
                                 <i class="bx bx-x"></i> Cancelar
                             </button>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bx bx-check"></i> Salvar Alterações
-                            </button>
+                            @if (!$venda->bloqueado)
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bx bx-check"></i> Salvar Alterações
+                                </button>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -475,6 +472,101 @@
         @csrf
         <input type="hidden" id="metodoPagamento" name="metodoPagamento">
     </form>
+
+    <!-- Modal Selecionar Pagamento -->
+    <div class="modal fade" id="modalSelecionarPagamento" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Selecione a Forma de Pagamento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <button type="button" class="btn btn-outline-primary w-100 p-3"
+                                onclick="selectPayment('pix', 'PIX')">
+                                <i class="bx bx-qr fs-1 mb-2"></i><br>PIX
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="btn btn-outline-primary w-100 p-3"
+                                onclick="selectPayment('dinheiro', 'Dinheiro')">
+                                <i class="bx bx-money fs-1 mb-2"></i><br>Dinheiro
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="btn btn-outline-primary w-100 p-3"
+                                onclick="selectPayment('cartao_credito', 'Cartão de Crédito')">
+                                <i class="bx bx-credit-card fs-1 mb-2"></i><br>Crédito
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="btn btn-outline-primary w-100 p-3"
+                                onclick="selectPayment('cartao_debito', 'Cartão de Débito')">
+                                <i class="bx bx-credit-card-front fs-1 mb-2"></i><br>Débito
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="btn btn-outline-primary w-100 p-3"
+                                onclick="selectPayment('boleto', 'Boleto')">
+                                <i class="bx bx-barcode fs-1 mb-2"></i><br>Boleto
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="btn btn-outline-primary w-100 p-3"
+                                onclick="selectPayment('transferencia', 'Transferência')">
+                                <i class="bx bx-transfer fs-1 mb-2"></i><br>Transferência
+                            </button>
+                        </div>
+                        <div class="col-12">
+                            <button type="button" class="btn btn-outline-secondary w-100 p-3"
+                                onclick="selectPayment('outros', 'Outros')">
+                                <i class="bx bx-dots-horizontal-rounded fs-1 mb-2"></i><br>Outros
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Confirmar NFe -->
+    <div class="modal fade" id="modalPagamentoNfe" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar Emissão de NF-e</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="bx bx-lock-alt me-1"></i> Atenção! Após emitir a NF-e, esta venda será
+                        <strong>bloqueada</strong> para edições.
+                    </div>
+                    <p>Verifique os dados antes de continuar:</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <strong>Cliente:</strong> <span id="confirmaCliente"></span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <strong>Valor Total:</strong> <span id="confirmaValor" class="text-success fw-bold"></span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <strong>Forma Pagamento:</strong> <span id="confirmaPagamento"></span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <form action="{{ route('vendas.finalizarNfe', $venda->id) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-primary">Confirmar e Emitir</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     @include('content.vendas.scripts-edit')
 

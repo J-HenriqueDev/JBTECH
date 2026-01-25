@@ -245,8 +245,8 @@
                   adicionarProdutoTabela(
                       produtoEncontrado.id,
                       produtoEncontrado.nome,
-                      valorUnitario, // Use raw number, not formatted string
                       qtd,
+                      valorUnitario,
                       valorTotal
                   );
 
@@ -300,13 +300,17 @@
                           document.getElementById('inputQuickAdd').value = '';
                           document.getElementById('inputQuickAdd').focus();
                       } else {
-                          alert('Produto não encontrado com o código: ' + codigo);
+                          alert('Produto não encontrado!');
+                          // Reabilita botão
+                          const btnQuickAdd = document.getElementById('btnQuickAdd');
+                          btnQuickAdd.innerHTML = originalBtnText;
+                          btnQuickAdd.disabled = false;
                       }
                   },
                   error: function() {
-                      alert('Produto não encontrado com o código: ' + codigo);
-                  },
-                  complete: function() {
+                      alert('Erro ao buscar produto.');
+                      // Reabilita botão
+                      const btnQuickAdd = document.getElementById('btnQuickAdd');
                       btnQuickAdd.innerHTML = originalBtnText;
                       btnQuickAdd.disabled = false;
                   }
@@ -591,4 +595,44 @@
               });
           });
       });
+
+      // Seleção de Pagamento via Modal
+      window.selectPayment = function(value, label) {
+          document.getElementById('forma_pagamento').value = value;
+          const display = document.getElementById('forma_pagamento_display');
+          if (display) display.value = label;
+
+          // Fecha o modal
+          const modalEl = document.getElementById('modalSelecionarPagamento');
+          if (modalEl) {
+              const modal = bootstrap.Modal.getInstance(modalEl);
+              if (modal) {
+                  modal.hide();
+              }
+          }
+      };
+
+      // Popula Modal de Confirmação NFe
+      const modalPagamentoNfe = document.getElementById('modalPagamentoNfe');
+      if (modalPagamentoNfe) {
+          modalPagamentoNfe.addEventListener('show.bs.modal', function() {
+              // Cliente
+              const clienteSelect = document.getElementById('select2Cliente');
+              let clienteTexto = 'N/A';
+              if (clienteSelect && clienteSelect.selectedIndex >= 0) {
+                  clienteTexto = clienteSelect.options[clienteSelect.selectedIndex].text;
+              }
+              document.getElementById('confirmaCliente').textContent = clienteTexto;
+
+              // Valor Total
+              const totalEl = document.getElementById('valorTotalTabela');
+              const total = totalEl ? totalEl.textContent : 'R$ 0,00';
+              document.getElementById('confirmaValor').textContent = total;
+
+              // Forma Pagamento
+              const pagamentoDisplay = document.getElementById('forma_pagamento_display');
+              const pagamentoTexto = pagamentoDisplay ? pagamentoDisplay.value : 'Não Selecionado';
+              document.getElementById('confirmaPagamento').textContent = pagamentoTexto;
+          });
+      }
   </script>
