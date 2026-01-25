@@ -81,7 +81,22 @@ class ProcessarNFeDestinadas extends Command
 
                             // Se baixou XML completo, assume Ciência da Operação se não houver manifestação definida
                             if (strpos($result['schema'], 'procNFe') !== false || strpos($result['schema'], 'resNFe') === false) {
-                                $nota->update(['manifestacao' => 'ciencia']);
+
+                                // Recarrega para verificar se processarDocDFe salvou o XML
+                                $nota->refresh();
+
+                                if (empty($nota->xml_content)) {
+                                    $this->warn("Aviso: processarDocDFe não salvou o XML (provável falha no parse). Forçando salvamento do conteúdo.");
+                                    $nota->update([
+                                        'xml_content' => $result['content'],
+                                        'status' => 'downloaded',
+                                        'manifestacao' => 'ciencia'
+                                    ]);
+                                } else {
+                                    // Apenas atualiza a manifestação se necessário
+                                    $nota->update(['manifestacao' => 'ciencia']);
+                                }
+
                                 $this->info("Sucesso: XML baixado e salvo. Manifestação atualizada para Ciência.");
                             } else {
                                 $this->info("Sucesso: Resumo atualizado (Ainda pendente XML completo).");
