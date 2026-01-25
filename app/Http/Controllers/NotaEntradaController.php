@@ -270,8 +270,13 @@ class NotaEntradaController extends Controller
             $nota = NotaEntrada::where('chave_acesso', $chave)->first();
 
             if ($nota) {
-                return redirect()->route('notas-entrada.processar', $nota->id)
-                    ->with('success', 'Nota fiscal baixada e processada com sucesso!');
+                if ($nota->xml_content) {
+                    return redirect()->route('notas-entrada.processar', $nota->id)
+                        ->with('success', 'Nota fiscal baixada e processada com sucesso!');
+                } else {
+                    return redirect()->route('nfe.manifesto.index')
+                        ->with('success', 'Resumo da nota baixado com sucesso! A nota foi adicionada ao Manifesto. Realize a ciência/confirmação para baixar o XML completo.');
+                }
             }
 
             return redirect()->back()->with('success', "Nota baixada (Resumo). Aguarde a liberação do XML completo.");
