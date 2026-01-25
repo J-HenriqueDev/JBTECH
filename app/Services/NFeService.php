@@ -1807,8 +1807,9 @@ INI;
                 $doc = $doc[0];
             }
 
-            $schema = $doc->schema;
-            $contentEncoded = $doc->{'$'} ?? $doc->{0} ?? null;
+            $schema = null;
+            $nsu = null;
+            $contentEncoded = null;
 
             if (is_object($doc)) {
                 $schema = $doc->schema ?? null;
