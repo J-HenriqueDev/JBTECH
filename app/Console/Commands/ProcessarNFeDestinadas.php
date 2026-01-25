@@ -127,11 +127,11 @@ class ProcessarNFeDestinadas extends Command
 
             $this->info("Consulta finalizada. {$novasNotas} documentos processados.");
 
-            // 3. Manifestar e Baixar XMLs para notas apenas "detectadas" (Resumos)
+            // 3. Manifestar e Baixar XMLs para notas apenas "detectadas" ou "pendente" (Resumos)
             // Estratégia Agressiva: Pega até 50 notas por vez, priorizando as recém-detectadas (updated_at)
-            $notasPendentes = NotaEntrada::where('status', 'detectada')
-                ->orderBy('updated_at', 'desc') 
-                ->take(50) 
+            $notasPendentes = NotaEntrada::whereIn('status', ['detectada', 'pendente'])
+                ->orderBy('updated_at', 'desc')
+                ->take(50)
                 ->get();
 
             if ($notasPendentes->count() > 0) {
