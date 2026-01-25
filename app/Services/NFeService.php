@@ -1692,13 +1692,37 @@ INI;
                 throw new Exception("Rejeição: Consumo Indevido (656). A SEFAZ bloqueou consultas por 1 hora devido ao excesso de tentativas. Tente novamente mais tarde.");
             }
 
+            // Verifica se o documento retornado é apenas um resumo (resNFe)
+            // Se for resumo, forçamos a manifestação para tentar obter o XML completo
+            $isResumo = false;
+            if ($std->cStat == 138 && isset($std->loteDistDFeInt->docZip)) {
+                $doc = $std->loteDistDFeInt->docZip;
+                // Extraction logic matching what is used later in the file
+                if (is_array($doc) && isset($doc[0]) && (is_object($doc[0]) || is_array($doc[0]))) {
+                     $doc = $doc[0];
+                }
+
+                $schema = null;
+                if (is_object($doc)) {
+                    $schema = $doc->schema ?? null;
+                } elseif (is_array($doc)) {
+                    $schema = $doc['schema'] ?? null;
+                }
+
+                // Se schema indicar resumo
+                if ($schema && strpos($schema, 'resNFe') !== false) {
+                    $isResumo = true;
+                    Log::info("Documento localizado (138) é apenas resumo (resNFe). Forçando manifestação para obter XML completo: $chave");
+                }
+            }
+
             // Se erro for "Rejeição: NF-e inexistente" (217), pode ser necessário manifestar primeiro
             // Mas se for inexistente MESMO, manifestar não ajuda.
             // Porém, muitas vezes o erro de "não autorizado a baixar" vem mascarado ou o download só libera após Ciência.
             // Vamos tentar fazer Ciência da Operação se não encontrar de primeira, e tentar baixar de novo.
 
-            if ($std->cStat != 138) {
-                // Se erro for diferente de 138 (Documentos localizados)
+            if ($std->cStat != 138 || $isResumo) {
+                // Se erro for diferente de 138 (Documentos localizados) OU se for apenas resumo
 
                 // Tenta manifestar Ciência da Operação (210210) automaticamente
                 try {

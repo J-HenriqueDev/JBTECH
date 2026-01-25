@@ -78,7 +78,14 @@ class ProcessarNFeDestinadas extends Command
                         // Se retornou sucesso, atualiza o registro
                         if ($result && isset($result['content'])) {
                             $this->processarDocDFe($result['nsu'], $result['schema'], $result['content']);
-                            $this->info("Sucesso: XML baixado e salvo.");
+
+                            // Se baixou XML completo, assume Ciência da Operação se não houver manifestação definida
+                            if (strpos($result['schema'], 'procNFe') !== false || strpos($result['schema'], 'resNFe') === false) {
+                                $nota->update(['manifestacao' => 'ciencia']);
+                                $this->info("Sucesso: XML baixado e salvo. Manifestação atualizada para Ciência.");
+                            } else {
+                                $this->info("Sucesso: Resumo atualizado (Ainda pendente XML completo).");
+                            }
                         }
                     } catch (\Exception $e) {
                         $this->error("Erro ao processar nota $chave: " . $e->getMessage());
