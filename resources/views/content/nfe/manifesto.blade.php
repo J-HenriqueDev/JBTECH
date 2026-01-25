@@ -85,7 +85,7 @@
     </div>
 
     <div class="card">
-        <div class="card-header border-bottom">
+        <div class="card-header border-bottom bg-transparent">
             <div class="d-flex justify-content-between align-items-center row pb-2 gap-3 gap-md-0">
                 <div class="col-md-4 user_role"></div>
                 <div class="col-md-4 user_plan"></div>
@@ -143,7 +143,7 @@
                                 <td>
                                     <div class="form-check">
                                         <input class="form-check-input note-checkbox" type="checkbox" name="chaves[]"
-                                            value="{{ $nota->chave_acesso }}">
+                                            value="{{ $nota->chave_acesso }}" data-status="{{ $nota->manifestacao }}">
                                     </div>
                                 </td>
                                 <td>
@@ -377,14 +377,33 @@
         }
 
         function submitBulk(tipo) {
-            const selected = document.querySelectorAll('.note-checkbox:checked').length;
+            const selectedCheckboxes = document.querySelectorAll('.note-checkbox:checked');
+            const selected = selectedCheckboxes.length;
             if (selected === 0) {
                 alert('Por favor, selecione pelo menos uma nota.');
                 return;
             }
 
-            if (!confirm('Tem certeza que deseja manifestar ' + selected + ' notas selecionadas como ' + tipo
-                    .toUpperCase() + '?')) {
+            let message = 'Tem certeza que deseja manifestar ' + selected + ' notas selecionadas como ' + tipo
+                .toUpperCase() + '?';
+
+            // Alerta extra se tentar desconhecer nota já confirmada
+            if (tipo === 'desconhecida') {
+                let hasConfirmed = false;
+                selectedCheckboxes.forEach(cb => {
+                    if (cb.dataset.status === 'confirmada') {
+                        hasConfirmed = true;
+                    }
+                });
+
+                if (hasConfirmed) {
+                    message = "ATENÇÃO: Você selecionou notas que já estão CONFIRMADAS.\n\n" +
+                        "Mudar para DESCONHECIMENTO anula a confirmação anterior, mas deve ser feito dentro do prazo legal (geralmente 180 dias).\n\n" +
+                        "Deseja realmente continuar?";
+                }
+            }
+
+            if (!confirm(message)) {
                 return;
             }
 

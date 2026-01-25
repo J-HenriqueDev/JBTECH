@@ -168,13 +168,13 @@ class NotaEntradaController extends Controller
             $statusSefaz = (int) $xml->cSitNFe; // 1=Autorizada, 2=Denegada, 3=Cancelada
             $data = (string) $xml->dhEmi;
 
-            $status = 'pendente';
+            $status = 'detectada';
             if ($statusSefaz == 3) $status = 'cancelada';
 
             // Verifica se a nota já existe para preservar status avançado
             $notaExistente = NotaEntrada::where('chave_acesso', $chave)->first();
 
-            // Se já temos o XML baixado, não regredimos o status para pendente
+            // Se já temos o XML baixado, não regredimos o status para detectada
             if ($notaExistente && !empty($notaExistente->xml_content)) {
                 $status = $notaExistente->status;
             }
@@ -283,9 +283,19 @@ class NotaEntradaController extends Controller
         } catch (\Exception $e) {
             Log::error("Erro ao baixar nota por chave ($chave): " . $e->getMessage());
 
-            // Tratamento especial para mensagem de sucesso com delay (Confirmação da Operação)
-            if (str_contains($e->getMessage(), "Confirmação da Operação' foi realizada com sucesso")) {
-                return redirect()->back()->with('warning', $e->getMessage());
+            // Tratamento especial para mensagem de sucesso com delay (Confirmação da Operação ou Ciência)
+            if (str_contains($e->getMessage(), "Confirmação da Operação' foi realizada com sucesso") ||
+                str_contains($e->getMessage(), "Ciência da Operação")) {
+
+                // Garante que a nota esteja salva para o robô tentar baixar novamente
+                NotaEntrada::updateOrCreate(
+                    ['chave_acesso' => $chave],
+                    [
+                        'status' => 'detectada' // Força status para o cron job processar
+                    ]
+                );
+
+                return redirect()->route('nfe.manifesto.index')->with('warning', $e->getMessage() . " A nota foi registrada e o XML será baixado automaticamente assim que liberado pela SEFAZ.");
             }
 
             return redirect()->back()->with('error', 'Erro ao baixar nota: ' . $e->getMessage());

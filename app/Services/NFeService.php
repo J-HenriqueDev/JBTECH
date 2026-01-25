@@ -21,6 +21,8 @@ use NFePHP\NFe\Common\Standardize;
 use NFePHP\NFe\Complements;
 use stdClass;
 use Exception;
+use App\Models\NotaFiscalServico;
+use App\Services\NFSeService;
 
 class NFeService
 {
@@ -1710,8 +1712,8 @@ INI;
                             // 210200 = Confirmação da Operação
                             $this->manifestar($chave, 210200);
 
-                            // Aguarda propagação (aumentado para 5s)
-                            sleep(5);
+                            // Aguarda propagação (aumentado para 8s para garantir)
+                            sleep(8);
 
                             // Tenta baixar novamente após confirmação (com retentativas)
                             $maxRetries = 5;
@@ -1741,7 +1743,7 @@ INI;
                                 // Se ainda não disponível (137), aguarda mais um pouco
                                 if ($std->cStat == 137) {
                                     Log::info("Tentativa " . ($retryCount + 1) . " de download pós-confirmação: Documento ainda não localizado (137). Aguardando...");
-                                    sleep(7);
+                                    sleep(10); // Aumentado para 10s
                                     $retryCount++;
                                 } else {
                                     // Outro erro, aborta

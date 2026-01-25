@@ -365,7 +365,7 @@ class ManifestoController extends Controller
             $statusSefaz = (int) $xml->cSitNFe;
             $data = (string) $xml->dhEmi;
 
-            $status = 'pendente';
+            $status = 'detectada';
             if ($statusSefaz == 3) $status = 'cancelada';
 
             $nota = NotaEntrada::updateOrCreate(
@@ -379,9 +379,9 @@ class ManifestoController extends Controller
                 ]
             );
 
-            // Só atualiza status para pendente se não tiver XML ainda
-            if ($nota->status != 'processada' && $nota->status != 'downloaded' && !$nota->xml_content) {
-                $nota->status = $status;
+            // Só atualiza status para detectada se não tiver XML ainda e não estiver cancelada
+            if ($nota->status != 'processada' && $nota->status != 'downloaded' && $nota->status != 'cancelada' && !$nota->xml_content) {
+                $nota->status = 'detectada';
                 $nota->save();
             }
 
