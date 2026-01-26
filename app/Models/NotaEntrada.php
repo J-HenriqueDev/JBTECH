@@ -36,6 +36,12 @@ class NotaEntrada extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function getProdutosDoXml() {
+        if (!$this->xml_content) return [];
+        $xml = simplexml_load_string($this->xml_content);
+        return $xml->NFe->infNFe->det ?? $xml->infNFe->det ?? []; // Retorna os itens para o facilitador de entrada
+    }
+
     /**
      * Retorna os itens formatados do XML para exibição na view.
      * Inclui link com produto interno se encontrado.

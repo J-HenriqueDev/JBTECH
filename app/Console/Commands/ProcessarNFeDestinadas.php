@@ -99,55 +99,31 @@ class ProcessarNFeDestinadas extends Command
                             break;
                         }
 
-                        // baixarPorChave já contém toda a lógica de Manifestação (Ciência/Confirmação) e Retry
+                        // 1. Prioridade de Download por Chave (Solicitação Explícita)
                         $result = $nfeService->baixarPorChave($chave);
 
-                        // Se retornou sucesso, atualiza o registro
-                        if ($result && isset($result['content'])) {
-                            $this->processarDocDFe($result['nsu'], $result['schema'], $result['content']);
+                        // Imediatamente após a chamada, verifique se a coluna xml_content da $nota foi preenchida
+                        $nota->refresh();
 
-                            // Se baixou XML completo, assume Ciência da Operação se não houver manifestação definida
-                            if (strpos($result['schema'], 'procNFe') !== false || strpos($result['schema'], 'resNFe') === false) {
+                        if (!empty($nota->xml_content)) {
+                            // Se houver conteúdo, force o status
+                            $nota->update(['status' => 'concluido']);
 
-                                // Validação adicional: Verifica se o conteúdo é realmente um XML completo ou se é um Resumo disfarçado
-                                if (strpos($result['content'], '<resNFe') !== false) {
-                                    $this->info("Aviso: Conteúdo retornado é um Resumo (resNFe), apesar do schema. Aguardando XML completo.");
-                                    $nota->update(['manifestacao' => 'ciencia']);
-                                } else {
-                                    // Recarrega para verificar se processarDocDFe salvou o XML
-                                    $nota->refresh();
+                            $this->info("Sucesso: XML recuperado e salvo. Status: concluido.");
 
-                                    if (empty($nota->xml_content)) {
-                                        $this->warn("Aviso: processarDocDFe não salvou o XML (provável falha no parse). Forçando salvamento do conteúdo.");
+                            // Log de Sucesso Real
+                            LogService::registrarSistema('Sistema', 'Sucesso', "XML da Nota {$chave} recuperado e salvo no banco.");
+                        } else {
+                            $msgErro = isset($result['message']) ? $result['message'] : 'Erro desconhecido ao baixar XML.';
+                            $this->error("Falha: XML não salvo para a nota {$chave}. Motivo: {$msgErro}");
 
-                                        // Verificação de Integridade do XML
-                                        if (!empty($result['content']) && strlen(trim($result['content'])) > 10) {
-                                            $nota->update([
-                                                'xml_content' => $result['content'],
-                                                'status' => 'concluido', // Finalizado/Verde
-                                                'manifestacao' => 'ciencia'
-                                            ]);
-                                            $this->info("Sucesso: XML forçado e salvo. Status atualizado para concluido.");
-                                        } else {
-                                            $this->error("Erro: Conteúdo do XML vazio ou inválido. Ignorando salvamento.");
-                                        }
-                                    } else {
-                                        // Apenas atualiza a manifestação se necessário e garante status concluido
-                                        $nota->update([
-                                            'manifestacao' => 'ciencia',
-                                            'status' => 'concluido'
-                                        ]);
-                                    }
-
-                                    $this->info("Sucesso: XML baixado e salvo. Manifestação atualizada para Ciência.");
-                                }
-                            } else {
-                                $this->info("Sucesso: Resumo atualizado (Ainda pendente XML completo).");
-                            }
+                            // Log de Falha
+                            LogService::registrarSistema('Sistema', 'Falha Download', "Falha ao recuperar XML da Nota {$chave}. Motivo: {$msgErro}");
                         }
+
                     } catch (\Exception $e) {
                         $this->error("Erro ao processar nota $chave: " . $e->getMessage());
-                        // Não interrompe o loop por erro individual, a menos que seja bloqueio (já tratado no baixarPorChave/config)
+                        LogService::registrarSistema('Sistema', 'Erro Exceção', "Erro ao processar nota {$chave}: " . $e->getMessage());
                     }
 
                     // Pausa de segurança entre downloads
@@ -351,7 +327,7 @@ class ProcessarNFeDestinadas extends Command
 
             if ($infNFe) {
                 $chave = preg_replace('/[^0-9]/', '', (string) $infNFe['Id']);
-                
+
                 // Verifica se NSU já existe em outra nota para evitar duplicação
                 if ($nsu) {
                     $nsuExistente = NotaEntrada::where('nsu', $nsu)->where('chave_acesso', '!=', $chave)->first();

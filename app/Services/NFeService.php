@@ -379,15 +379,17 @@ class NFeService
                 // O conteúdo vem em GZip + Base64
                 $xml_puro = gzdecode(base64_decode($content));
 
-                if ($xml_puro) {
+                // Validação de string XML válida
+                if ($xml_puro && (strpos($xml_puro, '<nfeProc') !== false || strpos($xml_puro, '<infNFe') !== false)) {
                     NotaEntrada::where('chave_acesso', $chave)->update([
                         'xml_content' => $xml_puro,
                         'status' => 'concluido'
                     ]);
                     
-                    Log::info("[Sistema] - Tentativa de download manual para a chave {$chave}. Sucesso: Sim .");
+                    // Log de auditoria real solicitado
+                    LogService::cagueta("[Sistema] - XML da Nota {$chave} recuperado com sucesso via chave direta.");
                 } else {
-                    Log::warning("[Sistema] - Falha na descompactação do XML para a chave {$chave}.");
+                    Log::warning("[Sistema] - Falha na descompactação ou XML inválido para a chave {$chave}.");
                 }
                 // --- FIM DA SOLICITAÇÃO DO USUÁRIO ---
 
