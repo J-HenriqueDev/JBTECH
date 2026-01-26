@@ -335,7 +335,7 @@
     "src": "node_modules/leaflet/dist/images/marker-shadow.png"
   },
   "resources/assets/css/demo.css": {
-    "file": "assets/demo-DHzb24qF.css",
+    "file": "assets/demo-UmYHOwgN.css",
     "src": "resources/assets/css/demo.css",
     "isEntry": true
   },
@@ -4629,7 +4629,7 @@
     "isEntry": true
   },
   "resources/assets/vendor/libs/numeral/numeral.js": {
-    "file": "assets/numeral-BCnviesb.js",
+    "file": "assets/numeral-CDEz25Q-.js",
     "name": "numeral",
     "src": "resources/assets/vendor/libs/numeral/numeral.js",
     "isEntry": true,
