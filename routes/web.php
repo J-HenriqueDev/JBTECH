@@ -61,7 +61,9 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
   Route::post('/dashboard/cobrancas/{id}/marcar-paga', [CobrancaController::class, 'marcarComoPaga'])->name('cobrancas.marcar-paga');
   Route::post('/dashboard/cobrancas/{id}/cancelar', [CobrancaController::class, 'cancelar'])->name('cobrancas.cancelar');
 
-  Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
+  // Logs
+  Route::get('/logs', [\App\Http\Controllers\LogViewerController::class, 'index'])->name('logs.index');
+  Route::post('/logs/clear', [\App\Http\Controllers\LogViewerController::class, 'clear'])->name('logs.clear');
 
   // Rotas para Notificações
   Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
