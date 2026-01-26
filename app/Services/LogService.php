@@ -8,6 +8,38 @@ use Illuminate\Support\Facades\Auth;
 class LogService
 {
     /**
+     * Registra uma mudança feita por um humano.
+     */
+    public static function registrarMudanca($model, $id, $campo, $antigo, $novo)
+    {
+        $user = Auth::user() ? Auth::user()->name : 'Desconhecido';
+        $acao = "Editou {$model} {$id}";
+        $detalhes = "Campos: {$campo} de '{$antigo}' para '{$novo}'";
+        
+        self::registrar('Humano', $acao, $detalhes);
+    }
+
+    /**
+     * Registra uma ação automática do sistema (ex: SEFAZ).
+     */
+    public static function registrarSistema($categoria, $acao, $detalhes = null)
+    {
+        // Logs de sistema geralmente não têm usuário logado, mas usamos um identificador padrão
+        try {
+            Log::create([
+                'user_id' => null, // Sistema
+                'categoria' => $categoria, // ex: 'SEFAZ'
+                'acao' => $acao,
+                'detalhes' => $detalhes,
+                'ip' => '127.0.0.1',
+                'user_agent' => 'System/CLI',
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Falha ao registrar log de sistema: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Registra uma ação no log do sistema.
      *
      * @param string $categoria Categoria da ação (ex: "Orçamento").

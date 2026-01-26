@@ -244,7 +244,6 @@ class ProcessarNFeDestinadas extends Command
 
                 $this->info("Consulta finalizada. {$novasNotas} documentos processados.");
             }
-
         } catch (\Exception $e) {
             $this->error('Erro fatal no command: ' . $e->getMessage());
             Log::error('Erro fatal no command nfe:processar-destinadas: ' . $e->getMessage());
@@ -275,7 +274,7 @@ class ProcessarNFeDestinadas extends Command
             $exists = NotaEntrada::where('chave_acesso', $chave)->exists();
 
             // Só cria se não existir ou atualiza se for resumo
-            NotaEntrada::updateOrCreate(
+            $nota = NotaEntrada::updateOrCreate(
                 ['chave_acesso' => $chave],
                 [
                     'emitente_cnpj' => $cnpj,
@@ -286,11 +285,15 @@ class ProcessarNFeDestinadas extends Command
                 ]
             );
 
+            // Log de Sistema "Cagueta" para detecção
+            if (!$exists) {
+                LogService::registrarSistema('SEFAZ', 'NF-e Detectada', "Chave: {$chave} - Status: {$status}");
+            }
+
             // Se for novo e não estiver cancelado, marca para retorno para processamento imediato
             if (!$exists && $status != 'cancelada') {
                 $returnChave = $chave;
             }
-
         } elseif (strpos($schema, 'procNFe') !== false || strpos($schema, 'resNFe') === false) {
             // NFe Completa
             $infNFe = null;

@@ -129,11 +129,11 @@ class ProdutosController extends Controller
 
             // Remove ANSI codes and extra whitespace
             $cleanOutput = preg_replace('/\x1b\[[0-9;]*m/', '', $output);
-            
+
             Log::info("Categorização Output: " . $cleanOutput);
 
             if (str_contains($cleanOutput, '0 produtos foram atualizados') || str_contains($cleanOutput, 'Produtos encontrados para análise: 0')) {
-                 return redirect()->route('produtos.index')->with('warning', 'Nenhum produto precisou de atualização de categoria.');
+                return redirect()->route('produtos.index')->with('warning', 'Nenhum produto precisou de atualização de categoria.');
             }
 
             return redirect()->route('produtos.index')->with('success', 'Categorização em lote finalizada com sucesso! Verifique o console para detalhes.');
@@ -162,7 +162,7 @@ class ProdutosController extends Controller
             LogService::registrar('Produto', 'Fiscal em Lote', 'Usuário solicitou preenchimento fiscal manual em lote (FORCE).');
 
             if (str_contains($output, 'Nenhum produto precisou')) {
-                 return redirect()->route('produtos.index')->with('warning', 'Nenhum produto precisou de atualização fiscal.');
+                return redirect()->route('produtos.index')->with('warning', 'Nenhum produto precisou de atualização fiscal.');
             }
 
             return redirect()->route('produtos.index')->with('success', 'Processo de preenchimento fiscal finalizado. Verifique os logs do console para detalhes.');
@@ -217,10 +217,10 @@ class ProdutosController extends Controller
             // Filtro de busca (para Select2)
             if ($request->has('q')) {
                 $termo = $request->q;
-                $query->where(function($q) use ($termo) {
+                $query->where(function ($q) use ($termo) {
                     $q->where('nome', 'LIKE', "%{$termo}%")
-                      ->orWhere('codigo_barras', 'LIKE', "%{$termo}%")
-                      ->orWhere('id', 'LIKE', "%{$termo}%");
+                        ->orWhere('codigo_barras', 'LIKE', "%{$termo}%")
+                        ->orWhere('id', 'LIKE', "%{$termo}%");
                 });
             }
 
@@ -228,8 +228,8 @@ class ProdutosController extends Controller
             $produtos = $query->limit(50)->get();
 
             if ($produtos->isEmpty()) {
-                 // Retorna array vazio em vez de erro 404 para o Select2 funcionar corretamente
-                 return response()->json([]);
+                // Retorna array vazio em vez de erro 404 para o Select2 funcionar corretamente
+                return response()->json([]);
             }
 
             // Formata os produtos para incluir estoque
@@ -247,7 +247,6 @@ class ProdutosController extends Controller
 
             // Se for requisição AJAX do Select2, retorna no formato esperado ou array simples
             return response()->json($produtosFormatados);
-
         } catch (\Exception $e) {
             // Registra um log de erro
             LogService::registrar(
@@ -788,6 +787,9 @@ class ProdutosController extends Controller
                 $codigoBarras = str_pad(time() . Auth::user()->id . rand(100, 999), 13, '0', STR_PAD_LEFT);
             }
 
+            // Captura dados antigos para log de auditoria
+            $oldData = $produto->only(['nome', 'preco_custo', 'preco_venda', 'estoque']);
+
             // Atualiza os dados do produto
             $produto->update([
                 'nome' => $request->nome,
@@ -892,14 +894,11 @@ class ProdutosController extends Controller
                 $valor = (int) $valor;
             }
 
+            $oldValue = $produto->$campo;
             $produto->update([$campo => $valor]);
 
-            // Registra um log
-            LogService::registrar(
-                'Produto',
-                'Atualizar',
-                "Produto ID: {$produto->id} - Campo {$campo} atualizado inline"
-            );
+            // Registra log detalhado de mudança inline
+            LogService::registrarMudanca('Produto', $produto->id, $campo, $oldValue, $valor);
 
             return response()->json([
                 'success' => true,
