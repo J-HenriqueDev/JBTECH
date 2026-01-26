@@ -96,9 +96,20 @@ class ProductFiscalService
         }
 
         $count = 0;
+        $totalFound = $query->count();
+
+        \Illuminate\Support\Facades\Log::info("Iniciando preenchimento fiscal em lote. Produtos encontrados para análise: {$totalFound}");
+        echo "Produtos encontrados para análise: {$totalFound}\n";
+
+        if ($totalFound === 0) {
+            return 0;
+        }
+
         // Chunk de 50 para otimizar requisições (batch size da IA)
         $query->chunk(50, function ($products) use (&$count) {
-            $count += $this->fillFiscalDataBatch($products);
+            $processed = $this->fillFiscalDataBatch($products);
+            $count += $processed;
+            echo "Lote processado. Atualizados: {$processed}\n";
         });
 
         return $count;

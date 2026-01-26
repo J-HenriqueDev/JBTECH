@@ -116,9 +116,9 @@ class ProdutosController extends Controller
         try {
             // Dispara o comando Artisan diretamente (Síncrono) para feedback imediato
             // Usuários preferem esperar e ver acontecer do que "não acontecer nada"
-            \Illuminate\Support\Facades\Artisan::call('categorize:products');
+            \Illuminate\Support\Facades\Artisan::call('products:categorize');
             $output = \Illuminate\Support\Facades\Artisan::output();
-            
+
             // Grava o output no log de console
             $logPath = storage_path('logs/console-output.log');
             $logEntry = "\n--- Categorização Manual em Lote: " . date('Y-m-d H:i:s') . " ---\n" . $output . "\n";
@@ -140,7 +140,7 @@ class ProdutosController extends Controller
     {
         try {
             // Dispara o comando Artisan diretamente (Síncrono)
-            \Illuminate\Support\Facades\Artisan::call('products:fill-fiscal');
+            $exitCode = \Illuminate\Support\Facades\Artisan::call('products:fill-fiscal');
             $output = \Illuminate\Support\Facades\Artisan::output();
 
             // Grava o output no log de console
@@ -150,7 +150,11 @@ class ProdutosController extends Controller
 
             LogService::registrar('Produto', 'Fiscal em Lote', 'Usuário solicitou preenchimento fiscal manual em lote.');
 
-            return redirect()->route('produtos.index')->with('success', 'Preenchimento fiscal em lote finalizado com sucesso!');
+            if (str_contains($output, 'Nenhum produto precisou')) {
+                 return redirect()->route('produtos.index')->with('warning', 'Nenhum produto precisou de atualização fiscal.');
+            }
+
+            return redirect()->route('produtos.index')->with('success', 'Processo de preenchimento fiscal finalizado. Verifique os logs do console para detalhes.');
         } catch (\Exception $e) {
             Log::error("Erro ao executar preenchimento fiscal em lote: " . $e->getMessage());
             return redirect()->route('produtos.index')->with('error', 'Erro ao executar preenchimento fiscal: ' . $e->getMessage());

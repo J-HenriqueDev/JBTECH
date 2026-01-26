@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Log;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 
 class LogController extends Controller
 {
@@ -14,6 +15,21 @@ class LogController extends Controller
         if (!auth()->user()->isAdmin()) {
             return redirect()->route('dashboard')->with('error', 'Acesso não autorizado.');
         }
+
+        // --- Logs do Console (Adicionado) ---
+        $consoleLogFile = storage_path('logs/console-output.log');
+        $consoleLogs = [];
+
+        if (File::exists($consoleLogFile)) {
+             // Read the last 1000 lines
+             $fileContent = File::get($consoleLogFile);
+             $lines = explode("\n", $fileContent);
+             $lines = array_reverse($lines); // Show newest first
+             $consoleLogs = array_slice($lines, 0, 1000);
+        } else {
+            $consoleLogs[] = "Nenhum log de console encontrado.";
+        }
+        // ------------------------------------
 
         // Inicia a query com o relacionamento do usuário e ordena pelos mais recentes
         $query = Log::with('user')->latest();
@@ -54,6 +70,26 @@ class LogController extends Controller
         // Pagina os resultados e mantém os parâmetros de filtro na URL
         $logs = $query->paginate($request->input('perPage', 10))->withQueryString();
 
-        return view('content.Logs.index', compact('logs', 'usuarios', 'categorias', 'acoes'));
+        return view('content.Logs.index', compact('logs', 'usuarios', 'categorias', 'acoes', 'consoleLogs'));
+    }
+
+    public function clear(Request $request)
+    {
+        // Limpa logs do banco de dados (Opcional, se desejado)
+        // Log::truncate();
+
+        // Limpa logs do console
+        $consoleLogFile = storage_path('logs/console-output.log');
+        if (File::exists($consoleLogFile)) {
+            File::put($consoleLogFile, '');
+        }
+
+        // Limpa logs do Laravel (Opcional)
+        $laravelLogFile = storage_path('logs/laravel.log');
+        if (File::exists($laravelLogFile)) {
+            File::put($laravelLogFile, '');
+        }
+
+        return redirect()->route('logs.index')->with('success', 'Logs limpos com sucesso!');
     }
 }
