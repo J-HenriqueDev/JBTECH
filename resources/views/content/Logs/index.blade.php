@@ -129,10 +129,15 @@ Nenhum log de console encontrado.
                             <td>{{ $log->acao }}</td>
                             <td style="white-space: normal; max-width: 400px;">
                                 {{ \Illuminate\Support\Str::limit($log->detalhes, 100) }}
-                                @if (strlen($log->detalhes) > 100)
+                                @if (strlen($log->detalhes) > 100 || $log->ip)
                                     <button type="button" class="btn btn-sm btn-link text-primary p-0"
                                         data-bs-toggle="modal" data-bs-target="#logDetailsModal"
-                                        data-details="{{ $log->detalhes }}" title="Ver detalhes completos">
+                                        data-details="{{ $log->detalhes }}" data-action="{{ $log->acao }}"
+                                        data-category="{{ $log->categoria }}"
+                                        data-user="{{ $log->user ? $log->user->name : 'Sistema/Desconhecido' }}"
+                                        data-date="{{ $log->created_at->format('d/m/Y H:i:s') }}"
+                                        data-ip="{{ $log->ip ?? 'N/A' }}" data-agent="{{ $log->user_agent ?? 'N/A' }}"
+                                        title="Ver detalhes completos">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                 @endif
@@ -154,17 +159,87 @@ Nenhum log de console encontrado.
     <!-- Modal Detalhes do Log -->
     <div class="modal fade" id="logDetailsModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="logDetailsModalTitle">Detalhes do Log</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title text-white" id="logDetailsModalTitle">
+                        <i class="fas fa-info-circle me-2"></i> Detalhes do Registro
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <pre id="logDetailsContent" class="bg-light p-3 rounded"
-                        style="white-space: pre-wrap; word-wrap: break-word; max-height: 500px; overflow-y: auto; font-family: monospace; font-size: 0.9rem;"></pre>
+                <div class="modal-body bg-light">
+                    <div class="row g-3">
+                        <!-- Card Principal: Info Básica -->
+                        <div class="col-12">
+                            <div class="card shadow-sm">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="avatar avatar-md me-3">
+                                            <span class="avatar-initial rounded-circle bg-label-primary">
+                                                <i class="fas fa-user"></i>
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0" id="modalUser">Usuário</h6>
+                                            <small class="text-muted" id="modalDate">Data</small>
+                                        </div>
+                                        <div class="ms-auto">
+                                            <span class="badge bg-label-info fs-6" id="modalCategory">Categoria</span>
+                                        </div>
+                                    </div>
+                                    <h5 class="mb-1 text-primary" id="modalAction">Ação Realizada</h5>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Técnico: IP e Sistema -->
+                        <div class="col-md-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title text-muted mb-3"><i class="fas fa-globe me-2"></i>Rastreamento
+                                    </h6>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="fw-bold">Endereço IP:</span>
+                                        <span class="font-monospace" id="modalIP">0.0.0.0</span>
+                                    </div>
+                                    <div class="d-grid gap-2">
+                                        <a href="#" id="btnGeoLocation" target="_blank"
+                                            class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-map-marker-alt me-1"></i> Ver Localização Aproximada
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title text-muted mb-3"><i class="fas fa-desktop me-2"></i>Dispositivo
+                                    </h6>
+                                    <p class="small text-muted mb-0" id="modalAgent" style="word-break: break-all;">
+                                        User Agent String...
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Detalhes Completos -->
+                        <div class="col-12">
+                            <div class="card shadow-sm">
+                                <div class="card-header bg-white pb-0">
+                                    <h6 class="card-title mb-0"><i class="fas fa-align-left me-2"></i>Conteúdo do Log</h6>
+                                </div>
+                                <div class="card-body pt-3">
+                                    <pre id="logDetailsContent" class="bg-dark text-light p-3 rounded mb-0"
+                                        style="white-space: pre-wrap; word-wrap: break-word; max-height: 300px; overflow-y: auto; font-family: 'Consolas', monospace; font-size: 0.85rem;"></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>
+                <div class="modal-footer bg-light border-top-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
                 </div>
             </div>
         </div>
@@ -176,9 +251,34 @@ Nenhum log de console encontrado.
             if (logDetailsModal) {
                 logDetailsModal.addEventListener('show.bs.modal', function(event) {
                     const button = event.relatedTarget;
-                    const details = button.getAttribute('data-details');
-                    const modalBody = logDetailsModal.querySelector('#logDetailsContent');
-                    modalBody.textContent = details;
+
+                    // Extrair dados
+                    const details = button.getAttribute('data-details') || 'Sem detalhes.';
+                    const action = button.getAttribute('data-action') || 'N/A';
+                    const category = button.getAttribute('data-category') || 'N/A';
+                    const user = button.getAttribute('data-user') || 'Desconhecido';
+                    const date = button.getAttribute('data-date') || 'N/A';
+                    const ip = button.getAttribute('data-ip') || 'N/A';
+                    const agent = button.getAttribute('data-agent') || 'N/A';
+
+                    // Preencher Modal
+                    logDetailsModal.querySelector('#logDetailsContent').textContent = details;
+                    logDetailsModal.querySelector('#modalAction').textContent = action;
+                    logDetailsModal.querySelector('#modalCategory').textContent = category;
+                    logDetailsModal.querySelector('#modalUser').textContent = user;
+                    logDetailsModal.querySelector('#modalDate').textContent = date;
+                    logDetailsModal.querySelector('#modalIP').textContent = ip;
+                    logDetailsModal.querySelector('#modalAgent').textContent = agent;
+
+                    // Configurar botão de Geo
+                    const btnGeo = logDetailsModal.querySelector('#btnGeoLocation');
+                    if (ip && ip !== 'N/A' && ip !== '127.0.0.1' && ip !== '::1') {
+                        btnGeo.href = `https://whatismyipaddress.com/ip/${ip}`;
+                        btnGeo.classList.remove('disabled');
+                    } else {
+                        btnGeo.href = '#';
+                        btnGeo.classList.add('disabled');
+                    }
                 });
             }
         });

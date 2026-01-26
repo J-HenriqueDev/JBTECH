@@ -13,6 +13,7 @@ class SolicitacaoServico extends Model
 
     protected $fillable = [
         'cliente_id',
+        'atendente_id',
         'canal_atendimento',
         'data_solicitacao',
         'tipo_atendimento',
@@ -28,5 +29,10 @@ class SolicitacaoServico extends Model
     public function cliente()
     {
         return $this->belongsTo(Clientes::class, 'cliente_id');
+    }
+
+    public function atendente()
+    {
+        return $this->belongsTo(User::class, 'atendente_id');
     }
 }
