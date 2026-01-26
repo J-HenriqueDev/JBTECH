@@ -58,10 +58,12 @@ class Produto extends Model
         'perc_icms_fcp',
         // Campos de Preços e Promoção
         'preco_atacado',
+        'categorizado_por_ia',
         'qtd_min_atacado',
         'preco_promocional',
         'inicio_promocao',
         'fim_promocao',
+        'categorizado_por_ia',
     ];
 
 
@@ -107,8 +109,8 @@ class Produto extends Model
      */
     public function isService(): bool
     {
-        return $this->id === 1 || 
-               $this->tipo_item === '09' || 
+        return $this->id === 1 ||
+               $this->tipo_item === '09' ||
                !is_null($this->servico_id);
     }
 

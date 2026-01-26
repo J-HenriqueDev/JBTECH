@@ -30,6 +30,11 @@ class ProductCategorizerService
             return false;
         }
 
+        // Proteção: Se o produto já foi categorizado pela IA, não faz nada
+        if ($produto->categorizado_por_ia) {
+            return false;
+        }
+
         // 1. Tenta por Palavras-Chave (Mais rápido e barato)
         if ($this->categorizeByKeywords($produto, $save)) {
             return true;
@@ -100,17 +105,29 @@ class ProductCategorizerService
             ]);
         }
 
+        // Sempre marca como categorizado pela IA, mesmo que a categoria seja a mesma
+        // para evitar novas consultas
+        $produto->categorizado_por_ia = true;
+
         if ($categoria->id !== $produto->categoria_id) {
-            $this->applyCategory($produto, $categoria->id, $save);
+            $this->applyCategory($produto, $categoria->id, $save, true);
             return true;
+        } else {
+             // Se a categoria for a mesma, apenas salvamos a flag da IA
+             if ($save) {
+                 $produto->saveQuietly();
+             }
         }
 
         return false;
     }
 
-    protected function applyCategory(Produto $produto, int $categoryId, bool $save): void
+    protected function applyCategory(Produto $produto, int $categoryId, bool $save, bool $isAi = false): void
     {
         $produto->categoria_id = $categoryId;
+        if ($isAi) {
+            $produto->categorizado_por_ia = true;
+        }
         if ($save) {
             $produto->saveQuietly();
         }
@@ -139,6 +156,11 @@ class ProductCategorizerService
                 continue;
             }
 
+            // Proteção: Se o produto já tem categoria, pula (preserva manual ou anterior)
+            if ($produto->categoria_id) {
+                continue;
+            }
+
             if ($this->categorizeByKeywords($produto, true)) {
                 $count++;
             } else {
@@ -155,7 +177,7 @@ class ProductCategorizerService
         // 2. Envia os restantes para a IA em lote
         if (!empty($productsToAi)) {
             $suggestions = $this->aiService->suggestCategoriesBatch($productsToAi);
-            
+
             echo "[DEBUG] AI Suggestions returned: " . count($suggestions) . "\n";
 
             foreach ($suggestions as $productName => $categoryName) {
@@ -171,8 +193,12 @@ class ProductCategorizerService
 
                     if ($categoria->id !== $produto->categoria_id) {
                         echo "[DEBUG] Atualizando Categoria do produto '{$produto->nome}': '{$produto->categoria_id}' -> '{$categoria->id}' ({$categoryName})\n";
-                        $this->applyCategory($produto, $categoria->id, true);
+                        $this->applyCategory($produto, $categoria->id, true, true);
                         $count++;
+                    } else {
+                        // Se a categoria for a mesma, marca como processado pela IA para não consultar novamente
+                        $produto->categorizado_por_ia = true;
+                        $produto->saveQuietly();
                     }
                 }
             }
@@ -192,9 +218,9 @@ class ProductCategorizerService
         $query = Produto::query();
 
         if (!$force) {
-            $query->whereNull('categoria_id')
-                  ->orWhere('categoria_id', 1)
-                  ->orWhere('categoria_id', 6); // Inclui categoria padrão 'Geral'
+            $query->whereNull('categoria_id');
+                  // ->orWhere('categoria_id', 1)
+                  // ->orWhere('categoria_id', 6); // Removido para evitar recategorização de "Geral"
         }
 
         $totalFound = $query->count();

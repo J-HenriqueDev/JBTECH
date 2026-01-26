@@ -55,6 +55,9 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
   Route::resource('dashboard/produtos', ProdutosController::class)->except('show');
   Route::post('dashboard/produtos/{id}/update-inline', [ProdutosController::class, 'updateInline'])->name('produtos.updateInline');
 
+  // Route para solicitações de serviço
+  Route::resource('dashboard/solicitacoes', \App\Http\Controllers\SolicitacaoServicoController::class);
+
   // Rota resource para cobranças
   Route::resource('dashboard/cobrancas', CobrancaController::class);
   Route::get('/dashboard/cobrancas/{id}/pdf', [CobrancaController::class, 'pdf'])->name('cobrancas.pdf');

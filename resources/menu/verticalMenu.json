@@ -28,6 +28,12 @@
       "slug": "os"
     },
     {
+      "url": "/dashboard/solicitacoes",
+      "name": "Solicitações de Serviço",
+      "icon": "menu-icon tf-icons fas fa-headset text-info",
+      "slug": "solicitacoes.index"
+    },
+    {
       "url": "/dashboard/compras",
       "name": "Compras",
       "icon": "menu-icon tf-icons bx bx-cart-alt text-primary",

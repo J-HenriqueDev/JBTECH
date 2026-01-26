@@ -18,6 +18,13 @@ class CategoriaController extends Controller
             'total' => Categoria::count(),
             'total_produtos' => \App\Models\Produto::count(),
             'categoria_mais_produtos' => Categoria::withCount('produtos')->orderBy('produtos_count', 'desc')->first(),
+            'categoria_mais_rentavel' => \Illuminate\Support\Facades\DB::table('categorias')
+                ->join('produtos', 'categorias.id', '=', 'produtos.categoria_id')
+                ->join('produto_venda', 'produtos.id', '=', 'produto_venda.produto_id')
+                ->select('categorias.nome', \Illuminate\Support\Facades\DB::raw('SUM(produto_venda.valor_total) as total_vendido'))
+                ->groupBy('categorias.id', 'categorias.nome')
+                ->orderByDesc('total_vendido')
+                ->first()
         ];
         
         return view('content.categorias.listar', compact('categorias', 'stats'));

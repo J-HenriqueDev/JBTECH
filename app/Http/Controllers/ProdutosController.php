@@ -116,16 +116,16 @@ class ProdutosController extends Controller
         try {
             // Dispara o comando Artisan diretamente (Síncrono) para feedback imediato
             // Usuários preferem esperar e ver acontecer do que "não acontecer nada"
-            // Força a recategorização (--force) conforme solicitação do usuário para corrigir tudo
-            \Illuminate\Support\Facades\Artisan::call('products:categorize', ['--force' => true]);
+            // Removido --force para evitar recategorizar produtos que já possuem categoria
+            \Illuminate\Support\Facades\Artisan::call('products:categorize');
             $output = \Illuminate\Support\Facades\Artisan::output();
 
             // Grava o output no log de console
             $logPath = storage_path('logs/console-output.log');
-            $logEntry = "\n--- Categorização Manual em Lote (FORCE): " . date('Y-m-d H:i:s') . " ---\n" . $output . "\n";
+            $logEntry = "\n--- Categorização Manual em Lote: " . date('Y-m-d H:i:s') . " ---\n" . $output . "\n";
             file_put_contents($logPath, $logEntry, FILE_APPEND);
 
-            LogService::registrar('Produto', 'Categorização em Lote', 'Usuário solicitou categorização manual em lote (FORCE).');
+            LogService::registrar('Produto', 'Categorização em Lote', 'Usuário solicitou categorização manual em lote.');
 
             // Remove ANSI codes and extra whitespace
             $cleanOutput = preg_replace('/\x1b\[[0-9;]*m/', '', $output);
