@@ -28,12 +28,12 @@
         </div>
         <div id="consoleLogsCollapse" class="collapse">
             <div class="card-body">
-                <div class="bg-dark text-white p-3 rounded"
-                    style="max-height: 400px; overflow-y: auto; font-family: monospace; font-size: 0.85rem;">
+                <div class="bg-black text-light p-2 rounded"
+                    style="max-height: 400px; overflow-y: auto; font-family: 'Consolas', 'Monaco', 'Courier New', monospace; font-size: 0.8rem; line-height: 1.2; background-color: #0c0c0c; color: #cccccc;">
                     @if (isset($consoleLogs) && count($consoleLogs) > 0)
                         @foreach ($consoleLogs as $log)
-                            <div class="mb-1 border-bottom border-secondary pb-1" style="white-space: pre-wrap;">
-                                <span class="text-white">{{ $log }}</span>
+                            <div class="border-0" style="white-space: pre-wrap; margin-bottom: 2px;">
+                                <span class="text-light">{!! nl2br(e($log)) !!}</span>
                             </div>
                         @endforeach
                     @else

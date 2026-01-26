@@ -182,13 +182,24 @@ class ProductCategorizerService
 
         if (!$force) {
             $query->whereNull('categoria_id')
-                  ->orWhere('categoria_id', 1);
+                  ->orWhere('categoria_id', 1)
+                  ->orWhere('categoria_id', 6); // Inclui categoria padrão 'Geral'
+        }
+
+        $totalFound = $query->count();
+        \Illuminate\Support\Facades\Log::info("Iniciando categorização em lote. Produtos encontrados: {$totalFound}");
+        echo "Produtos encontrados para análise: {$totalFound}\n";
+
+        if ($totalFound === 0) {
+            return 0;
         }
 
         // Processa em chunks de 50 para não sobrecarregar a memória e otimizar o lote da IA
         $count = 0;
         $query->chunk(50, function ($products) use (&$count) {
-            $count += $this->categorizeBatch($products);
+            $processed = $this->categorizeBatch($products);
+            $count += $processed;
+            echo "Lote processado. Atualizados: {$processed}\n";
         });
 
         return $count;

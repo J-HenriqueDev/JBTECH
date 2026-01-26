@@ -126,7 +126,11 @@ class ProdutosController extends Controller
 
             LogService::registrar('Produto', 'Categorização em Lote', 'Usuário solicitou categorização manual em lote.');
 
-            return redirect()->route('produtos.index')->with('success', 'Categorização em lote finalizada com sucesso!');
+            if (str_contains($output, '0 produtos foram atualizados') || str_contains($output, 'Produtos encontrados para análise: 0')) {
+                 return redirect()->route('produtos.index')->with('warning', 'Nenhum produto precisou de atualização de categoria.');
+            }
+
+            return redirect()->route('produtos.index')->with('success', 'Categorização em lote finalizada com sucesso! Verifique o console para detalhes.');
         } catch (\Exception $e) {
             Log::error("Erro ao executar categorização em lote: " . $e->getMessage());
             return redirect()->route('produtos.index')->with('error', 'Erro ao executar categorização: ' . $e->getMessage());
