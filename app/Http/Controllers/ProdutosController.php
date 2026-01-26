@@ -117,6 +117,12 @@ class ProdutosController extends Controller
             // Dispara o comando Artisan diretamente (Síncrono) para feedback imediato
             // Usuários preferem esperar e ver acontecer do que "não acontecer nada"
             \Illuminate\Support\Facades\Artisan::call('categorize:products');
+            $output = \Illuminate\Support\Facades\Artisan::output();
+            
+            // Grava o output no log de console
+            $logPath = storage_path('logs/console-output.log');
+            $logEntry = "\n--- Categorização Manual em Lote: " . date('Y-m-d H:i:s') . " ---\n" . $output . "\n";
+            file_put_contents($logPath, $logEntry, FILE_APPEND);
 
             LogService::registrar('Produto', 'Categorização em Lote', 'Usuário solicitou categorização manual em lote.');
 
@@ -135,6 +141,12 @@ class ProdutosController extends Controller
         try {
             // Dispara o comando Artisan diretamente (Síncrono)
             \Illuminate\Support\Facades\Artisan::call('products:fill-fiscal');
+            $output = \Illuminate\Support\Facades\Artisan::output();
+
+            // Grava o output no log de console
+            $logPath = storage_path('logs/console-output.log');
+            $logEntry = "\n--- Preenchimento Fiscal Manual em Lote: " . date('Y-m-d H:i:s') . " ---\n" . $output . "\n";
+            file_put_contents($logPath, $logEntry, FILE_APPEND);
 
             LogService::registrar('Produto', 'Fiscal em Lote', 'Usuário solicitou preenchimento fiscal manual em lote.');
 
