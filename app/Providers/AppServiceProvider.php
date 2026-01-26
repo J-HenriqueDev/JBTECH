@@ -6,6 +6,8 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Pagination\Paginator;
+use App\Models\Produto;
+use App\Observers\ProdutoObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -37,5 +39,7 @@ class AppServiceProvider extends ServiceProvider
     if ($this->app->environment('production')) {
         URL::forceScheme('https');
     }
+
+    Produto::observe(ProdutoObserver::class);
   }
 }

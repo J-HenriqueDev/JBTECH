@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
         // Executa os seeders na ordem correta
         $this->call([
             ClientesTableSeeder::class, // Cria clientes
+            CategoryKeywordsSeeder::class, // Configura palavras-chave das categorias
             ProdutosTableSeeder::class, // Cria produtos
             OrcamentosTableSeeder::class, // Cria orçamentos
             VendaSeeder::class,

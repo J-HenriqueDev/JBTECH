@@ -35,4 +35,8 @@ return [
       'token' => env('COSMOS_TOKEN'),
   ],
 
+  'gemini' => [
+      'api_key' => env('GEMINI_API_KEY'),
+  ],
+
 ];

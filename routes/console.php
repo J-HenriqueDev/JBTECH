@@ -22,3 +22,11 @@ Schedule::command('notifications:dispatch')->everyFiveMinutes();
 // Processamento automático de contratos (gera cobranças e NFS-e)
 // Roda diariamente às 08:00
 Schedule::command('contratos:processar')->dailyAt('08:00');
+
+// Categorização automática de produtos via IA (em lote)
+// Roda diariamente às 02:00 da manhã para economizar recursos
+Schedule::command('categorize:products')->dailyAt('02:00');
+
+// Preenchimento de dados fiscais (NCM, CEST) via IA (em lote)
+// Roda diariamente às 03:00 da manhã
+Schedule::command('products:fill-fiscal')->dailyAt('03:00');
