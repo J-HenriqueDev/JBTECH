@@ -544,13 +544,6 @@ class ProdutosController extends Controller
                         'fornecedor_email' => $request->fornecedor_email,
                     ]));
 
-                    // Registra um log
-                    LogService::registrar(
-                        'Produto', // Categoria
-                        'Atualizar', // Ação
-                        "Produto ID: {$produtoExistente->id} atualizado" // Detalhes
-                    );
-
                     $produtoSalvo = $produtoExistente;
                 } else {
                     $novoProduto = Produto::create(array_merge($validated, [
@@ -561,12 +554,13 @@ class ProdutosController extends Controller
                         'usuario_id' => Auth::user()->id,
                     ]));
 
-                    // Registra um log
-                    LogService::registrar(
-                        'Produto', // Categoria
-                        'Criar', // Ação
-                        "Produto ID: {$novoProduto->id} criado" // Detalhes
-                    );
+                    // LogService::registrar para criação ainda é útil pois o Loggable (update) não pega Create explicitamente,
+                    // a menos que adicionemos created event. O Loggable atual só tem updating e deleted.
+                    // Mas o usuário pediu para remover logs MANUAIS de "Atualizou com sucesso".
+                    // Vou remover o de Update acima, mas manter o de Create se o Loggable não cobrir.
+                    // O Loggable atual NÃO tem 'created'. Vou manter o create por segurança, ou adicionar 'created' no Loggable?
+                    // O usuário disse: "A partir de agora, o log automático do Model (via Trait Loggable) é o nosso padrão único para edições."
+                    // Edições = Updates. Create é Criação. Vou remover apenas os de Update/Delete duplicados.
 
                     $produtoSalvo = $novoProduto;
                 }
@@ -826,13 +820,6 @@ class ProdutosController extends Controller
                 'fim_promocao' => $request->fim_promocao,
             ]);
 
-            // Registra um log
-            LogService::registrar(
-                'Produto', // Categoria
-                'Atualizar', // Ação
-                "Produto ID: {$produto->id} atualizado com sucesso" // Detalhes
-            );
-
             return redirect()->route('produtos.index')->with('success', "Produto #{$produto->id} '{$produto->nome}' atualizado com sucesso!");
         } catch (\Exception $e) {
             Log::error("Erro ao atualizar o produto ID: {$id}", [
@@ -857,13 +844,6 @@ class ProdutosController extends Controller
     public function destroy(Produto $produto)
     {
         $produto->delete();
-
-        // Registra um log
-        LogService::registrar(
-            'Produto', // Categoria
-            'Excluir', // Ação
-            "Produto ID: {$produto->id} excluído com sucesso" // Detalhes
-        );
 
         return redirect()->route('produtos.index')->with('success', 'Produto removido com sucesso!');
     }
@@ -897,8 +877,7 @@ class ProdutosController extends Controller
             $oldValue = $produto->$campo;
             $produto->update([$campo => $valor]);
 
-            // Registra log detalhado de mudança inline
-            LogService::registrarMudanca('Produto', $produto->id, $campo, $oldValue, $valor);
+            // Log automático via Trait Loggable
 
             return response()->json([
                 'success' => true,

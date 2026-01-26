@@ -351,13 +351,6 @@ class VendaController extends Controller
             Log::info('Valor total da venda atualizado:', ['valor_total' => $venda->valor_total]);
             Log::info('Todos os produtos foram atualizados na venda.');
 
-            // Registra um log
-            LogService::registrar(
-                'Venda', // Categoria
-                'Editar', // Ação
-                "Venda ID: {$venda->id} atualizada com sucesso" // Detalhes
-            );
-
             // Redireciona para a rota de listagem de vendas com mensagem de sucesso
             return redirect()->route('vendas.index')->with('success', 'Venda atualizada com sucesso!');
         } catch (\Exception $e) {

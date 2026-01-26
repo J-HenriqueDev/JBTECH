@@ -253,7 +253,7 @@ class ProcessarNFeDestinadas extends Command
             // Health Check Final
             $notasProntas = NotaEntrada::whereIn('status', ['detectada', 'downloaded', 'pendente'])->count();
             // Log no banco via LogService (Sistema)
-            LogService::registrarSistema('SEFAZ', 'Saúde SEFAZ', "Sincronização finalizada. [{$notasProntas}] Notas prontas para conferência na tela de Entrada.");
+            LogService::registrarSistema('Sistema', 'Saúde SEFAZ', "Sincronização finalizada. [{$notasProntas}] Notas prontas para conferência na tela de Entrada.");
         } catch (\Exception $e) {
             $this->error('Erro fatal no command: ' . $e->getMessage());
             Log::error('Erro fatal no command nfe:processar-destinadas: ' . $e->getMessage());
@@ -296,9 +296,9 @@ class ProcessarNFeDestinadas extends Command
                 ]
             );
 
-            // Log de Sistema "Cagueta" para detecção
+            // Log de Auditoria de Sistema para detecção
             if (!$exists) {
-                LogService::registrarSistema('SEFAZ', 'NF-e Detectada', "Chave: {$chave} - Status: {$status}");
+                LogService::registrarSistema('Sistema', 'NF-e Detectada', "Chave: {$chave} - Status: {$status}");
             }
 
             // Se for novo e não estiver cancelado, marca para retorno para processamento imediato

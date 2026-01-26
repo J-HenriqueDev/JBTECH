@@ -9,18 +9,8 @@ class LogService
 {
     public static function cagueta($mensagem)
     {
-        try {
-            Log::create([
-                'user_id' => Auth::id(),
-                'categoria' => 'Cagueta',
-                'acao' => $mensagem,
-                'detalhes' => null,
-                'ip' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-            ]);
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Falha ao registrar log de cagueta: ' . $e->getMessage());
-        }
+        // Mantido para compatibilidade, redireciona para Auditoria
+        self::registrar('Auditoria', 'Ação suspeita', $mensagem);
     }
 
     /**
@@ -29,12 +19,18 @@ class LogService
     public static function registrarMudanca($model, $id, $campo, $antigo, $novo, $nomeItem = null)
     {
         $user = Auth::user() ? Auth::user()->name : 'Desconhecido';
-        $identificacao = $nomeItem ? $nomeItem : "#{$id}";
+
+        // Formato solicitado: [Humano: {user}] - Alterou {Campo} de '{De}' para '{Para}'
         $campoFormatado = ucfirst($campo);
+        $detalhes = "[Humano: {$user}] - Alterou {$campoFormatado} de '{$antigo}' para '{$novo}'";
 
-        $mensagem = "[Humano: {$user}] - Alterou {$campoFormatado} do {$model} {$identificacao} de '{$antigo}' para '{$novo}'";
+        // Se houver nome do item, adicionamos para contexto no final
+        if ($nomeItem) {
+            $detalhes .= " (Item: {$nomeItem})";
+        }
 
-        self::cagueta($mensagem);
+        // Ação curta: Edição de {Model}
+        self::registrar('Auditoria', "Edição de {$model}", $detalhes);
     }
 
     /**

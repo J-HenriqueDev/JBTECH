@@ -31,11 +31,23 @@ trait Loggable
                 if (method_exists(LogService::class, 'registrarMudanca')) {
                     LogService::registrarMudanca(class_basename($model), $model->id, $key, $oldValue, $newValue, $nomeItem);
                 } else {
-                    $mensagem = "[{$userName}] - Alterou {$key} de '{$oldValue}' para '{$newValue}' em " . class_basename($model) . " #{$model->id}";
-                    if (method_exists(LogService::class, 'cagueta')) {
-                        LogService::cagueta($mensagem);
+                    $detalhes = "[{$userName}] - Alterou {$key} de '{$oldValue}' para '{$newValue}'";
+                    if (method_exists(LogService::class, 'registrar')) {
+                        LogService::registrar('Auditoria', "Edição de " . class_basename($model), $detalhes);
                     }
                 }
+            }
+        });
+
+        static::deleted(function ($model) {
+            $user = Auth::user();
+            $userName = $user ? $user->name : 'Sistema/Desconhecido';
+            $nomeItem = $model->nome ?? $model->titulo ?? $model->name ?? $model->descricao ?? null;
+
+            $detalhes = "[Humano: {$userName}] - Deletou o item: {$nomeItem} (ID: {$model->id})";
+
+            if (method_exists(LogService::class, 'registrar')) {
+                LogService::registrar('Auditoria', "Exclusão de " . class_basename($model), $detalhes);
             }
         });
     }
