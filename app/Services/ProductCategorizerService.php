@@ -188,7 +188,6 @@ class ProductCategorizerService
 
         $totalFound = $query->count();
         \Illuminate\Support\Facades\Log::info("Iniciando categorização em lote. Produtos encontrados: {$totalFound}");
-        echo "Produtos encontrados para análise: {$totalFound}\n";
 
         if ($totalFound === 0) {
             return 0;
@@ -199,7 +198,7 @@ class ProductCategorizerService
         $query->chunk(50, function ($products) use (&$count) {
             $processed = $this->categorizeBatch($products);
             $count += $processed;
-            echo "Lote processado. Atualizados: {$processed}\n";
+            \Illuminate\Support\Facades\Log::info("Lote processado. Atualizados: {$processed}");
         });
 
         return $count;

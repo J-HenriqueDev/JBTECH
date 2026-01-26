@@ -25,6 +25,9 @@ class LogController extends Controller
                  // Read the last 1000 lines
                  $fileContent = File::get($consoleLogFile);
                  $lines = explode("\n", $fileContent);
+                 $lines = array_filter($lines, function($line) {
+                     return trim($line) !== ''; // Remove empty lines
+                 });
                  $lines = array_reverse($lines); // Show newest first
                  $consoleLogs = array_slice($lines, 0, 1000);
              } catch (\Exception $e) {

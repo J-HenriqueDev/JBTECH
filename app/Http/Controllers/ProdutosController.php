@@ -126,7 +126,12 @@ class ProdutosController extends Controller
 
             LogService::registrar('Produto', 'Categorização em Lote', 'Usuário solicitou categorização manual em lote.');
 
-            if (str_contains($output, '0 produtos foram atualizados') || str_contains($output, 'Produtos encontrados para análise: 0')) {
+            // Remove ANSI codes and extra whitespace
+            $cleanOutput = preg_replace('/\x1b\[[0-9;]*m/', '', $output);
+
+            Log::info("Categorização Output: " . $cleanOutput);
+
+            if (str_contains($cleanOutput, '0 produtos foram atualizados') || str_contains($cleanOutput, 'Produtos encontrados para análise: 0')) {
                  return redirect()->route('produtos.index')->with('warning', 'Nenhum produto precisou de atualização de categoria.');
             }
 

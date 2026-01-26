@@ -27,18 +27,17 @@
             <i class="fas fa-chevron-down"></i>
         </div>
         <div id="consoleLogsCollapse" class="collapse">
-            <div class="card-body">
-                <div class="bg-black text-light p-2 rounded"
-                    style="max-height: 400px; overflow-y: auto; font-family: 'Consolas', 'Monaco', 'Courier New', monospace; font-size: 0.8rem; line-height: 1.2; background-color: #0c0c0c; color: #cccccc;">
-                    @if (isset($consoleLogs) && count($consoleLogs) > 0)
-                        @foreach ($consoleLogs as $log)
-                            <div class="border-0" style="white-space: pre-wrap; margin-bottom: 2px;">
-                                <span class="text-light">{!! nl2br(e($log)) !!}</span>
-                            </div>
-                        @endforeach
-                    @else
-                        <div class="text-center text-muted">Nenhum log de console encontrado.</div>
-                    @endif
+            <div class="card-body p-0">
+                <div
+                    style="background-color: #000000; border: 1px solid #333333; border-radius: 4px; padding: 10px; max-height: 400px; overflow-y: auto; box-shadow: none;">
+                    <pre class="m-0"
+                        style="font-family: 'Consolas', 'Lucida Console', 'Courier New', monospace; font-size: 13px; line-height: 1.2; color: #cccccc; background-color: transparent; border: none; white-space: pre-wrap; text-shadow: none;">
+@if (isset($consoleLogs) && count($consoleLogs) > 0)
+{{ implode("\n", $consoleLogs) }}
+@else
+Nenhum log de console encontrado.
+@endif
+</pre>
                 </div>
             </div>
         </div>
