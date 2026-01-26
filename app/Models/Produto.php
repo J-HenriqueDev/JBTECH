@@ -99,6 +99,18 @@ class Produto extends Model
         return $this->hasMany(ProdutoCodigo::class);
     }
 
+    /**
+     * Verifica se o produto é um serviço.
+     *
+     * @return bool
+     */
+    public function isService(): bool
+    {
+        return $this->id === 1 ||
+               $this->tipo_item === '09' ||
+               !is_null($this->servico_id);
+    }
+
     protected $casts = [
         'sincronizado' => 'boolean',
         'ativo_pdv' => 'boolean',

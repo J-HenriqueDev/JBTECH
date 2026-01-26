@@ -26,6 +26,11 @@ class ProductFiscalService
         $productsMap = [];
 
         foreach ($products as $produto) {
+            // Proteção: Ignora serviços
+            if ($produto->isService()) {
+                continue;
+            }
+
             // Só envia para IA se faltar NCM ou CEST (assumindo que NCM é o mais crítico)
             if (empty($produto->ncm) || empty($produto->cest)) {
                 $productsToAi[] = $produto->nome;

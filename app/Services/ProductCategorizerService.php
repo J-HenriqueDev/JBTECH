@@ -25,6 +25,11 @@ class ProductCategorizerService
      */
     public function categorize(Produto $produto, bool $save = true, bool $useAi = true): bool
     {
+        // Proteção: Nunca alterar produtos de serviço
+        if ($produto->isService()) {
+            return false;
+        }
+
         // 1. Tenta por Palavras-Chave (Mais rápido e barato)
         if ($this->categorizeByKeywords($produto, $save)) {
             return true;
@@ -125,6 +130,11 @@ class ProductCategorizerService
 
         // 1. Tenta categorizar localmente primeiro (grátis e rápido)
         foreach ($products as $produto) {
+            // Proteção: Ignora serviços
+            if ($produto->isService()) {
+                continue;
+            }
+
             if ($this->categorizeByKeywords($produto, true)) {
                 $count++;
             } else {
