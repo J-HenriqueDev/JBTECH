@@ -177,7 +177,16 @@
                             @if($nota->xml_content)
                             <span class="badge bg-success">XML Baixado</span>
                             @else
-                            <span class="badge bg-warning">Pendente</span>
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="badge bg-warning">Pendente</span>
+                                <form action="{{ route('notas-entrada.baixar-por-chave') }}" method="POST" class="d-inline">
+                                    @csrf
+                                    <input type="hidden" name="chave" value="{{ $nota->chave_acesso }}">
+                                    <button type="submit" class="btn btn-sm btn-icon btn-outline-primary" title="Forçar Download na SEFAZ (Nuvem)">
+                                        <i class="bx bx-cloud-download"></i>
+                                    </button>
+                                </form>
+                            </div>
                             @endif
                         </td>
                         <td>

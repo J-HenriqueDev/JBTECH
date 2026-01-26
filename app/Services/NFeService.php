@@ -300,7 +300,7 @@ class NFeService
         $nota = NotaEntrada::firstOrNew(['chave_acesso' => $chave]);
         $nota->nsu = $nsu;
         $nota->xml_content = $xml; // Salva XML completo no banco conforme solicitado
-        $nota->status = 'processada'; // Marca como processada/concluída
+        $nota->status = 'concluido'; // Marca como concluido (Verde na View)
 
         // Extrai dados complementares
         if (isset($std->NFe->infNFe->ide)) {
