@@ -29,6 +29,24 @@
         </a>
     </div>
 
+    <!-- Botões de Ações em Lote (IA) -->
+    <div class="d-flex justify-content-end gap-2 mb-3">
+        <form action="{{ route('produtos.categorizar-lote') }}" method="POST" class="d-inline">
+            @csrf
+            <button type="submit" class="btn btn-sm btn-outline-secondary"
+                title="Categorizar produtos sem categoria automaticamente via IA">
+                <i class="fas fa-tags me-1"></i> Categorizar Produtos (IA)
+            </button>
+        </form>
+        <form action="{{ route('produtos.fiscal-lote') }}" method="POST" class="d-inline">
+            @csrf
+            <button type="submit" class="btn btn-sm btn-outline-secondary"
+                title="Preencher NCM e CEST faltantes automaticamente via IA">
+                <i class="fas fa-file-invoice-dollar me-1"></i> Consultar Dados Fiscais (IA)
+            </button>
+        </form>
+    </div>
+
     <div class="row">
         <div class="col-md-12">
             <div class="card mb-4">

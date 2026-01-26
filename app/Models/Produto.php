@@ -106,8 +106,8 @@ class Produto extends Model
      */
     public function isService(): bool
     {
-        return $this->id === 1 ||
-               $this->tipo_item === '09' ||
+        return $this->id === 1 || 
+               $this->tipo_item === '09' || 
                !is_null($this->servico_id);
     }
 

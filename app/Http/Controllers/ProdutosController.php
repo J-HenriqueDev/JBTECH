@@ -87,6 +87,64 @@ class ProdutosController extends Controller
     }
 
     /**
+     * Dispara a categorização massiva de produtos em background.
+     */
+    public function categorizarMassivo()
+    {
+        // Dispara o comando em background (queue)
+        \Illuminate\Support\Facades\Artisan::queue('products:categorize');
+
+        return redirect()->back()->with('success', 'Processo de categorização automática (IA) iniciado em segundo plano.');
+    }
+
+    /**
+     * Dispara o preenchimento massivo de dados fiscais em background.
+     */
+    public function preencherFiscalMassivo()
+    {
+        // Dispara o comando em background (queue)
+        \Illuminate\Support\Facades\Artisan::queue('products:fill-fiscal');
+
+        return redirect()->back()->with('success', 'Processo de preenchimento fiscal (IA) iniciado em segundo plano.');
+    }
+
+    /**
+     * Executa a categorização em lote via comando Artisan.
+     */
+    public function categorizarLote()
+    {
+        try {
+            // Dispara o comando Artisan
+            \Illuminate\Support\Facades\Artisan::call('categorize:products');
+
+            LogService::registrar('Produto', 'Categorização em Lote', 'Usuário solicitou categorização manual em lote.');
+
+            return redirect()->route('produtos.index')->with('success', 'Categorização em lote iniciada! O processo rodará em segundo plano.');
+        } catch (\Exception $e) {
+            Log::error("Erro ao executar categorização em lote: " . $e->getMessage());
+            return redirect()->route('produtos.index')->with('error', 'Erro ao iniciar categorização: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Executa o preenchimento fiscal em lote via comando Artisan.
+     */
+    public function fiscalLote()
+    {
+        try {
+            // Dispara o comando Artisan
+            \Illuminate\Support\Facades\Artisan::call('products:fill-fiscal');
+
+            LogService::registrar('Produto', 'Fiscal em Lote', 'Usuário solicitou preenchimento fiscal manual em lote.');
+
+            return redirect()->route('produtos.index')->with('success', 'Preenchimento fiscal em lote iniciado! O processo rodará em segundo plano.');
+        } catch (\Exception $e) {
+            Log::error("Erro ao executar preenchimento fiscal em lote: " . $e->getMessage());
+            return redirect()->route('produtos.index')->with('error', 'Erro ao iniciar preenchimento fiscal: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Consulta dados fiscais de um produto via API externa (Service).
      */
     public function consultarFiscal($codigoBarras, \App\Services\FiscalService $fiscalService)

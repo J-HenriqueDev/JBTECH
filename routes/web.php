@@ -147,6 +147,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
 
   Route::get('/produtos/lista', [ProdutosController::class, 'listar'])->name('produtos.lista');
 
+  // Rotas para ações em lote (IA)
+  Route::post('dashboard/produtos/categorizar-lote', [ProdutosController::class, 'categorizarLote'])->name('produtos.categorizar-lote');
+  Route::post('dashboard/produtos/fiscal-lote', [ProdutosController::class, 'fiscalLote'])->name('produtos.fiscal-lote');
+
   // Route::post('dashboard/produtos/import', [ProdutosController::class, 'import'])->name('produtos.import');
   // // Rota para importar produtos do XML
 
@@ -156,6 +160,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
   Route::get('/dashboard/produtos/consultar-fiscal/{codigo_barras}', [ProdutosController::class, 'consultarFiscal'])->name('produtos.consultarFiscal');
   Route::post('/dashboard/produtos/buscar-codigo', [ProdutosController::class, 'buscarPorCodigoBarras'])->name('produtos.buscar-codigo');
   Route::get('/dashboard/produtos/sugerir-categoria', [ProdutosController::class, 'sugerirCategoria'])->name('produtos.sugerirCategoria');
+
+  // Rotas para ações massivas (IA)
+  Route::post('/dashboard/produtos/categorizar-massivo', [ProdutosController::class, 'categorizarMassivo'])->name('produtos.categorizar-massivo');
+  Route::post('/dashboard/produtos/preencher-fiscal-massivo', [ProdutosController::class, 'preencherFiscalMassivo'])->name('produtos.preencher-fiscal-massivo');
 
 
 
