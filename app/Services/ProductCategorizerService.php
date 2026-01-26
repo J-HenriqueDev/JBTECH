@@ -127,11 +127,15 @@ class ProductCategorizerService
         $count = 0;
         $productsToAi = [];
         $productsMap = [];
+        $skippedService = 0;
+
+        echo "\n[DEBUG] Início categorizeBatch. Produtos: " . count($products) . "\n";
 
         // 1. Tenta categorizar localmente primeiro (grátis e rápido)
         foreach ($products as $produto) {
             // Proteção: Ignora serviços
             if ($produto->isService()) {
+                $skippedService++;
                 continue;
             }
 
@@ -144,9 +148,15 @@ class ProductCategorizerService
             }
         }
 
+        echo "[DEBUG] Skipped (Service): {$skippedService}\n";
+        echo "[DEBUG] Updated by Keywords: {$count}\n";
+        echo "[DEBUG] Sent to AI: " . count($productsToAi) . "\n";
+
         // 2. Envia os restantes para a IA em lote
         if (!empty($productsToAi)) {
             $suggestions = $this->aiService->suggestCategoriesBatch($productsToAi);
+            
+            echo "[DEBUG] AI Suggestions returned: " . count($suggestions) . "\n";
 
             foreach ($suggestions as $productName => $categoryName) {
                 if (isset($productsMap[$productName])) {
@@ -160,6 +170,7 @@ class ProductCategorizerService
                     );
 
                     if ($categoria->id !== $produto->categoria_id) {
+                        echo "[DEBUG] Atualizando Categoria do produto '{$produto->nome}': '{$produto->categoria_id}' -> '{$categoria->id}' ({$categoryName})\n";
                         $this->applyCategory($produto, $categoria->id, true);
                         $count++;
                     }

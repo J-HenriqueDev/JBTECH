@@ -25,10 +25,15 @@ class ProductFiscalService
         $count = 0;
         $productsToAi = [];
         $productsMap = [];
+        $skippedService = 0;
+        $skippedAlreadyFilled = 0;
+
+        echo "\n[DEBUG] Início fillFiscalDataBatch. Force: " . ($force ? 'true' : 'false') . ". Produtos: " . count($products) . "\n";
 
         foreach ($products as $produto) {
             // Proteção: Ignora serviços
             if ($produto->isService()) {
+                $skippedService++;
                 continue;
             }
 
@@ -36,11 +41,19 @@ class ProductFiscalService
             if ($force || empty($produto->ncm) || empty($produto->cest)) {
                 $productsToAi[] = $produto->nome;
                 $productsMap[$produto->nome] = $produto;
+            } else {
+                $skippedAlreadyFilled++;
             }
         }
 
+        echo "[DEBUG] Skipped (Service): {$skippedService}\n";
+        echo "[DEBUG] Skipped (Already Filled): {$skippedAlreadyFilled}\n";
+        echo "[DEBUG] Sent to AI: " . count($productsToAi) . "\n";
+
         if (!empty($productsToAi)) {
             $suggestions = $this->aiService->suggestFiscalDataBatch($productsToAi);
+
+            echo "[DEBUG] AI Suggestions returned: " . count($suggestions) . "\n";
 
             foreach ($suggestions as $productName => $data) {
                 if (isset($productsMap[$productName])) {
@@ -52,8 +65,11 @@ class ProductFiscalService
                         $newNcm = preg_replace('/\D/', '', $data['ncm']);
                         if ($force || empty($produto->ncm)) {
                             if ($produto->ncm !== $newNcm) {
+                                echo "[DEBUG] Atualizando NCM do produto '{$produto->nome}': '{$produto->ncm}' -> '{$newNcm}'\n";
                                 $produto->ncm = $newNcm;
                                 $updated = true;
+                            } else {
+                                // echo "[DEBUG] NCM igual para '{$produto->nome}': '{$newNcm}'\n";
                             }
                         }
                     }
@@ -63,6 +79,7 @@ class ProductFiscalService
                         $newCest = preg_replace('/\D/', '', $data['cest']);
                         if ($force || empty($produto->cest)) {
                              if ($produto->cest !== $newCest) {
+                                echo "[DEBUG] Atualizando CEST do produto '{$produto->nome}': '{$produto->cest}' -> '{$newCest}'\n";
                                 $produto->cest = $newCest;
                                 $updated = true;
                              }
@@ -73,6 +90,7 @@ class ProductFiscalService
                         // Origem é opcional, mas se a IA sugerir e não tivermos, podemos setar
                         if ($force || is_null($produto->origem)) {
                              if ($produto->origem !== $data['origem']) {
+                                 // echo "[DEBUG] Atualizando Origem do produto '{$produto->nome}'\n";
                                  $produto->origem = $data['origem'];
                                  $updated = true;
                              }
@@ -111,7 +129,7 @@ class ProductFiscalService
         $totalFound = $query->count();
 
         \Illuminate\Support\Facades\Log::info("Iniciando preenchimento fiscal em lote. Produtos encontrados para análise: {$totalFound} (Force: " . ($force ? 'SIM' : 'NÃO') . ")");
-        
+
         if ($totalFound === 0) {
             return 0;
         }
