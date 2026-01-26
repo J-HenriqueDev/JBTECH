@@ -33,6 +33,20 @@ class ProcessarNFeDestinadas extends Command
         $this->info('Iniciando processamento automático de NF-e destinadas...');
         Log::info('Command nfe:processar-destinadas iniciado.');
 
+        // 0. Correção Automática de Dados (Sanitização)
+        // Corrige notas que ficaram com resNFe salvo no lugar do XML completo
+        $affected = NotaEntrada::where('xml_content', 'like', '%<resNFe%')
+            ->update([
+                'xml_content' => null,
+                'status' => 'detectada',
+                'manifestacao' => 'ciencia' // Garante que vamos tentar baixar de novo
+            ]);
+
+        if ($affected > 0) {
+            $this->info("Sanitização: $affected notas com XML inválido (resNFe) foram resetadas para novo download.");
+            Log::warning("Sanitização: $affected notas corrigidas automaticamente.");
+        }
+
         // 1. Verificação de Bloqueio (Consumo Indevido - Global)
         $nextQuery = Configuracao::get('nfe_next_dfe_query');
         if ($nextQuery) {
