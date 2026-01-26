@@ -82,22 +82,28 @@ class ProcessarNFeDestinadas extends Command
                             // Se baixou XML completo, assume Ciência da Operação se não houver manifestação definida
                             if (strpos($result['schema'], 'procNFe') !== false || strpos($result['schema'], 'resNFe') === false) {
 
-                                // Recarrega para verificar se processarDocDFe salvou o XML
-                                $nota->refresh();
-
-                                if (empty($nota->xml_content)) {
-                                    $this->warn("Aviso: processarDocDFe não salvou o XML (provável falha no parse). Forçando salvamento do conteúdo.");
-                                    $nota->update([
-                                        'xml_content' => $result['content'],
-                                        'status' => 'downloaded',
-                                        'manifestacao' => 'ciencia'
-                                    ]);
-                                } else {
-                                    // Apenas atualiza a manifestação se necessário
+                                // Validação adicional: Verifica se o conteúdo é realmente um XML completo ou se é um Resumo disfarçado
+                                if (strpos($result['content'], '<resNFe') !== false) {
+                                    $this->info("Aviso: Conteúdo retornado é um Resumo (resNFe), apesar do schema. Aguardando XML completo.");
                                     $nota->update(['manifestacao' => 'ciencia']);
-                                }
+                                } else {
+                                    // Recarrega para verificar se processarDocDFe salvou o XML
+                                    $nota->refresh();
 
-                                $this->info("Sucesso: XML baixado e salvo. Manifestação atualizada para Ciência.");
+                                    if (empty($nota->xml_content)) {
+                                        $this->warn("Aviso: processarDocDFe não salvou o XML (provável falha no parse). Forçando salvamento do conteúdo.");
+                                        $nota->update([
+                                            'xml_content' => $result['content'],
+                                            'status' => 'downloaded',
+                                            'manifestacao' => 'ciencia'
+                                        ]);
+                                    } else {
+                                        // Apenas atualiza a manifestação se necessário
+                                        $nota->update(['manifestacao' => 'ciencia']);
+                                    }
+
+                                    $this->info("Sucesso: XML baixado e salvo. Manifestação atualizada para Ciência.");
+                                }
                             } else {
                                 $this->info("Sucesso: Resumo atualizado (Ainda pendente XML completo).");
                             }
