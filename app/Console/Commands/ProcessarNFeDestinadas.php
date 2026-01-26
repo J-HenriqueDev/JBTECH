@@ -242,6 +242,7 @@ class ProcessarNFeDestinadas extends Command
     protected function processarDocDFe($nsu, $schema, $xmlContent)
     {
         $xml = simplexml_load_string($xmlContent);
+        $returnChave = null; // Retorna a chave se for um novo resumo detectado
 
         if (strpos($schema, 'resNFe') !== false) {
             // Resumo da NFe
@@ -255,6 +256,9 @@ class ProcessarNFeDestinadas extends Command
             $status = 'detectada';
             if ($statusSefaz == 3) $status = 'cancelada';
 
+            // Verifica se já existe para saber se é novo
+            $exists = NotaEntrada::where('chave_acesso', $chave)->exists();
+
             // Só cria se não existir ou atualiza se for resumo
             NotaEntrada::updateOrCreate(
                 ['chave_acesso' => $chave],
@@ -266,6 +270,12 @@ class ProcessarNFeDestinadas extends Command
                     'status' => $status
                 ]
             );
+
+            // Se for novo e não estiver cancelado, marca para retorno para processamento imediato
+            if (!$exists && $status != 'cancelada') {
+                $returnChave = $chave;
+            }
+
         } elseif (strpos($schema, 'procNFe') !== false || strpos($schema, 'resNFe') === false) {
             // NFe Completa
             $infNFe = null;
@@ -293,11 +303,24 @@ class ProcessarNFeDestinadas extends Command
                 );
             }
         } elseif (strpos($schema, 'resEvento') !== false) {
-            // Evento (Cancelamento)
+            // Evento (Cancelamento, CCe, etc)
             $chave = (string) $xml->chNFe;
             $tpEvento = (string) $xml->tpEvento;
 
+            // 110111 = Cancelamento
             if ($tpEvento == '110111') {
+                NotaEntrada::where('chave_acesso', $chave)->update(['status' => 'cancelada']);
+                $this->info("Evento de Cancelamento processado para nota: $chave");
+            }
+            // 610600 = CTe (Na verdade, eventos de CTe são em outro WS, mas se vier aqui, logamos)
+            // Se for Carta de Correção (110110), apenas logamos por enquanto
+            else {
+                Log::info("Evento $tpEvento recebido para nota $chave. (Não processado especificamente)");
+            }
+        }
+
+        return $returnChave;
+    }
                 NotaEntrada::where('chave_acesso', $chave)->update(['status' => 'cancelada']);
             }
         }
