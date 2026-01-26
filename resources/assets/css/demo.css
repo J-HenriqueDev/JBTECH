@@ -44,7 +44,7 @@
   position: fixed;
   bottom: 20px;
   right: 20px;
-  background-color: #25D366; /* Cor do WhatsApp */
+  background-color: #25d366; /* Cor do WhatsApp */
   color: white;
   border-radius: 50%;
   width: 60px;
@@ -60,7 +60,7 @@
 }
 
 .whatsapp-icon:hover {
-  background-color: #128C7E; /* Cor do WhatsApp ao passar o mouse */
+  background-color: #128c7e; /* Cor do WhatsApp ao passar o mouse */
 }
 
 .demo-blocks > * {
@@ -100,8 +100,8 @@
   display: none !important;
 }
 
-/* 
-* Dark Mode Fixes 
+/*
+* Dark Mode Fixes
 * Corrigindo elementos brancos no modo escuro e hover effects
 ******************************************************************************/
 
@@ -126,22 +126,34 @@ html.dark-style .table-hover > tbody > tr:hover > * {
 
 /* Fix select options background */
 html.dark-style select option {
-    background-color: #0a0a0a;
-    color: #e0e0e0;
+  background-color: #0a0a0a;
+  color: #e0e0e0;
 }
 
 /* Fix any white background on hover for generic items in dark mode */
-html.dark-style .dropdown-item:hover, 
+html.dark-style .dropdown-item:hover,
 html.dark-style .dropdown-item:focus {
-    background-color: #1a1a1a !important;
-    color: #e0e0e0 !important;
+  background-color: #1a1a1a !important;
+  color: #e0e0e0 !important;
 }
 
 /* Ensure inputs in these filters are also dark if they exist */
 html.dark-style .user_role input,
 html.dark-style .user_plan input,
 html.dark-style .user_status input {
-    background-color: #0a0a0a !important;
-    color: #e0e0e0 !important;
-    border-color: #333333 !important;
+  background-color: #0a0a0a !important;
+  color: #e0e0e0 !important;
+  border-color: #333333 !important;
+}
+
+/* Fix white card-header in dark mode */
+html.dark-style .card-header {
+  background-color: transparent !important;
+  border-bottom-color: #333333 !important;
+}
+
+html.dark-style .card-header *,
+html.dark-style .card-header .card-title,
+html.dark-style .card-header h5 {
+  color: #e0e0e0 !important;
 }
