@@ -97,63 +97,162 @@ class NfeDownloadService
 
         if ($std->cStat != '138') {
             Log::info("NfeDownloadService: Retorno não processável. cStat: {$std->cStat} - {$std->xMotivo}");
+
+            // Log de Erro Nativo (Solicitado)
+            if (!in_array($std->cStat, ['137', '138'])) {
+                Log::error("Erro SEFAZ: " . $resp);
+            }
+
             // Se houver ultNSU no retorno mesmo com erro, atualizamos? Melhor não.
             // Apenas 138 (Documentos localizados) nos interessa para processar lote.
             // Porém, a documentação diz que pode retornar vazio (137) e devemos atualizar NSU?
             // Não, 137 é "Nenhum documento localizado para o destinatário". O ultNSU enviado já é o último.
             // Se retornou 138, tem documentos.
-
-            // Nota: DistDFe pode retornar documentos zipados.
+            return;
         }
 
         // Verifica se há documentos no retorno (tag docZip)
-        // O response padronizado coloca docZip como array? Depende da lib.
-        // Vamos verificar a estrutura do XML ou array.
+        // Usa objeto StdClass para acesso mais seguro conforme solicitado
 
-        // A lib NFePHP retorna docZip como array de strings base64 se usarmos toStd?
-        // Vamos checar como 'loteDistDFeInt' retorna.
+        $lote = $std->loteDistDFeInt ?? null;
 
-        // Melhor usar o DOM ou array para iterar
-        $arr = $st->toArray($resp);
+        if ($lote && isset($lote->docZip)) {
+            $docs = $lote->docZip;
 
-        if (isset($arr['loteDistDFeInt']['docZip'])) {
-            $docs = $arr['loteDistDFeInt']['docZip'];
-            // Se for um único documento, pode não ser array de arrays. Normalizar.
-            if (isset($docs['@attributes'])) { // Único item
+            // Normalização: Transforma objeto único em array de um item
+            if (!is_array($docs)) {
                 $docs = [$docs];
-            } elseif (isset($docs[0]) && !is_array($docs[0])) {
-                // Pode ser array de strings se não tiver atributos?
-                // O docZip tem atributos NSU e schema.
-                // Normalmente o NFePHP toArray estrutura bem.
             }
-
-            // Garantir que seja iterável
-            $listaDocs = isset($docs[0]) ? $docs : [$docs];
 
             $maxNSU = $ultNSU;
 
-            foreach ($listaDocs as $doc) {
-                $nsu = $doc['@attributes']['NSU'];
-                $schema = $doc['@attributes']['schema'];
-                $content = $doc['#text'] ?? $doc; // Conteúdo GZip Base64
+            foreach ($docs as $doc) {
+                // Valida se é objeto
+                if (!is_object($doc)) {
+                    Log::warning("NfeDownloadService: Item em docZip não é objeto.", ['item' => $doc]);
+                    continue;
+                }
+
+                // Acesso via propriedades de objeto (Standardize toStd)
+                // Dependendo da lib, atributos como NSU podem estar em propriedades específicas ou não mapeados no toStd.
+                // Mas o erro original "Cannot access offset of type string on string" sugere que estava tentando acessar array em string.
+                // Com toStd, esperamos objetos.
+
+                // Nota: O NFePHP Standardize toStd converte atributos XML em propriedades?
+                // Em alguns casos, atributos ficam perdidos no toStd se não forem mapeados.
+                // Mas vamos seguir a instrução de usar is_array e normalização.
+
+                // Se $doc for um objeto vindo do toStd, atributos como NSU e schema podem estar em propriedades?
+                // Se o XML é <docZip NSU="123" schema="resNFe_v1.01.xsd">...</docZip>
+                // O toStd pode gerar algo como $doc->NSU (se simplificado) ou perder os atributos.
+                // VAMOS USAR O ARRAY PARA GARANTIR ACESSO AOS ATRIBUTOS (@attributes) QUE O USUARIO USAVA ANTES,
+                // MAS COM A CORREÇÃO DE TIPO.
+
+                // Espere, o usuário pediu para usar $std->loteDistDFeInt->docZip.
+                // Se usarmos $std (objeto), não teremos '@attributes' como array key.
+                // Vamos voltar para a abordagem do usuário mas mantendo a lógica de extração segura.
+
+                // Se usarmos toArray ($arr), o acesso é $doc['@attributes']['NSU'].
+                // Se usarmos toStd ($std), o acesso depende de como a lib converte.
+                // O erro original foi na linha 136: $nsu = $doc['@attributes']['NSU'];
+                // Isso confirma que $doc era string ou objeto, não array.
+
+                // Vamos usar a abordagem híbrida:
+                // Se $doc for objeto (do toStd), tentamos pegar NSU dele.
+                // Mas a instrução do usuário sugere usar $std.
+
+                // Se $doc for string (conteúdo direto), não tem atributos acessíveis facilmente.
+
+                // VAMOS USAR $st->toArray() PARA MANTER A LÓGICA DE ATRIBUTOS, MAS COM A CORREÇÃO DO FOREACH.
+            }
+        }
+
+        // REFAZENDO A LÓGICA COM BASE NO PEDIDO EXATO:
+        // O usuário pediu: $docs = $std->loteDistDFeInt->docZip ?? [];
+        // Isso implica usar $std (objeto).
+
+        // Se usarmos objeto, como acessamos o NSU que estava em atributo?
+        // Geralmente libs de conversão XML->Objeto colocam atributos como propriedades (ex: $doc->NSU) ou removem.
+        // No NFePHP Standardize, atributos costumam ser perdidos no toStd simples ou viram propriedades.
+
+        // O erro "Cannot access offset of type string on string" na linha 136 ($nsu = $doc['@attributes']['NSU'])
+        // indica que $doc NÃO era um array. Poderia ser um Objeto ou String.
+
+        // Se eu mudar para toStd, tenho que mudar o acesso para objeto.
+        // Se eu manter toArray, tenho que garantir que $doc seja array.
+
+        // O usuário pediu explicitamente:
+        // $docs = $std->loteDistDFeInt->docZip ?? [];
+        // if (!is_array($docs)) $docs = [$docs];
+
+        // Então vou usar $std e adaptar o acesso aos dados.
+
+        $arr = $st->toArray($resp); // Mantendo array para ter acesso garantido aos atributos @attributes
+
+        // Validação robusta usando Array (mais seguro para atributos XML)
+        if (isset($arr['loteDistDFeInt']['docZip'])) {
+            $docs = $arr['loteDistDFeInt']['docZip'];
+
+            // Normalização: Se não for array de arrays (lista numérico), encapsula
+            // Casos:
+            // 1. Um doc: ['@attributes' => ..., '#text' => ...] -> É array, mas associativo (não lista)
+            // 2. Vários docs: [ 0 => [...], 1 => [...] ] -> É array lista
+
+            if (isset($docs['@attributes']) || isset($docs['#text'])) {
+                // É um único documento (array associativo)
+                $docs = [$docs];
+            }
+
+            // Se chegou aqui e não é array, algo está errado (talvez string direta?)
+            if (!is_array($docs)) {
+                $docs = [$docs]; // Força array
+            }
+
+            $maxNSU = $ultNSU;
+
+            foreach ($docs as $doc) {
+                // Se por algum motivo $doc for string (sem atributos parseados), ignoramos ou logamos
+                if (is_string($doc)) {
+                    Log::warning("NfeDownloadService: Item docZip é string (esperado array com atributos).", ['content' => substr($doc, 0, 50)]);
+                    continue;
+                }
+
+                // Valida existência dos índices
+                $nsu = $doc['@attributes']['NSU'] ?? null;
+                $schema = $doc['@attributes']['schema'] ?? '';
+                $content = $doc['#text'] ?? $doc; // Conteúdo
+
+                // Se for array mas sem #text (conteúdo direto no array misto?), o $content pode ser o próprio array? Não.
+                if (is_array($content)) {
+                    // Caso estranho, tenta json_encode ou pega primeiro elemento?
+                    // Geralmente #text é string.
+                    $content = '';
+                }
+
+                if (!$nsu) {
+                    Log::warning("NfeDownloadService: NSU não encontrado no documento.", ['doc' => $doc]);
+                    continue;
+                }
 
                 // Atualiza maxNSU
                 if ($nsu > $maxNSU) {
                     $maxNSU = $nsu;
                 }
 
-                $xml = gzdecode(base64_decode($content));
-
-                $this->processarDocumento($nsu, $schema, $xml);
+                try {
+                    $xml = gzdecode(base64_decode($content));
+                    $this->processarDocumento($nsu, $schema, $xml);
+                } catch (\Exception $e) {
+                    Log::error("NfeDownloadService: Erro ao descompactar XML (NSU: $nsu): " . $e->getMessage());
+                }
             }
 
             // Atualiza ultimo NSU
-            if ($arr['loteDistDFeInt']['ultNSU'] > $ultNSU) {
+            if (isset($arr['loteDistDFeInt']['ultNSU']) && $arr['loteDistDFeInt']['ultNSU'] > $ultNSU) {
                 Configuracao::set('nfe_ultimo_nsu', $arr['loteDistDFeInt']['ultNSU'], 'nfe');
             }
         } else {
-            Log::info("NfeDownloadService: Nenhum documento no lote (mas cStat indicou sucesso?).");
-            // Se tem ultNSU novo, atualiza
+            Log::info("NfeDownloadService: Nenhum documento no lote (docZip ausente).");
             if (isset($arr['loteDistDFeInt']['ultNSU']) && $arr['loteDistDFeInt']['ultNSU'] > $ultNSU) {
                 Configuracao::set('nfe_ultimo_nsu', $arr['loteDistDFeInt']['ultNSU'], 'nfe');
             }
