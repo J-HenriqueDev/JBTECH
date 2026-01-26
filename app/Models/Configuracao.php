@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
+use App\Traits\Loggable;
 
 class Configuracao extends Model
 {
-    use HasFactory;
+    use HasFactory, Loggable;
 
     protected $table = 'configuracoes';
 

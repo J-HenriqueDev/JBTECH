@@ -13,6 +13,7 @@ class NotaEntrada extends Model
 
     protected $fillable = [
         'chave_acesso',
+        'nsu',
         'numero_nfe',
         'serie',
         'emitente_cnpj',
@@ -99,7 +100,6 @@ class NotaEntrada extends Model
             }
 
             return $sugestoes;
-
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error("Erro ao gerar sugestões para NotaEntrada #{$this->id}: " . $e->getMessage());
             return [];

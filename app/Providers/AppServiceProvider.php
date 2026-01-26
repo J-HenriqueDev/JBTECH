@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Pagination\Paginator;
 use App\Models\Produto;
 use App\Observers\ProdutoObserver;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Auth\Events\Login;
+use App\Listeners\LogSuccessfulLogin;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -24,6 +27,11 @@ class AppServiceProvider extends ServiceProvider
    */
   public function boot(): void
   {
+    Event::listen(
+        Login::class,
+        LogSuccessfulLogin::class
+    );
+
     Vite::useStyleTagAttributes(function (?string $src, string $url, ?array $chunk, ?array $manifest) {
       if ($src !== null) {
         return [

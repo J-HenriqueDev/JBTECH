@@ -244,6 +244,11 @@ class ProcessarNFeDestinadas extends Command
 
                 $this->info("Consulta finalizada. {$novasNotas} documentos processados.");
             }
+
+            // Health Check Final
+            $notasProntas = NotaEntrada::whereIn('status', ['detectada', 'downloaded', 'pendente'])->count();
+            // Log no banco via LogService (Sistema)
+            LogService::registrarSistema('SEFAZ', 'Saúde SEFAZ', "Sincronização finalizada. [{$notasProntas}] Notas prontas para conferência na tela de Entrada.");
         } catch (\Exception $e) {
             $this->error('Erro fatal no command: ' . $e->getMessage());
             Log::error('Erro fatal no command nfe:processar-destinadas: ' . $e->getMessage());
@@ -277,6 +282,7 @@ class ProcessarNFeDestinadas extends Command
             $nota = NotaEntrada::updateOrCreate(
                 ['chave_acesso' => $chave],
                 [
+                    'nsu' => $nsu, // Salva o NSU para controle
                     'emitente_cnpj' => $cnpj,
                     'emitente_nome' => $nome,
                     'valor_total' => $valor,
@@ -311,6 +317,7 @@ class ProcessarNFeDestinadas extends Command
                 NotaEntrada::updateOrCreate(
                     ['chave_acesso' => $chave],
                     [
+                        'nsu' => $nsu, // Atualiza NSU se vier no XML completo também
                         'emitente_cnpj' => (string) $emit->CNPJ,
                         'emitente_nome' => (string) $emit->xNome,
                         'valor_total' => (float) $total->vNF,

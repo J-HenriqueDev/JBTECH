@@ -7,10 +7,11 @@ use App\Models\User;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\Loggable;
 
 class Produto extends Model
 {
-    use HasFactory;
+    use HasFactory, Loggable;
 
     protected $fillable = [
         'nome',

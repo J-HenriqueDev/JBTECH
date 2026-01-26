@@ -10,12 +10,19 @@ class LogService
     /**
      * Registra uma mudança feita por um humano.
      */
-    public static function registrarMudanca($model, $id, $campo, $antigo, $novo)
+    public static function registrarMudanca($model, $id, $campo, $antigo, $novo, $nomeItem = null)
     {
         $user = Auth::user() ? Auth::user()->name : 'Desconhecido';
-        $acao = "Editou {$model} {$id}";
-        $detalhes = "Campos: {$campo} de '{$antigo}' para '{$novo}'";
-        
+        // Formato solicitado: [Humano: {user}] - Alterou {Campo} do {Model} {Nome}: De {de} para {para}
+        // Nota: O prefixo [Humano: {user}] geralmente é tratado na exibição ou na coluna de usuário,
+        // mas aqui vamos colocar na Ação para ficar explícito como pedido.
+
+        $identificacao = $nomeItem ? $nomeItem : "#{$id}";
+        $campoFormatado = ucfirst($campo);
+
+        $acao = "Alterou {$campoFormatado} do {$model} {$identificacao}";
+        $detalhes = "De '{$antigo}' para '{$novo}'";
+
         self::registrar('Humano', $acao, $detalhes);
     }
 
