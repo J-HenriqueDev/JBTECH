@@ -205,7 +205,22 @@ class ProcessarNFeDestinadas extends Command
                                 try {
                                     $xmlContent = gzdecode(base64_decode($contentEncoded));
                                     // Processa (Salva Resumo ou XML se já vier)
-                                    $this->processarDocDFe($nsu, $schema, $xmlContent);
+                                    $novaChave = $this->processarDocDFe($nsu, $schema, $xmlContent);
+
+                                    // Se for uma nova chave (resNFe detectado), processa IMEDIATAMENTE
+                                    if ($novaChave) {
+                                        $this->info("Nova nota detectada: $novaChave. Iniciando download imediato...");
+                                        try {
+                                            // Tenta baixar imediatamente (Ciência -> Download)
+                                            // Isso evita esperar a próxima execução do comando
+                                            $nfeService->baixarPorChave($novaChave);
+                                            $this->info("Nota $novaChave processada com sucesso no fluxo contínuo.");
+                                        } catch (\Exception $eDownload) {
+                                            $this->error("Erro ao tentar baixar imediatamente a nota $novaChave: " . $eDownload->getMessage());
+                                            // Se falhar, ela já está salva como 'detectada' e será pega na próxima execução ou loop
+                                        }
+                                    }
+
                                     $novasNotas++;
                                 } catch (\Exception $e) {
                                     Log::error("Erro ao processar doc NSU $nsu no command: " . $e->getMessage());
@@ -320,9 +335,5 @@ class ProcessarNFeDestinadas extends Command
         }
 
         return $returnChave;
-    }
-                NotaEntrada::where('chave_acesso', $chave)->update(['status' => 'cancelada']);
-            }
-        }
     }
 }
