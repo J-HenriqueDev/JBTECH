@@ -175,18 +175,17 @@
                         </td>
                         <td>
                             @if($nota->xml_content)
-                            <span class="badge bg-success">XML Baixado</span>
+                            <a href="{{ route('notas-entrada.processar', $nota->id) }}" class="btn btn-sm btn-success w-100">
+                                <i class="bx bx-check-circle me-1"></i> Dar Entrada
+                            </a>
                             @else
-                            <div class="d-flex align-items-center gap-1">
-                                <span class="badge bg-warning">Pendente</span>
-                                <form action="{{ route('notas-entrada.baixar-por-chave') }}" method="POST" class="d-inline">
-                                    @csrf
-                                    <input type="hidden" name="chave" value="{{ $nota->chave_acesso }}">
-                                    <button type="submit" class="btn btn-sm btn-icon btn-outline-primary" title="Forçar Download na SEFAZ (Nuvem)">
-                                        <i class="bx bx-cloud-download"></i>
-                                    </button>
-                                </form>
-                            </div>
+                            <form action="{{ route('notas-entrada.baixar-por-chave') }}" method="POST" class="d-inline w-100">
+                                @csrf
+                                <input type="hidden" name="chave" value="{{ $nota->chave_acesso }}">
+                                <button type="submit" class="btn btn-sm btn-warning w-100" title="Clique para baixar o XML da SEFAZ">
+                                    <i class="bx bx-cloud-download me-1"></i> Baixar Pendente
+                                </button>
+                            </form>
                             @endif
                         </td>
                         <td>

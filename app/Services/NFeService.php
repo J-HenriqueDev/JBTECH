@@ -364,16 +364,32 @@ class NFeService
 
             // Se vier docZip, processa
             if (isset($std->loteDistDFeInt->docZip)) {
-                // Reutiliza o parser
+                // Reutiliza o parser para garantir processamento padrão (NSU, Schema, etc)
                 $this->parseDistDFeResponse($std);
 
-                // Retorna o conteúdo para o command (opcional, já que salvamos no banco)
-                // O command espera 'nsu', 'schema', 'content'
-                // Mas como parseDistDFeResponse já salva, podemos retornar sucesso genérico
-                // Ou extrair o primeiro doc para retorno
-
+                // --- INÍCIO DA SOLICITAÇÃO DO USUÁRIO ---
+                // Força a extração e salvamento do XML puro e atualização do status
+                // Isso garante que mesmo que parseDistDFeResponse falhe ou tenha lógica condicional,
+                // o XML baixado manualmente seja salvo.
+                
                 $doc = $std->loteDistDFeInt->docZip;
                 if (is_array($doc)) $doc = $doc[0];
+
+                $content = (string) $doc;
+                // O conteúdo vem em GZip + Base64
+                $xml_puro = gzdecode(base64_decode($content));
+
+                if ($xml_puro) {
+                    NotaEntrada::where('chave_acesso', $chave)->update([
+                        'xml_content' => $xml_puro,
+                        'status' => 'concluido'
+                    ]);
+                    
+                    Log::info("[Sistema] - Tentativa de download manual para a chave {$chave}. Sucesso: Sim .");
+                } else {
+                    Log::warning("[Sistema] - Falha na descompactação do XML para a chave {$chave}.");
+                }
+                // --- FIM DA SOLICITAÇÃO DO USUÁRIO ---
 
                 return [
                     'status' => 'success',
@@ -383,6 +399,7 @@ class NFeService
                 ];
             }
 
+            Log::info("[Sistema] - Tentativa de download manual para a chave {$chave}. Sucesso: Não (Sem docZip).");
             return ['status' => 'error', 'message' => 'Nenhum XML retornado no download.'];
         } catch (\Exception $e) {
             Log::error("Erro ao baixar nota {$chave}: " . $e->getMessage());

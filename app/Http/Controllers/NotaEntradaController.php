@@ -295,8 +295,9 @@ class NotaEntradaController extends Controller
 
             if ($nota) {
                 if ($nota->xml_content) {
-                    return redirect()->route('notas-entrada.processar', $nota->id)
-                        ->with('success', 'Nota fiscal baixada e processada com sucesso!');
+                    // Alterado para redirect back conforme solicitação de "refresh e botão verde"
+                    return redirect()->back()
+                        ->with('success', 'Nota fiscal baixada com sucesso! Clique em "Dar Entrada".');
                 } else {
                     return redirect()->route('nfe.manifesto.index')
                         ->with('success', 'Resumo da nota baixado com sucesso! A nota foi adicionada ao Manifesto. Realize a ciência/confirmação para baixar o XML completo.');
