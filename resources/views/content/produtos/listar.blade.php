@@ -19,6 +19,16 @@
         </div>
     @endif
 
+    @if (session('error'))
+        <div class="alert alert-danger alert-dismissible" role="alert">
+            <h6 class="alert-heading d-flex align-items-center fw-bold mb-1">
+                <i class="fas fa-exclamation-circle me-1"></i> Erro!
+            </h6>
+            <p class="mb-0">{!! session('error') !!}</p>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="mb-0 text-primary"
             style="font-size: 2.5rem; font-weight: bold; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);">

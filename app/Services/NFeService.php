@@ -1729,36 +1729,54 @@ INI;
                     Log::info('Tentando manifestar Ciência da Operação automaticamente para: ' . $chave);
                     $this->manifestar($chave, 210210);
 
-                    // Aguarda um pouco para propagação (opcional, mas recomendado)
-                    sleep(2);
+                    // Loop de tentativas agressivo para baixar o XML imediatamente após a Ciência
+                    // Muitos sistemas fazem isso para garantir o download "na hora"
+                    $maxAttempts = 4;
+                    $attempt = 0;
+                    $isStillResumo = true; // Assume true para entrar/continuar lógica de verificação
+                    $std = null;
 
-                    // Tenta baixar novamente
-                    $resp = $this->tools->sefazDistDFe(0, 0, $chave);
-                    $std = $this->parseDistDFeResponse($resp);
+                    do {
+                        $attempt++;
+                        // Aguarda propagação (aumentando o tempo a cada tentativa: 3s, 4s, 5s...)
+                        $sleepTime = 2 + $attempt;
+                        Log::info("Aguardando {$sleepTime}s para SEFAZ processar manifestação (Tentativa $attempt/$maxAttempts)...");
+                        sleep($sleepTime);
 
-                    // Verifica se AINDA é resumo após a Ciência (pode ter sido duplicidade de Ciência)
-                    $isStillResumo = false;
-                    if ($std->cStat == 138 && isset($std->loteDistDFeInt->docZip)) {
-                         $docCheck = $std->loteDistDFeInt->docZip;
-                         if (is_array($docCheck) && isset($docCheck[0]) && (is_object($docCheck[0]) || is_array($docCheck[0]))) {
-                             $docCheck = $docCheck[0];
-                         }
+                        // Tenta baixar novamente
+                        $resp = $this->tools->sefazDistDFe(0, 0, $chave);
+                        $std = $this->parseDistDFeResponse($resp);
 
-                         $schemaCheck = null;
-                         if (is_object($docCheck)) {
-                             $schemaCheck = $docCheck->schema ?? null;
-                         } elseif (is_array($docCheck)) {
-                             $schemaCheck = $docCheck['schema'] ?? null;
-                         }
+                        // Verifica se AINDA é resumo
+                        $isStillResumo = false;
+                        if ($std->cStat == 138 && isset($std->loteDistDFeInt->docZip)) {
+                             $docCheck = $std->loteDistDFeInt->docZip;
+                             if (is_array($docCheck) && isset($docCheck[0]) && (is_object($docCheck[0]) || is_array($docCheck[0]))) {
+                                 $docCheck = $docCheck[0];
+                             }
 
-                         if ($schemaCheck && strpos($schemaCheck, 'resNFe') !== false) {
-                             $isStillResumo = true;
-                         }
-                    }
+                             $schemaCheck = null;
+                             if (is_object($docCheck)) {
+                                 $schemaCheck = $docCheck->schema ?? null;
+                             } elseif (is_array($docCheck)) {
+                                 $schemaCheck = $docCheck['schema'] ?? null;
+                             }
+
+                             if ($schemaCheck && strpos($schemaCheck, 'resNFe') !== false) {
+                                 $isStillResumo = true;
+                             }
+                        }
+
+                        if (!$isStillResumo) {
+                            Log::info("Sucesso! XML completo detectado na tentativa $attempt.");
+                            break; // Sai do loop se conseguiu o XML (não é mais resumo)
+                        }
+
+                    } while ($attempt < $maxAttempts);
 
                     if ($isStillResumo) {
-                        Log::warning("Ciência realizada (ou duplicada), mas XML ainda não disponível (Resumo persistente). Forçando erro 596 para tentar Confirmação da Operação (210200): $chave");
-                        throw new Exception("Erro 596 simulado: Resumo persistente após Ciência.");
+                        Log::warning("Ciência realizada, mas XML ainda não disponível após $maxAttempts tentativas. Forçando erro 596 para tentar Confirmação da Operação (210200): $chave");
+                        throw new Exception("Erro 596 simulado: Resumo persistente após Ciência e retentativas.");
                     }
                 } catch (\Exception $eManifest) {
                     Log::warning('Falha ao manifestar automaticamente: ' . $eManifest->getMessage());

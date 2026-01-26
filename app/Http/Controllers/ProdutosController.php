@@ -114,15 +114,16 @@ class ProdutosController extends Controller
     public function categorizarLote()
     {
         try {
-            // Dispara o comando Artisan
+            // Dispara o comando Artisan diretamente (Síncrono) para feedback imediato
+            // Usuários preferem esperar e ver acontecer do que "não acontecer nada"
             \Illuminate\Support\Facades\Artisan::call('categorize:products');
 
             LogService::registrar('Produto', 'Categorização em Lote', 'Usuário solicitou categorização manual em lote.');
 
-            return redirect()->route('produtos.index')->with('success', 'Categorização em lote iniciada! O processo rodará em segundo plano.');
+            return redirect()->route('produtos.index')->with('success', 'Categorização em lote finalizada com sucesso!');
         } catch (\Exception $e) {
             Log::error("Erro ao executar categorização em lote: " . $e->getMessage());
-            return redirect()->route('produtos.index')->with('error', 'Erro ao iniciar categorização: ' . $e->getMessage());
+            return redirect()->route('produtos.index')->with('error', 'Erro ao executar categorização: ' . $e->getMessage());
         }
     }
 
@@ -132,15 +133,15 @@ class ProdutosController extends Controller
     public function fiscalLote()
     {
         try {
-            // Dispara o comando Artisan
+            // Dispara o comando Artisan diretamente (Síncrono)
             \Illuminate\Support\Facades\Artisan::call('products:fill-fiscal');
 
             LogService::registrar('Produto', 'Fiscal em Lote', 'Usuário solicitou preenchimento fiscal manual em lote.');
 
-            return redirect()->route('produtos.index')->with('success', 'Preenchimento fiscal em lote iniciado! O processo rodará em segundo plano.');
+            return redirect()->route('produtos.index')->with('success', 'Preenchimento fiscal em lote finalizado com sucesso!');
         } catch (\Exception $e) {
             Log::error("Erro ao executar preenchimento fiscal em lote: " . $e->getMessage());
-            return redirect()->route('produtos.index')->with('error', 'Erro ao iniciar preenchimento fiscal: ' . $e->getMessage());
+            return redirect()->route('produtos.index')->with('error', 'Erro ao executar preenchimento fiscal: ' . $e->getMessage());
         }
     }
 
