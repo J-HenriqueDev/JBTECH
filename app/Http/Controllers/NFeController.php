@@ -370,11 +370,11 @@ class NFeController extends Controller
         $notaFiscal = NotaFiscal::with(['venda.cliente.endereco', 'venda.produtos', 'cliente.endereco'])
             ->findOrFail($id);
 
-        LogService::registrar(
-            'NF-e',
-            'Visualizar',
-            "Visualizou a NF-e ID: {$notaFiscal->id}"
-        );
+        // LogService::registrar(
+        //    'NF-e',
+        //    'Visualizar',
+        //    "Visualizou a NF-e ID: {$notaFiscal->id}"
+        // );
 
         // Redireciona para a tela unificada de Ver/Editar
         return redirect()->route('nfe.edit', $id);

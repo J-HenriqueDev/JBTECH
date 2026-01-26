@@ -665,21 +665,21 @@ class ProdutosController extends Controller
 
         if (!$produto) {
             // Registra um log de aviso
-            LogService::registrar(
+            /* LogService::registrar(
                 'Produto', // Categoria
                 'Visualizar', // Ação
                 "Produto ID: {$id} não encontrado" // Detalhes
-            );
+            ); */
 
             return response()->json(['error' => 'Produto não encontrado'], 404);
         }
 
-        // Registra um log
-        LogService::registrar(
+        // Log removido (Lei do Silêncio)
+        /* LogService::registrar(
             'Produto', // Categoria
             'Visualizar', // Ação
             "Visualizou o produto ID: {$produto->id}" // Detalhes
-        );
+        ); */
 
         return response()->json($produto);
     }

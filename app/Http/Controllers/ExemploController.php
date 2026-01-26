@@ -70,11 +70,11 @@ class ExemploController extends Controller
         $exemplo = Exemplo::findOrFail($id);
 
         // Registra um log
-        LogService::registrar(
-            'Exemplo', // Categoria
-            'Visualizar', // Ação
-            "Exemplo ID: {$exemplo->id} visualizado" // Detalhes
-        );
+        // LogService::registrar(
+        //    'Exemplo', // Categoria
+        //    'Visualizar', // Ação
+        //    "Exemplo ID: {$exemplo->id} visualizado" // Detalhes
+        // );
 
         return view('exemplos.show', compact('exemplo'));
     }

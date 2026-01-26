@@ -152,6 +152,7 @@ class NFeService
             if ($std->cStat == '656') { // Consumo indevido
                 Log::warning("NFeService: Consumo indevido (cStat 656). Aguarde 1 hora.");
                 return (object) [
+                    'cStat' => '656',
                     'message' => 'Consumo indevido detectado. O sistema aguardará automaticamente.',
                     'count' => 0,
                     'ultNSU' => $std->ultNSU ?? 0,
@@ -358,8 +359,12 @@ class NFeService
             $st = new Standardize();
             $std = $st->toStd($resp);
 
+            if ($std->cStat == '656') { // Consumo indevido
+                return ['status' => 'error', 'cStat' => '656', 'message' => "Consumo indevido (656)."];
+            }
+
             if ($std->cStat != '104') { // 104 = Processado
-                return ['status' => 'error', 'message' => "Erro SEFAZ: {$std->cStat} - " . ($std->xMotivo ?? '')];
+                return ['status' => 'error', 'cStat' => $std->cStat ?? '0', 'message' => "Erro SEFAZ: {$std->cStat} - " . ($std->xMotivo ?? '')];
             }
 
             // Se vier docZip, processa
@@ -371,7 +376,7 @@ class NFeService
                 // Força a extração e salvamento do XML puro e atualização do status
                 // Isso garante que mesmo que parseDistDFeResponse falhe ou tenha lógica condicional,
                 // o XML baixado manualmente seja salvo.
-                
+
                 $doc = $std->loteDistDFeInt->docZip;
                 if (is_array($doc)) $doc = $doc[0];
 
@@ -385,7 +390,7 @@ class NFeService
                         'xml_content' => $xml_puro,
                         'status' => 'concluido'
                     ]);
-                    
+
                     // Log de auditoria real solicitado
                     LogService::cagueta("[Sistema] - XML da Nota {$chave} recuperado com sucesso via chave direta.");
                 } else {

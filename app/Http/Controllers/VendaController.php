@@ -28,12 +28,8 @@ class VendaController extends Controller
         // Recupera todas as vendas com os relacionamentos necessários
         $vendas = Venda::with(['cliente', 'produtos', 'user'])->latest()->get();
 
-        // Registra um log
-        LogService::registrar(
-            'Venda', // Categoria
-            'Listar', // Ação
-            'Listou todas as vendas' // Detalhes
-        );
+        // Log removido (Lei do Silêncio)
+        // LogService::registrar('Venda', 'Listar', 'Listou todas as vendas');
 
         // Passa as vendas para a view
         return view('content.vendas.index', compact('vendas'));
@@ -251,12 +247,8 @@ class VendaController extends Controller
         // Recupera a venda com os relacionamentos
         $venda = Venda::with(['cliente', 'produtos', 'user'])->findOrFail($id);
 
-        // Registra um log
-        LogService::registrar(
-            'Venda', // Categoria
-            'Visualizar', // Ação
-            "Visualizou a venda ID: {$venda->id}" // Detalhes
-        );
+        // Log removido (Lei do Silêncio)
+        // LogService::registrar('Venda', 'Visualizar', "Visualizou a venda ID: {$venda->id}");
 
         // Redireciona para a página de edição (que já mostra todos os detalhes)
         return redirect()->route('vendas.edit', $venda->id);

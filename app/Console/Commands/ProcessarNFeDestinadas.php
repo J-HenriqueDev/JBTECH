@@ -31,6 +31,16 @@ class ProcessarNFeDestinadas extends Command
      */
     public function handle(NFeService $nfeService)
     {
+        // 0. Verificação de Bloqueio (Consumo Indevido - Global) - PRIORIDADE MÁXIMA
+        $nextQuery = Configuracao::get('nfe_next_dfe_query');
+        if ($nextQuery) {
+            $nextQueryTime = Carbon::parse($nextQuery);
+            if (now()->lt($nextQueryTime)) {
+                $this->info("Sistema em modo soneca até " . $nextQueryTime->format('H:i:s'));
+                return;
+            }
+        }
+
         $this->info('Command nfe:processar-destinadas iniciado.');
         Log::info('Command nfe:processar-destinadas iniciado.');
 
@@ -65,10 +75,7 @@ class ProcessarNFeDestinadas extends Command
         if ($nextQuery) {
             $nextQueryTime = Carbon::parse($nextQuery);
             if (now()->lt($nextQueryTime)) {
-                $diff = (int) ceil(now()->diffInMinutes($nextQueryTime));
-                $msg = "Consulta bloqueada pela SEFAZ. Aguardando {$diff} minutos.";
-                $this->warn($msg);
-                Log::warning("Command nfe:processar-destinadas: $msg");
+                $this->info("Sistema em modo soneca até " . $nextQueryTime->format('H:i:s'));
                 return;
             }
         }
@@ -87,6 +94,8 @@ class ProcessarNFeDestinadas extends Command
             if ($notasPendentes->count() > 0) {
                 $this->info("Encontradas {$notasPendentes->count()} notas pendentes de download. Iniciando manifestação e download...");
 
+                $sucessosCount = 0;
+
                 foreach ($notasPendentes as $nota) {
                     $chave = $nota->chave_acesso;
                     $this->info("Processando nota: $chave");
@@ -102,6 +111,16 @@ class ProcessarNFeDestinadas extends Command
                         // 1. Prioridade de Download por Chave (Solicitação Explícita)
                         $result = $nfeService->baixarPorChave($chave);
 
+                        // DETECÇÃO DE MODO SONECA (Erro 656) no Download Manual
+                        if (isset($result['cStat']) && $result['cStat'] == '656') {
+                             $sonecaTime = now()->addMinutes(65);
+                             Configuracao::set('nfe_next_dfe_query', $sonecaTime->toDateTimeString(), 'nfe', 'datetime', 'Bloqueio temporário SEFAZ (656)');
+
+                             $this->info("Modo Soneca Ativado! Erro 656 detectado. Pausa de 65 minutos.");
+                             Log::warning("[Sistema] - Bloqueio SEFAZ detectado. Robô pausado por 65 min para evitar banimento do IP.");
+                             break;
+                        }
+
                         // Imediatamente após a chamada, verifique se a coluna xml_content da $nota foi preenchida
                         $nota->refresh();
 
@@ -110,14 +129,14 @@ class ProcessarNFeDestinadas extends Command
                             $nota->update(['status' => 'concluido']);
 
                             $this->info("Sucesso: XML recuperado e salvo. Status: concluido.");
+                            $sucessosCount++;
 
-                            // Log de Sucesso Real
-                            LogService::registrarSistema('Sistema', 'Sucesso', "XML da Nota {$chave} recuperado e salvo no banco.");
+                            // Log individual removido para evitar spam (Lei do Silêncio)
                         } else {
                             $msgErro = isset($result['message']) ? $result['message'] : 'Erro desconhecido ao baixar XML.';
                             $this->error("Falha: XML não salvo para a nota {$chave}. Motivo: {$msgErro}");
 
-                            // Log de Falha
+                            // Log de Falha mantido pois é erro
                             LogService::registrarSistema('Sistema', 'Falha Download', "Falha ao recuperar XML da Nota {$chave}. Motivo: {$msgErro}");
                         }
 
@@ -127,8 +146,14 @@ class ProcessarNFeDestinadas extends Command
                     }
 
                     // Pausa de segurança entre downloads
-                    sleep(5);
+                    sleep(10);
                 }
+
+                // Log Agrupado de Sucesso
+                if ($sucessosCount > 0) {
+                     LogService::registrarSistema('Sistema', 'Sincronização Finalizada', "{$sucessosCount} notas baixadas e salvas com sucesso.");
+                }
+
             } else {
                 $this->info("Nenhuma nota pendente de download.");
             }
@@ -168,6 +193,16 @@ class ProcessarNFeDestinadas extends Command
 
                     if (is_array($resp)) {
                         $resp = (object) $resp;
+                    }
+
+                    // DETECÇÃO DE MODO SONECA (Erro 656)
+                    if (isset($resp->cStat) && $resp->cStat == '656') {
+                         $sonecaTime = now()->addMinutes(65);
+                         Configuracao::set('nfe_next_dfe_query', $sonecaTime->toDateTimeString(), 'nfe', 'datetime', 'Bloqueio temporário SEFAZ (656)');
+
+                         $this->info("Modo Soneca Ativado! Erro 656 detectado. Próxima execução apenas após " . $sonecaTime->format('H:i:s'));
+                         Log::warning("[Sistema] - Bloqueio SEFAZ detectado. Robô pausado por 65 min para evitar banimento do IP.");
+                         break;
                     }
 
                     $ultNSU = data_get($resp, 'ultNSU', 0);

@@ -132,7 +132,7 @@
                             <th>Número NFe / Chave</th>
                             <th>Emitente</th>
                             <th>Valor</th>
-                            <th>Status Manifestação</th>
+                            <th>Status</th>
                             <th>Status Download</th>
                             <th>Ações</th>
                         </tr>
