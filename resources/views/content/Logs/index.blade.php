@@ -129,7 +129,7 @@
                             <td><span class="badge bg-label-info">{{ $log->categoria }}</span></td>
                             <td>{{ $log->acao }}</td>
                             <td style="white-space: normal; max-width: 400px;">
-                                {{ Str::limit($log->detalhes, 100) }}
+                                {{ \Illuminate\Support\Str::limit($log->detalhes, 100) }}
                                 @if (strlen($log->detalhes) > 100)
                                     <button type="button" class="btn btn-sm btn-link p-0" data-bs-toggle="popover"
                                         data-bs-content="{{ $log->detalhes }}" title="Detalhes Completos">

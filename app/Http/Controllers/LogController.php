@@ -17,15 +17,19 @@ class LogController extends Controller
         }
 
         // --- Logs do Console (Adicionado) ---
-        $consoleLogFile = storage_path('logs/console-output.log');
         $consoleLogs = [];
+        $consoleLogFile = storage_path('logs/console-output.log');
 
         if (File::exists($consoleLogFile)) {
-             // Read the last 1000 lines
-             $fileContent = File::get($consoleLogFile);
-             $lines = explode("\n", $fileContent);
-             $lines = array_reverse($lines); // Show newest first
-             $consoleLogs = array_slice($lines, 0, 1000);
+             try {
+                 // Read the last 1000 lines
+                 $fileContent = File::get($consoleLogFile);
+                 $lines = explode("\n", $fileContent);
+                 $lines = array_reverse($lines); // Show newest first
+                 $consoleLogs = array_slice($lines, 0, 1000);
+             } catch (\Exception $e) {
+                 $consoleLogs[] = "Erro ao ler logs: " . $e->getMessage();
+             }
         } else {
             $consoleLogs[] = "Nenhum log de console encontrado.";
         }
@@ -70,7 +74,13 @@ class LogController extends Controller
         // Pagina os resultados e mantém os parâmetros de filtro na URL
         $logs = $query->paginate($request->input('perPage', 10))->withQueryString();
 
-        return view('content.Logs.index', compact('logs', 'usuarios', 'categorias', 'acoes', 'consoleLogs'));
+        return view('content.Logs.index', [
+            'logs' => $logs,
+            'usuarios' => $usuarios,
+            'categorias' => $categorias,
+            'acoes' => $acoes,
+            'consoleLogs' => $consoleLogs
+        ]);
     }
 
     public function clear(Request $request)
