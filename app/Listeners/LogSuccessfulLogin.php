@@ -34,7 +34,8 @@ class LogSuccessfulLogin
             $emoji = '⚠️ ';
         }
 
-        $detalhes = "{$emoji}Login realizado com sucesso. IP: {$ip}";
+        $userAgent = request()->userAgent();
+        $detalhes = "{$emoji}Login realizado com sucesso. IP: {$ip} - Browser: {$userAgent}";
 
         // Usa o LogService para manter consistência (assume que Auth::user() já está disponível)
         // Se LogService não estiver disponível via facade, usamos Log::create direto como fallback implícito no LogService

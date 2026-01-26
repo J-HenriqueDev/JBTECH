@@ -335,7 +335,7 @@ class NotaEntradaController extends Controller
                     'valor_total' => (float) $nfe->total->ICMSTot->vNF,
                     'data_emissao' => (string) $nfe->ide->dhEmi,
                     'xml_content' => $xmlContent,
-                    'status' => 'downloaded'
+                    'status' => 'concluido'
                 ]
             );
 

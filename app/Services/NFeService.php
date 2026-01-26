@@ -231,6 +231,15 @@ class NFeService
 
         $chave = $std->chNFe;
 
+        // Verifica se NSU já existe em outra nota para evitar duplicação
+        if ($nsu) {
+            $nsuExistente = NotaEntrada::where('nsu', $nsu)->where('chave_acesso', '!=', $chave)->first();
+            if ($nsuExistente) {
+                Log::warning("NSU {$nsu} duplicado ignorado para chave {$chave}. Pertence à chave {$nsuExistente->chave_acesso}");
+                return;
+            }
+        }
+
         $nota = NotaEntrada::firstOrNew(['chave_acesso' => $chave]);
         $nota->nsu = $nsu;
         $nota->emitente_cnpj = $std->CNPJ;
@@ -277,6 +286,15 @@ class NFeService
         if (!$chave) {
             Log::warning("Não foi possível identificar a chave no XML completo NSU {$nsu}");
             return;
+        }
+
+        // Verifica se NSU já existe em outra nota para evitar duplicação
+        if ($nsu) {
+            $nsuExistente = NotaEntrada::where('nsu', $nsu)->where('chave_acesso', '!=', $chave)->first();
+            if ($nsuExistente) {
+                Log::warning("NSU {$nsu} duplicado ignorado para chave {$chave} (XML Completo). Pertence à chave {$nsuExistente->chave_acesso}");
+                return;
+            }
         }
 
         $nota = NotaEntrada::firstOrNew(['chave_acesso' => $chave]);

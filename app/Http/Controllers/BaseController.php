@@ -35,4 +35,12 @@ class BaseController extends LaravelController
 
         LogService::registrar($categoria, $acao, $detalhesStr);
     }
+
+    /**
+     * Helper padronizado para logs de ação
+     */
+    protected function logAction($acao, $detalhes = [], $categoria = 'Auditoria')
+    {
+        $this->registrarAcao($categoria, $acao, $detalhes);
+    }
 }

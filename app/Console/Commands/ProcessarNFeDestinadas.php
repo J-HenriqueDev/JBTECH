@@ -31,10 +31,22 @@ class ProcessarNFeDestinadas extends Command
      */
     public function handle(NFeService $nfeService)
     {
-        $this->info('Iniciando processamento automático de NF-e destinadas...');
+        $this->info('Command nfe:processar-destinadas iniciado.');
         Log::info('Command nfe:processar-destinadas iniciado.');
 
-        // 0. Correção Automática de Dados (Sanitização)
+        // 0. Sanitização de Status (Correção Retroativa)
+        // Se tem XML mas o status ainda é pendente/downloaded, corrige para concluido
+        $fixedStatus = NotaEntrada::whereNotNull('xml_content')
+            ->where('xml_content', '!=', '')
+            ->where('status', '!=', 'concluido')
+            ->update(['status' => 'concluido']);
+
+        if ($fixedStatus > 0) {
+            $this->info("Sanitização: Status corrigido para 'concluido' em $fixedStatus notas com XML baixado.");
+            Log::info("Sanitização: $fixedStatus notas tiveram status corrigido para 'concluido'.");
+        }
+
+        // 0.1 Correção Automática de Dados (Sanitização XML)
         // Corrige notas que ficaram com resNFe salvo no lugar do XML completo
         $affected = NotaEntrada::where('xml_content', 'like', '%<resNFe%')
             ->update([
@@ -107,14 +119,24 @@ class ProcessarNFeDestinadas extends Command
 
                                     if (empty($nota->xml_content)) {
                                         $this->warn("Aviso: processarDocDFe não salvou o XML (provável falha no parse). Forçando salvamento do conteúdo.");
-                                        $nota->update([
-                                            'xml_content' => $result['content'],
-                                            'status' => 'downloaded',
-                                            'manifestacao' => 'ciencia'
-                                        ]);
+
+                                        // Verificação de Integridade do XML
+                                        if (!empty($result['content']) && strlen(trim($result['content'])) > 10) {
+                                            $nota->update([
+                                                'xml_content' => $result['content'],
+                                                'status' => 'concluido', // Finalizado/Verde
+                                                'manifestacao' => 'ciencia'
+                                            ]);
+                                            $this->info("Sucesso: XML forçado e salvo. Status atualizado para concluido.");
+                                        } else {
+                                            $this->error("Erro: Conteúdo do XML vazio ou inválido. Ignorando salvamento.");
+                                        }
                                     } else {
-                                        // Apenas atualiza a manifestação se necessário
-                                        $nota->update(['manifestacao' => 'ciencia']);
+                                        // Apenas atualiza a manifestação se necessário e garante status concluido
+                                        $nota->update([
+                                            'manifestacao' => 'ciencia',
+                                            'status' => 'concluido'
+                                        ]);
                                     }
 
                                     $this->info("Sucesso: XML baixado e salvo. Manifestação atualizada para Ciência.");
@@ -254,6 +276,10 @@ class ProcessarNFeDestinadas extends Command
             $notasProntas = NotaEntrada::whereIn('status', ['detectada', 'downloaded', 'pendente'])->count();
             // Log no banco via LogService (Sistema)
             LogService::registrarSistema('Sistema', 'Saúde SEFAZ', "Sincronização finalizada. [{$notasProntas}] Notas prontas para conferência na tela de Entrada.");
+
+            // 4. Limpeza de Cache de Configuração (Heroku)
+            \Illuminate\Support\Facades\Artisan::call('cache:clear');
+            $this->info('Cache limpo para garantir integridade do Heroku.');
         } catch (\Exception $e) {
             $this->error('Erro fatal no command: ' . $e->getMessage());
             Log::error('Erro fatal no command nfe:processar-destinadas: ' . $e->getMessage());
@@ -276,6 +302,15 @@ class ProcessarNFeDestinadas extends Command
             $valor = (float) $xml->vNF;
             $data = (string) $xml->dhEmi;
             $statusSefaz = (int) $xml->cSitNFe;
+
+            // Verifica se NSU já existe em outra nota para evitar duplicação
+            if ($nsu) {
+                $nsuExistente = NotaEntrada::where('nsu', $nsu)->where('chave_acesso', '!=', $chave)->first();
+                if ($nsuExistente) {
+                    Log::warning("NSU {$nsu} duplicado ignorado para chave {$chave} (Command). Pertence à chave {$nsuExistente->chave_acesso}");
+                    return null;
+                }
+            }
 
             $status = 'detectada';
             if ($statusSefaz == 3) $status = 'cancelada';
@@ -316,6 +351,16 @@ class ProcessarNFeDestinadas extends Command
 
             if ($infNFe) {
                 $chave = preg_replace('/[^0-9]/', '', (string) $infNFe['Id']);
+                
+                // Verifica se NSU já existe em outra nota para evitar duplicação
+                if ($nsu) {
+                    $nsuExistente = NotaEntrada::where('nsu', $nsu)->where('chave_acesso', '!=', $chave)->first();
+                    if ($nsuExistente) {
+                        Log::warning("NSU {$nsu} duplicado ignorado para chave {$chave} (Command XML). Pertence à chave {$nsuExistente->chave_acesso}");
+                        return null;
+                    }
+                }
+
                 $emit = $infNFe->emit;
                 $total = $infNFe->total->ICMSTot;
 
@@ -328,7 +373,7 @@ class ProcessarNFeDestinadas extends Command
                         'valor_total' => (float) $total->vNF,
                         'data_emissao' => (string) $infNFe->ide->dhEmi,
                         'xml_content' => $xmlContent,
-                        'status' => 'downloaded' // Status final que libera processamento
+                        'status' => 'concluido' // Status final que libera processamento (Verde na View)
                     ]
                 );
             }
