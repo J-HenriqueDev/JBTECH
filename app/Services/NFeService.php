@@ -119,15 +119,16 @@ class NFeService
     /**
      * Consulta Notas Destinadas (DistDFe) e realiza Manifestação de Ciência
      */
-    public function consultarNotasDestinadas()
+    public function consultarNotasDestinadas($ultimoNSU = null)
     {
         try {
             if (!$this->tools) {
                 $this->loadCertificate();
             }
 
-            // Busca último NSU processado
-            $ultimoNSU = NotaEntrada::max('nsu') ?? '0';
+            if ($ultimoNSU === null) {
+                $ultimoNSU = NotaEntrada::max('nsu') ?? '0';
+            }
 
             // Busca novas notas na SEFAZ
             $resp = $this->tools->sefazDistDFe($ultimoNSU);
@@ -135,14 +136,27 @@ class NFeService
             $st = new Standardize();
             $std = $st->toStd($resp);
 
-            // Verifica status da SEFAZ
+            if (is_array($std)) {
+                $std = (object) $std;
+            }
+
             if ($std->cStat == '137') { // Nenhum documento localizado
-                return ['message' => 'Nenhum documento novo localizado', 'count' => 0];
+                return (object) [
+                    'message' => 'Nenhum documento novo localizado',
+                    'count' => 0,
+                    'ultNSU' => $std->ultNSU ?? 0,
+                    'maxNSU' => $std->maxNSU ?? $ultimoNSU
+                ];
             }
 
             if ($std->cStat == '656') { // Consumo indevido
                 Log::warning("NFeService: Consumo indevido (cStat 656). Aguarde 1 hora.");
-                return ['message' => 'Consumo indevido detectado. O sistema aguardará automaticamente.', 'count' => 0];
+                return (object) [
+                    'message' => 'Consumo indevido detectado. O sistema aguardará automaticamente.',
+                    'count' => 0,
+                    'ultNSU' => $std->ultNSU ?? 0,
+                    'maxNSU' => $std->maxNSU ?? $ultimoNSU
+                ];
             }
 
             if (!in_array($std->cStat, ['138'])) {

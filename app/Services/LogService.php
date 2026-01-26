@@ -7,23 +7,34 @@ use Illuminate\Support\Facades\Auth;
 
 class LogService
 {
+    public static function cagueta($mensagem)
+    {
+        try {
+            Log::create([
+                'user_id' => Auth::id(),
+                'categoria' => 'Cagueta',
+                'acao' => $mensagem,
+                'detalhes' => null,
+                'ip' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Falha ao registrar log de cagueta: ' . $e->getMessage());
+        }
+    }
+
     /**
      * Registra uma mudança feita por um humano.
      */
     public static function registrarMudanca($model, $id, $campo, $antigo, $novo, $nomeItem = null)
     {
         $user = Auth::user() ? Auth::user()->name : 'Desconhecido';
-        // Formato solicitado: [Humano: {user}] - Alterou {Campo} do {Model} {Nome}: De {de} para {para}
-        // Nota: O prefixo [Humano: {user}] geralmente é tratado na exibição ou na coluna de usuário,
-        // mas aqui vamos colocar na Ação para ficar explícito como pedido.
-
         $identificacao = $nomeItem ? $nomeItem : "#{$id}";
         $campoFormatado = ucfirst($campo);
 
-        $acao = "Alterou {$campoFormatado} do {$model} {$identificacao}";
-        $detalhes = "De '{$antigo}' para '{$novo}'";
+        $mensagem = "[Humano: {$user}] - Alterou {$campoFormatado} do {$model} {$identificacao} de '{$antigo}' para '{$novo}'";
 
-        self::registrar('Humano', $acao, $detalhes);
+        self::cagueta($mensagem);
     }
 
     /**

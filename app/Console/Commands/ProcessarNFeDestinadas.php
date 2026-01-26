@@ -8,6 +8,7 @@ use App\Models\Configuracao;
 use App\Models\NotaEntrada;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use App\Services\LogService;
 
 class ProcessarNFeDestinadas extends Command
 {
@@ -167,8 +168,12 @@ class ProcessarNFeDestinadas extends Command
                         throw $e;
                     }
 
-                    $ultNSU = $resp->ultNSU;
-                    $maxNSU = $resp->maxNSU;
+                    if (is_array($resp)) {
+                        $resp = (object) $resp;
+                    }
+
+                    $ultNSU = data_get($resp, 'ultNSU', 0);
+                    $maxNSU = data_get($resp, 'maxNSU', $ultNSU);
 
                     if (isset($resp->loteDistDFeInt->docZip)) {
                         $docs = is_array($resp->loteDistDFeInt->docZip) ? $resp->loteDistDFeInt->docZip : [$resp->loteDistDFeInt->docZip];
