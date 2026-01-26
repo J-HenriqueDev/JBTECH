@@ -1781,11 +1781,14 @@ INI;
                 } catch (\Exception $eManifest) {
                     Log::warning('Falha ao manifestar automaticamente: ' . $eManifest->getMessage());
 
-                    // Se falhar por prazo (Erro 596), tenta manifestar CONFIRMAÇÃO DA OPERAÇÃO (210200)
+                    // Se falhar por prazo (Erro 596) OU Duplicidade (573 - já manifestado), tenta manifestar CONFIRMAÇÃO DA OPERAÇÃO (210200)
                     // A Ciência (210210) tem prazo de 10 dias, mas a Confirmação (210200) tem prazo maior (até 180 dias)
-                    if (str_contains($eManifest->getMessage(), '596')) {
+                    // Se deu duplicidade na Ciência, significa que já foi feita, mas se ainda estamos aqui é porque não baixou o XML.
+                    // Então escalamos para Confirmação para tentar forçar a liberação.
+                    $msg = $eManifest->getMessage();
+                    if (str_contains($msg, '596') || str_contains($msg, '573') || stripos($msg, 'Duplicidade') !== false) {
                         try {
-                            Log::info('Prazo de Ciência expirado (10 dias). Tentando manifestar Confirmação da Operação (210200) para baixar XML: ' . $chave);
+                            Log::info('Falha na Ciência (Prazo ou Duplicidade). Tentando manifestar Confirmação da Operação (210200) para baixar XML: ' . $chave);
                             // 210200 = Confirmação da Operação
                             $this->manifestar($chave, 210200);
 
