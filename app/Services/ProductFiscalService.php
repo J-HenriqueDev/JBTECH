@@ -17,9 +17,10 @@ class ProductFiscalService
      * Preenche dados fiscais (NCM, CEST, Origem) em lote usando IA.
      *
      * @param \Illuminate\Database\Eloquent\Collection $products
+     * @param bool $force Se true, reprocessa mesmo se já tiver dados
      * @return int Número de produtos atualizados
      */
-    public function fillFiscalDataBatch($products): int
+    public function fillFiscalDataBatch($products, bool $force = false): int
     {
         $count = 0;
         $productsToAi = [];
@@ -31,8 +32,8 @@ class ProductFiscalService
                 continue;
             }
 
-            // Só envia para IA se faltar NCM ou CEST (assumindo que NCM é o mais crítico)
-            if (empty($produto->ncm) || empty($produto->cest)) {
+            // Se forçado OU se faltar dados, envia para IA
+            if ($force || empty($produto->ncm) || empty($produto->cest)) {
                 $productsToAi[] = $produto->nome;
                 $productsMap[$produto->nome] = $produto;
             }
@@ -46,24 +47,35 @@ class ProductFiscalService
                     $produto = $productsMap[$productName];
                     $updated = false;
 
-                    if (empty($produto->ncm) && !empty($data['ncm'])) {
-                        $produto->ncm = preg_replace('/\D/', '', $data['ncm']); // Remove pontuação
-                        $updated = true;
+                    // Atualiza NCM se vazio ou se forçado (e o novo valor for diferente)
+                    if (!empty($data['ncm'])) {
+                        $newNcm = preg_replace('/\D/', '', $data['ncm']);
+                        if ($force || empty($produto->ncm)) {
+                            if ($produto->ncm !== $newNcm) {
+                                $produto->ncm = $newNcm;
+                                $updated = true;
+                            }
+                        }
                     }
 
-                    if (empty($produto->cest) && !empty($data['cest'])) {
-                        $produto->cest = preg_replace('/\D/', '', $data['cest']);
-                        $updated = true;
+                    // Atualiza CEST se vazio ou se forçado
+                    if (!empty($data['cest'])) {
+                        $newCest = preg_replace('/\D/', '', $data['cest']);
+                        if ($force || empty($produto->cest)) {
+                             if ($produto->cest !== $newCest) {
+                                $produto->cest = $newCest;
+                                $updated = true;
+                             }
+                        }
                     }
 
                     if (isset($data['origem'])) {
                         // Origem é opcional, mas se a IA sugerir e não tivermos, podemos setar
-                        // Mas cuidado para não sobrescrever se já existir.
-                        // Assumindo que origem padrão é null ou 0.
-                        // Vamos ser conservadores e só atualizar se for explicitamente sugerido e estiver null.
-                        if (is_null($produto->origem)) {
-                             $produto->origem = $data['origem'];
-                             $updated = true;
+                        if ($force || is_null($produto->origem)) {
+                             if ($produto->origem !== $data['origem']) {
+                                 $produto->origem = $data['origem'];
+                                 $updated = true;
+                             }
                         }
                     }
 
@@ -98,18 +110,17 @@ class ProductFiscalService
         $count = 0;
         $totalFound = $query->count();
 
-        \Illuminate\Support\Facades\Log::info("Iniciando preenchimento fiscal em lote. Produtos encontrados para análise: {$totalFound}");
-        echo "Produtos encontrados para análise: {$totalFound}\n";
-
+        \Illuminate\Support\Facades\Log::info("Iniciando preenchimento fiscal em lote. Produtos encontrados para análise: {$totalFound} (Force: " . ($force ? 'SIM' : 'NÃO') . ")");
+        
         if ($totalFound === 0) {
             return 0;
         }
 
         // Chunk de 50 para otimizar requisições (batch size da IA)
-        $query->chunk(50, function ($products) use (&$count) {
-            $processed = $this->fillFiscalDataBatch($products);
+        $query->chunk(50, function ($products) use (&$count, $force) {
+            $processed = $this->fillFiscalDataBatch($products, $force);
             $count += $processed;
-            echo "Lote processado. Atualizados: {$processed}\n";
+            \Illuminate\Support\Facades\Log::info("Lote fiscal processado. Atualizados: {$processed}");
         });
 
         return $count;

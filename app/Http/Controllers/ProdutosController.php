@@ -116,19 +116,20 @@ class ProdutosController extends Controller
         try {
             // Dispara o comando Artisan diretamente (Síncrono) para feedback imediato
             // Usuários preferem esperar e ver acontecer do que "não acontecer nada"
-            \Illuminate\Support\Facades\Artisan::call('products:categorize');
+            // Força a recategorização (--force) conforme solicitação do usuário para corrigir tudo
+            \Illuminate\Support\Facades\Artisan::call('products:categorize', ['--force' => true]);
             $output = \Illuminate\Support\Facades\Artisan::output();
 
             // Grava o output no log de console
             $logPath = storage_path('logs/console-output.log');
-            $logEntry = "\n--- Categorização Manual em Lote: " . date('Y-m-d H:i:s') . " ---\n" . $output . "\n";
+            $logEntry = "\n--- Categorização Manual em Lote (FORCE): " . date('Y-m-d H:i:s') . " ---\n" . $output . "\n";
             file_put_contents($logPath, $logEntry, FILE_APPEND);
 
-            LogService::registrar('Produto', 'Categorização em Lote', 'Usuário solicitou categorização manual em lote.');
+            LogService::registrar('Produto', 'Categorização em Lote', 'Usuário solicitou categorização manual em lote (FORCE).');
 
             // Remove ANSI codes and extra whitespace
             $cleanOutput = preg_replace('/\x1b\[[0-9;]*m/', '', $output);
-
+            
             Log::info("Categorização Output: " . $cleanOutput);
 
             if (str_contains($cleanOutput, '0 produtos foram atualizados') || str_contains($cleanOutput, 'Produtos encontrados para análise: 0')) {
@@ -149,15 +150,16 @@ class ProdutosController extends Controller
     {
         try {
             // Dispara o comando Artisan diretamente (Síncrono)
-            $exitCode = \Illuminate\Support\Facades\Artisan::call('products:fill-fiscal');
+            // Força a atualização (--force) para garantir correção de dados incorretos
+            $exitCode = \Illuminate\Support\Facades\Artisan::call('products:fill-fiscal', ['--force' => true]);
             $output = \Illuminate\Support\Facades\Artisan::output();
 
             // Grava o output no log de console
             $logPath = storage_path('logs/console-output.log');
-            $logEntry = "\n--- Preenchimento Fiscal Manual em Lote: " . date('Y-m-d H:i:s') . " ---\n" . $output . "\n";
+            $logEntry = "\n--- Preenchimento Fiscal Manual em Lote (FORCE): " . date('Y-m-d H:i:s') . " ---\n" . $output . "\n";
             file_put_contents($logPath, $logEntry, FILE_APPEND);
 
-            LogService::registrar('Produto', 'Fiscal em Lote', 'Usuário solicitou preenchimento fiscal manual em lote.');
+            LogService::registrar('Produto', 'Fiscal em Lote', 'Usuário solicitou preenchimento fiscal manual em lote (FORCE).');
 
             if (str_contains($output, 'Nenhum produto precisou')) {
                  return redirect()->route('produtos.index')->with('warning', 'Nenhum produto precisou de atualização fiscal.');
