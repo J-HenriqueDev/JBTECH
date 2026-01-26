@@ -130,9 +130,10 @@ Nenhum log de console encontrado.
                             <td style="white-space: normal; max-width: 400px;">
                                 {{ \Illuminate\Support\Str::limit($log->detalhes, 100) }}
                                 @if (strlen($log->detalhes) > 100)
-                                    <button type="button" class="btn btn-sm btn-link p-0" data-bs-toggle="popover"
-                                        data-bs-content="{{ $log->detalhes }}" title="Detalhes Completos">
-                                        Ver mais
+                                    <button type="button" class="btn btn-sm btn-link text-primary p-0"
+                                        data-bs-toggle="modal" data-bs-target="#logDetailsModal"
+                                        data-details="{{ $log->detalhes }}" title="Ver detalhes completos">
+                                        <i class="fas fa-eye"></i>
                                     </button>
                                 @endif
                             </td>
@@ -149,4 +150,37 @@ Nenhum log de console encontrado.
             {{ $logs->links() }}
         </div>
     </div>
+
+    <!-- Modal Detalhes do Log -->
+    <div class="modal fade" id="logDetailsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="logDetailsModalTitle">Detalhes do Log</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <pre id="logDetailsContent" class="bg-light p-3 rounded"
+                        style="white-space: pre-wrap; word-wrap: break-word; max-height: 500px; overflow-y: auto; font-family: monospace; font-size: 0.9rem;"></pre>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const logDetailsModal = document.getElementById('logDetailsModal');
+            if (logDetailsModal) {
+                logDetailsModal.addEventListener('show.bs.modal', function(event) {
+                    const button = event.relatedTarget;
+                    const details = button.getAttribute('data-details');
+                    const modalBody = logDetailsModal.querySelector('#logDetailsContent');
+                    modalBody.textContent = details;
+                });
+            }
+        });
+    </script>
 @endsection
