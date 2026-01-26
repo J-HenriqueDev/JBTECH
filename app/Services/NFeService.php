@@ -147,10 +147,12 @@ class NFeService
 
             if (!in_array($std->cStat, ['138'])) {
                 Log::error("NFeService: Erro SEFAZ (cStat {$std->cStat}): " . $resp);
-                return ['message' => "Erro retornado pela SEFAZ: {$std->cStat}", 'count' => 0];
+                return (object) ['message' => "Erro retornado pela SEFAZ: {$std->cStat}", 'ultNSU' => 0, 'maxNSU' => 0];
             }
 
-            return $this->parseDistDFeResponse($std);
+            // Retorna o objeto padrão da SEFAZ para que o Command possa processar manualmente
+            // e ter controle total sobre o fluxo (logs, progresso, etc)
+            return $std;
         } catch (\Exception $e) {
             Log::error("NFeService: Erro crítico em consultarNotasDestinadas: " . $e->getMessage());
             throw $e;
