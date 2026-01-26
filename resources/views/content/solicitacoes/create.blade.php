@@ -11,7 +11,7 @@
 @endsection
 
 @section('page-script')
-    <script>
+    <script type="module">
         $(document).ready(function() {
             $('.select2').select2();
 
