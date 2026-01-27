@@ -31,6 +31,15 @@ class ProcessarNFeDestinadas extends Command
      */
     public function handle(NFeService $nfeService)
     {
+        // 0. Limpeza de Cache de Configuração (Heroku - Erro Media Type)
+        // Força o Laravel a esquecer caches antigos de disco que podem apontar para caminhos inexistentes no vendor
+        try {
+            \Illuminate\Support\Facades\Artisan::call('config:clear');
+            $this->info('Cache de configuração limpo com sucesso.');
+        } catch (\Exception $e) {
+            $this->warn('Falha ao limpar cache de configuração: ' . $e->getMessage());
+        }
+
         // 0. Verificação de Bloqueio (Consumo Indevido - Global) - PRIORIDADE MÁXIMA
         $nextQuery = Configuracao::get('nfe_next_dfe_query');
         if ($nextQuery) {
@@ -124,16 +133,17 @@ class ProcessarNFeDestinadas extends Command
                         }
 
                         // 1. Prioridade de Download por Chave (Solicitação Explícita)
+                        $this->info("Prioridade: Tentando baixar XML completo para nota {$chave} (Status: {$nota->status})...");
                         $result = $nfeService->baixarPorChave($chave);
 
                         // DETECÇÃO DE MODO SONECA (Erro 656) no Download Manual
                         if (isset($result['cStat']) && $result['cStat'] == '656') {
-                             $sonecaTime = now()->addMinutes(65);
-                             Configuracao::set('nfe_next_dfe_query', $sonecaTime->toDateTimeString(), 'nfe', 'datetime', 'Bloqueio temporário SEFAZ (656)');
+                            $sonecaTime = now()->addMinutes(65);
+                            Configuracao::set('nfe_next_dfe_query', $sonecaTime->toDateTimeString(), 'nfe', 'datetime', 'Bloqueio temporário SEFAZ (656)');
 
-                             $this->info("Modo Soneca Ativado! Erro 656 detectado. Pausa de 65 minutos.");
-                             Log::warning("[Sistema] - Bloqueio SEFAZ detectado. Robô pausado por 65 min para evitar banimento do IP.");
-                             break;
+                            $this->info("Modo Soneca Ativado! Erro 656 detectado. Pausa de 65 minutos.");
+                            Log::warning("[Sistema] - Bloqueio SEFAZ detectado. Robô pausado por 65 min para evitar banimento do IP.");
+                            break;
                         }
 
                         // Imediatamente após a chamada, verifique se a coluna xml_content da $nota foi preenchida
@@ -160,7 +170,6 @@ class ProcessarNFeDestinadas extends Command
                                 LogService::registrarSistema('Sistema', 'Falha Download', "Falha ao recuperar XML da Nota {$chave}. Motivo: {$msgErro}");
                             }
                         }
-
                     } catch (\Exception $e) {
                         $this->error("Erro ao processar nota $chave: " . $e->getMessage());
                         LogService::registrarSistema('Sistema', 'Erro Exceção', "Erro ao processar nota {$chave}: " . $e->getMessage());
@@ -172,9 +181,8 @@ class ProcessarNFeDestinadas extends Command
 
                 // Log Agrupado de Sucesso
                 if ($sucessosCount > 0) {
-                     LogService::registrarSistema('Sistema', 'Sincronização Finalizada', "{$sucessosCount} notas baixadas e salvas com sucesso.");
+                    LogService::registrarSistema('Sistema', 'Sincronização Finalizada', "{$sucessosCount} notas baixadas e salvas com sucesso.");
                 }
-
             } else {
                 $this->info("Nenhuma nota pendente de download.");
             }
@@ -218,12 +226,12 @@ class ProcessarNFeDestinadas extends Command
 
                     // DETECÇÃO DE MODO SONECA (Erro 656)
                     if (isset($resp->cStat) && $resp->cStat == '656') {
-                         $sonecaTime = now()->addMinutes(65);
-                         Configuracao::set('nfe_next_dfe_query', $sonecaTime->toDateTimeString(), 'nfe', 'datetime', 'Bloqueio temporário SEFAZ (656)');
+                        $sonecaTime = now()->addMinutes(65);
+                        Configuracao::set('nfe_next_dfe_query', $sonecaTime->toDateTimeString(), 'nfe', 'datetime', 'Bloqueio temporário SEFAZ (656)');
 
-                         $this->info("Modo Soneca Ativado! Erro 656 detectado. Próxima execução apenas após " . $sonecaTime->format('H:i:s'));
-                         Log::warning("[Sistema] - Bloqueio SEFAZ detectado. Robô pausado por 65 min para evitar banimento do IP.");
-                         break;
+                        $this->info("Modo Soneca Ativado! Erro 656 detectado. Próxima execução apenas após " . $sonecaTime->format('H:i:s'));
+                        Log::warning("[Sistema] - Bloqueio SEFAZ detectado. Robô pausado por 65 min para evitar banimento do IP.");
+                        break;
                     }
 
                     $ultNSU = data_get($resp, 'ultNSU', 0);

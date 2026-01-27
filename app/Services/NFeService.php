@@ -103,6 +103,11 @@ class NFeService
                 throw new Exception('Certificado digital não encontrado (Banco ou Arquivo).');
             }
 
+            // Validação de Integridade do Certificado
+            if (strlen($certContent) < 100) {
+                throw new Exception('Conteúdo do certificado inválido ou corrompido (tamanho insuficiente).');
+            }
+
             // Salva em arquivo temporário seguro se necessário (Heroku /tmp/)
             // A biblioteca NFePHP aceita o conteúdo binário diretamente em Certificate::readPfx
             // Mas para garantir compatibilidade com ambientes restritos, seguimos o padrão simples.
@@ -382,6 +387,11 @@ class NFeService
                 // O conteúdo vem em GZip + Base64
                 $xml_puro = gzdecode(base64_decode($content));
 
+                // LOG TEMPORÁRIO DE DEBUG (Solicitado pelo Usuário)
+                if ($xml_puro) {
+                    Log::info("Nota {$chave} baixada com " . strlen($xml_puro) . " caracteres.");
+                }
+
                 // --- RETRY LOGIC (Solicitação do Usuário) ---
                 // Se for detectado apenas um resumo (resNFe), tenta baixar novamente
                 // pois pode ser que a manifestação tenha acabado de ocorrer.
@@ -417,14 +427,19 @@ class NFeService
                 // Validação de string XML válida e segura
                 // PRIORIDADE: Só aceita como sucesso se tiver nfeProc ou infNFe (XML Completo com Itens)
                 // Se vier resNFe, mesmo que venha no docZip, é incompleto.
-                if ($xml_puro && strpos($xml_puro, '<resNFe') !== false) {
+                // AJUSTE: Verificação de namespace (nfe:nfeProc) removendo a obrigatoriedade do '<' colado
+                $temNFeProc = stripos($xml_puro, 'nfeProc') !== false;
+                $temInfNFe = stripos($xml_puro, 'infNFe') !== false;
+                $temResNFe = stripos($xml_puro, 'resNFe') !== false;
+
+                if ($xml_puro && $temResNFe && !$temNFeProc) {
                     Log::warning("[Sistema] - Apenas resumo (resNFe) obtido para {$chave}. Mantendo status 'detectada'.");
                     // Não salvamos o XML de resumo para não poluir o banco com dados incompletos
                     // Retornamos erro para que o robô tente novamente no próximo ciclo
                     return ['status' => 'error', 'message' => 'SEFAZ retornou apenas resumo. Tentando novamente no próximo ciclo.'];
                 }
 
-                if ($xml_puro && (strpos($xml_puro, '<?xml') !== false || strpos($xml_puro, '<nfeProc') !== false || strpos($xml_puro, '<infNFe') !== false)) {
+                if ($xml_puro && ($temNFeProc || $temInfNFe)) {
 
                     // Se chegou aqui, é um XML Completo (nfeProc/infNFe)
                     NotaEntrada::where('chave_acesso', $chave)->update([
@@ -433,7 +448,6 @@ class NFeService
                     ]);
 
                     LogService::cagueta("[Sistema] - XML da Nota {$chave} recuperado com sucesso via chave direta.");
-
                 } else {
                     Log::warning("[Sistema] - Falha na descompactação ou XML inválido para a chave {$chave}.");
                     return ['status' => 'error', 'message' => 'XML Inválido ou Corrompido.'];
