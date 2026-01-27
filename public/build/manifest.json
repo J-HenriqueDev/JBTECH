@@ -921,6 +921,12 @@
     "src": "resources/assets/js/pages-pricing.js",
     "isEntry": true
   },
+  "resources/assets/js/sefaz-health.js": {
+    "file": "assets/sefaz-health-Djn7hZpp.js",
+    "name": "sefaz-health",
+    "src": "resources/assets/js/sefaz-health.js",
+    "isEntry": true
+  },
   "resources/assets/js/tables-datatables-advanced.js": {
     "file": "assets/tables-datatables-advanced-BjGXGnfd.js",
     "name": "tables-datatables-advanced",
