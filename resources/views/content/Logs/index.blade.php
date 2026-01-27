@@ -160,14 +160,13 @@ Nenhum log de console encontrado.
     <div class="modal fade" id="logDetailsModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
             <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title text-white" id="logDetailsModalTitle">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="logDetailsModalTitle">
                         <i class="fas fa-info-circle me-2"></i> Detalhes do Registro
                     </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body bg-light">
+                <div class="modal-body">
                     <div class="row g-3">
                         <!-- Card Principal: Info Básica -->
                         <div class="col-12">
@@ -227,7 +226,7 @@ Nenhum log de console encontrado.
                         <!-- Detalhes Completos -->
                         <div class="col-12">
                             <div class="card shadow-sm">
-                                <div class="card-header bg-white pb-0">
+                                <div class="card-header bg-transparent pb-0">
                                     <h6 class="card-title mb-0"><i class="fas fa-align-left me-2"></i>Conteúdo do Log</h6>
                                 </div>
                                 <div class="card-body pt-3">
@@ -238,7 +237,7 @@ Nenhum log de console encontrado.
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer bg-light border-top-0">
+                <div class="modal-footer border-top-0">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
                 </div>
             </div>

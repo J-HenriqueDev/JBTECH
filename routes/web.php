@@ -56,7 +56,9 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
   Route::post('dashboard/produtos/{id}/update-inline', [ProdutosController::class, 'updateInline'])->name('produtos.updateInline');
 
   // Route para solicitações de serviço
-  Route::resource('dashboard/solicitacoes', \App\Http\Controllers\SolicitacaoServicoController::class);
+Route::get('dashboard/solicitacoes/{id}/history', [\App\Http\Controllers\SolicitacaoServicoController::class, 'history'])->name('solicitacoes.history');
+Route::post('dashboard/solicitacoes/{id}/status', [\App\Http\Controllers\SolicitacaoServicoController::class, 'updateStatus'])->name('solicitacoes.updateStatus');
+Route::resource('dashboard/solicitacoes', \App\Http\Controllers\SolicitacaoServicoController::class);
 
   // Rota resource para cobranças
   Route::resource('dashboard/cobrancas', CobrancaController::class);

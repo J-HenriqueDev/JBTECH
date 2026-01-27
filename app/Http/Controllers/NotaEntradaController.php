@@ -248,13 +248,13 @@ class NotaEntradaController extends Controller
 
     public function baixarPorChave(Request $request)
     {
-        Log::info('Iniciando baixarPorChave', ['request_all' => $request->all()]);
+        // Log::info('Iniciando baixarPorChave', ['request_all' => $request->all()]);
 
         // Sanitiza a chave para remover espaços e caracteres não numéricos
         $chaveOriginal = $request->input('chave');
         $chave = preg_replace('/[^0-9]/', '', $chaveOriginal);
 
-        Log::info('Chave sanitizada', ['original' => $chaveOriginal, 'sanitizada' => $chave, 'tamanho' => strlen($chave)]);
+        // Log::info('Chave sanitizada', ['original' => $chaveOriginal, 'sanitizada' => $chave, 'tamanho' => strlen($chave)]);
 
         $request->merge(['chave' => $chave]);
 

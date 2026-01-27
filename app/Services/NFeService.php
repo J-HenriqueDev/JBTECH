@@ -363,7 +363,8 @@ class NFeService
                 return ['status' => 'error', 'cStat' => '656', 'message' => "Consumo indevido (656)."];
             }
 
-            if ($std->cStat != '104') { // 104 = Processado
+            // 104 = Processado, 138 = Documento localizado para o destinatário
+            if ($std->cStat != '104' && $std->cStat != '138') {
                 return ['status' => 'error', 'cStat' => $std->cStat ?? '0', 'message' => "Erro SEFAZ: {$std->cStat} - " . ($std->xMotivo ?? '')];
             }
 
@@ -385,14 +386,24 @@ class NFeService
                 $xml_puro = gzdecode(base64_decode($content));
 
                 // Validação de string XML válida
-                if ($xml_puro && (strpos($xml_puro, '<nfeProc') !== false || strpos($xml_puro, '<infNFe') !== false)) {
+                if ($xml_puro && (strpos($xml_puro, '<nfeProc') !== false || strpos($xml_puro, '<infNFe') !== false || strpos($xml_puro, '<resNFe') !== false)) {
+
+                    // Se for apenas um resumo (resNFe), não marcamos como concluído ainda, pois precisamos do XML completo
+                    // Mas se for nfeProc ou infNFe (XML Completo), aí sim concluímos.
+                    $status = 'concluido';
+                    if (strpos($xml_puro, '<resNFe') !== false) {
+                        $status = 'detectada'; // Mantém como detectada para baixar o completo depois
+                    }
+
                     NotaEntrada::where('chave_acesso', $chave)->update([
                         'xml_content' => $xml_puro,
-                        'status' => 'concluido'
+                        'status' => $status
                     ]);
 
-                    // Log de auditoria real solicitado
-                    LogService::cagueta("[Sistema] - XML da Nota {$chave} recuperado com sucesso via chave direta.");
+                    // Log de auditoria real solicitado (apenas para XML completo ou mudanças relevantes)
+                    if ($status === 'concluido') {
+                        LogService::cagueta("[Sistema] - XML da Nota {$chave} recuperado com sucesso via chave direta (cStat {$std->cStat}).");
+                    }
                 } else {
                     Log::warning("[Sistema] - Falha na descompactação ou XML inválido para a chave {$chave}.");
                 }

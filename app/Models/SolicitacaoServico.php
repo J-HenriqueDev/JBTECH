@@ -35,4 +35,9 @@ class SolicitacaoServico extends Model
     {
         return $this->belongsTo(User::class, 'atendente_id');
     }
+
+    public function historico()
+    {
+        return $this->hasMany(SolicitacaoHistorico::class, 'solicitacao_id')->orderBy('created_at', 'desc');
+    }
 }

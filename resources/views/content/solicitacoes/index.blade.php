@@ -217,20 +217,51 @@
                                                 <div class="step-counter" title="Finalizado"></div>
                                             </div>
                                         </div>
-                                        <div class="text-center small mt-1">
-                                            @switch($solicitacao->status)
-                                                @case('pendente')
-                                                    <span class="text-warning fw-bold">Pendente</span>
-                                                @break
+                                        <div class="text-center mt-2">
+                                            <div class="dropdown">
+                                                <button
+                                                    class="btn btn-sm btn-outline-{{ $solicitacao->status == 'pendente' ? 'warning' : ($solicitacao->status == 'em_andamento' ? 'primary' : ($solicitacao->status == 'concluido' ? 'success' : 'danger')) }} dropdown-toggle"
+                                                    type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    @switch($solicitacao->status)
+                                                        @case('pendente')
+                                                            Pendente
+                                                        @break
 
-                                                @case('em_andamento')
-                                                    <span class="text-primary fw-bold">Em Andamento</span>
-                                                @break
+                                                        @case('em_andamento')
+                                                            Em Andamento
+                                                        @break
 
-                                                @case('concluido')
-                                                    <span class="text-success fw-bold">Finalizado</span>
-                                                @break
-                                            @endswitch
+                                                        @case('concluido')
+                                                            Finalizado
+                                                        @break
+
+                                                        @case('cancelado')
+                                                            Cancelado
+                                                        @break
+                                                    @endswitch
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li><a class="dropdown-item" href="javascript:void(0);"
+                                                            onclick="updateStatus({{ $solicitacao->id }}, 'pendente')"><i
+                                                                class="fas fa-clock text-warning me-2"></i> Pendente</a>
+                                                    </li>
+                                                    <li><a class="dropdown-item" href="javascript:void(0);"
+                                                            onclick="updateStatus({{ $solicitacao->id }}, 'em_andamento')"><i
+                                                                class="fas fa-spinner text-primary me-2"></i> Em
+                                                            Andamento</a>
+                                                    </li>
+                                                    <li><a class="dropdown-item" href="javascript:void(0);"
+                                                            onclick="updateStatus({{ $solicitacao->id }}, 'concluido')"><i
+                                                                class="fas fa-check-circle text-success me-2"></i>
+                                                            Finalizado</a></li>
+                                                    <li>
+                                                        <hr class="dropdown-divider">
+                                                    </li>
+                                                    <li><a class="dropdown-item text-danger" href="javascript:void(0);"
+                                                            onclick="updateStatus({{ $solicitacao->id }}, 'cancelado')"><i
+                                                                class="fas fa-ban me-2"></i> Cancelar</a></li>
+                                                </ul>
+                                            </div>
                                         </div>
                                     @endif
                                 </td>
@@ -267,6 +298,7 @@
                                                 'descricao' => $solicitacao->descricao,
                                                 'pendencias' => $solicitacao->pendencias,
                                                 'data_solicitacao' => $solicitacao->data_solicitacao->format('d/m/Y H:i'),
+                                                'edit_url' => route('solicitacoes.edit', $solicitacao->id),
                                             ]) }}">
                                             <i class="bx bx-show"></i>
                                         </button>
@@ -317,10 +349,9 @@
         <div class="modal fade" id="modalDetalhesSolicitacao" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-centered">
                 <div class="modal-content">
-                    <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title text-white" id="modalDetalhesTitle">Detalhes da Solicitação</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                            aria-label="Close"></button>
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalDetalhesTitle">Detalhes da Solicitação</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         <div class="row g-3">
@@ -348,10 +379,13 @@
                                         <p class="mb-1"><strong>Contato:</strong> <span id="detailContato"></span></p>
                                         <p class="mb-0"><strong>Endereço:</strong> <br> <span id="detailEndereco"
                                                 class="text-muted"></span></p>
-                                        <a href="#" target="_blank" id="btnGeoLocation"
-                                            class="btn btn-sm btn-outline-primary mt-2 d-none">
-                                            <i class="bx bx-map me-1"></i> Ver no Mapa
-                                        </a>
+
+                                        <!-- Mapa Embed -->
+                                        <div class="mt-3">
+                                            <iframe id="mapFrame" width="100%" height="200"
+                                                style="border:0; border-radius: 8px;" allowfullscreen loading="lazy"
+                                                referrerpolicy="no-referrer-when-downgrade"></iframe>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -391,6 +425,37 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Histórico de Atendimento -->
+                            <div class="col-12">
+                                <div class="card shadow-none bg-transparent border border-secondary">
+                                    <div class="card-header bg-transparent border-bottom py-2">
+                                        <h6 class="card-title mb-0"><i class="fas fa-history me-2"></i>Histórico de
+                                            Atendimento</h6>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-striped mb-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Data/Hora</th>
+                                                        <th>Usuário</th>
+                                                        <th>Ação</th>
+                                                        <th>Status</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="historyBody">
+                                                    <tr>
+                                                        <td colspan="4" class="text-center py-3">Carregando histórico...
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -421,18 +486,19 @@
                             .telefone + (details.cliente.email ? ' / ' + details.cliente.email : '') :
                             'N/A';
 
-                        // Address & Geolocation
+                        // Address & Map
                         const enderecoElem = document.getElementById('detailEndereco');
-                        const btnGeo = document.getElementById('btnGeoLocation');
+                        const mapFrame = document.getElementById('mapFrame');
+
                         if (details.cliente && details.cliente.endereco) {
                             enderecoElem.textContent = details.cliente.endereco;
                             const encodedAddress = encodeURIComponent(details.cliente.endereco);
-                            btnGeo.href =
-                                `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
-                            btnGeo.classList.remove('d-none');
+                            mapFrame.src =
+                                `https://www.google.com/maps?q=${encodedAddress}&output=embed`;
+                            mapFrame.parentElement.classList.remove('d-none');
                         } else {
                             enderecoElem.textContent = 'Endereço não cadastrado';
-                            btnGeo.classList.add('d-none');
+                            mapFrame.parentElement.classList.add('d-none');
                         }
 
                         // Atendimento
@@ -485,9 +551,75 @@
 
                         // Edit Link
                         const btnEdit = document.getElementById('btnEditarSolicitacao');
-                        btnEdit.href = `/solicitacoes/${details.id}/edit`;
+                        btnEdit.href = details.edit_url;
+
+                        // Fetch History
+                        const historyBody = document.getElementById('historyBody');
+                        historyBody.innerHTML =
+                            '<tr><td colspan="4" class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Carregando...</td></tr>';
+
+                        fetch(`/dashboard/solicitacoes/${details.id}/history`)
+                            .then(response => response.json())
+                            .then(data => {
+                                historyBody.innerHTML = '';
+                                if (data.length === 0) {
+                                    historyBody.innerHTML =
+                                        '<tr><td colspan="4" class="text-center text-muted">Nenhum histórico encontrado.</td></tr>';
+                                } else {
+                                    data.forEach(item => {
+                                        const row = `
+                                            <tr>
+                                                <td><small>${item.data}</small></td>
+                                                <td><small class="fw-bold">${item.user}</small></td>
+                                                <td><small>${item.acao}</small></td>
+                                                <td><span class="badge bg-label-secondary">${item.status_novo || '-'}</span></td>
+                                            </tr>
+                                        `;
+                                        historyBody.innerHTML += row;
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Erro ao carregar histórico:', error);
+                                historyBody.innerHTML =
+                                    '<tr><td colspan="4" class="text-center text-danger">Erro ao carregar histórico.</td></tr>';
+                            });
                     });
                 });
             });
+
+            function updateStatus(id, newStatus) {
+                // Show loading state if desired, or optimistic UI
+                // For now, let's just make the request
+
+                fetch(`/dashboard/solicitacoes/${id}/status`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({
+                            status: newStatus
+                        })
+                    })
+                    .then(response => {
+                        if (!response.ok) throw new Error('Erro ao atualizar status');
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            // Reload page to reflect changes (stepper, colors, etc.)
+                            // Or update DOM dynamically for better UX.
+                            // Given the complexity of the stepper logic, reloading is safer for now.
+                            window.location.reload();
+                        } else {
+                            alert('Erro: ' + (data.message || 'Falha ao atualizar status'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erro:', error);
+                        alert('Erro ao atualizar status. Tente novamente.');
+                    });
+            }
         </script>
     @endsection

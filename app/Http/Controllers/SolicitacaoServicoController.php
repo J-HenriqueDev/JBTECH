@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\SolicitacaoServico;
+use App\Models\SolicitacaoHistorico;
 use App\Models\Clientes;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -42,7 +43,7 @@ class SolicitacaoServicoController extends Controller
         // Combine Date and Time
         $dataHora = Carbon::createFromFormat('Y-m-d H:i', $request->data_solicitacao . ' ' . $request->hora_solicitacao);
 
-        SolicitacaoServico::create([
+        $solicitacao = SolicitacaoServico::create([
             'cliente_id' => $request->cliente_id,
             'atendente_id' => $request->atendente_id ?? auth()->id(), // Default to current user if not provided
             'canal_atendimento' => $request->canal_atendimento,
@@ -51,6 +52,14 @@ class SolicitacaoServicoController extends Controller
             'descricao' => $request->descricao,
             'pendencias' => $request->pendencias,
             'status' => $request->status,
+        ]);
+
+        // Registrar Histórico
+        SolicitacaoHistorico::create([
+            'solicitacao_id' => $solicitacao->id,
+            'user_id' => auth()->id(),
+            'acao' => 'Solicitação criada',
+            'status_novo' => $solicitacao->status,
         ]);
 
         return redirect()->route('solicitacoes.index')->with('success', 'Solicitação registrada com sucesso!');
@@ -83,6 +92,8 @@ class SolicitacaoServicoController extends Controller
         // Combine Date and Time
         $dataHora = Carbon::createFromFormat('Y-m-d H:i', $request->data_solicitacao . ' ' . $request->hora_solicitacao);
 
+        $oldStatus = $solicitacao->status;
+
         $solicitacao->update([
             'cliente_id' => $request->cliente_id,
             'atendente_id' => $request->atendente_id,
@@ -94,7 +105,60 @@ class SolicitacaoServicoController extends Controller
             'status' => $request->status,
         ]);
 
+        // Registrar Histórico
+        SolicitacaoHistorico::create([
+            'solicitacao_id' => $solicitacao->id,
+            'user_id' => auth()->id(),
+            'acao' => 'Solicitação atualizada',
+            'status_anterior' => $oldStatus,
+            'status_novo' => $solicitacao->status,
+            'observacao' => 'Edição completa dos detalhes'
+        ]);
+
         return redirect()->route('solicitacoes.index')->with('success', 'Solicitação atualizada com sucesso!');
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|string|in:pendente,em_andamento,concluido,cancelado',
+        ]);
+
+        $solicitacao = SolicitacaoServico::findOrFail($id);
+        $oldStatus = $solicitacao->status;
+        $solicitacao->status = $request->status;
+        $solicitacao->save();
+
+        // Registrar Histórico
+        SolicitacaoHistorico::create([
+            'solicitacao_id' => $solicitacao->id,
+            'user_id' => auth()->id(),
+            'acao' => 'Status alterado',
+            'status_anterior' => $oldStatus,
+            'status_novo' => $solicitacao->status,
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Status atualizado com sucesso!']);
+    }
+
+    public function history($id)
+    {
+        $historico = SolicitacaoHistorico::where('solicitacao_id', $id)
+            ->with('user')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'data' => $item->created_at->format('d/m/Y H:i'),
+                    'user' => $item->user ? $item->user->name : 'Sistema',
+                    'acao' => $item->acao,
+                    'status_anterior' => $item->status_anterior,
+                    'status_novo' => $item->status_novo,
+                    'observacao' => $item->observacao,
+                ];
+            });
+
+        return response()->json($historico);
     }
 
     public function destroy($id)
