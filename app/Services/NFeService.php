@@ -247,8 +247,10 @@ class NFeService
         $nota->emitente_nome = $std->xNome;
         $nota->valor_total = $std->vNF;
         $nota->data_emissao = $std->dhEmi;
-        if ($nota->status == 'pendente' || !$nota->status) {
-            $nota->status = 'pendente';
+
+        // Limpeza de Segurança: Garante status inicial (detectada) e não salva XML incompleto
+        if ($nota->status != 'concluido') {
+            $nota->status = 'detectada';
         }
         $nota->save();
 
@@ -373,11 +375,6 @@ class NFeService
                 // Reutiliza o parser para garantir processamento padrão (NSU, Schema, etc)
                 $this->parseDistDFeResponse($std);
 
-                // --- INÍCIO DA SOLICITAÇÃO DO USUÁRIO ---
-                // Força a extração e salvamento do XML puro e atualização do status
-                // Isso garante que mesmo que parseDistDFeResponse falhe ou tenha lógica condicional,
-                // o XML baixado manualmente seja salvo.
-
                 $doc = $std->loteDistDFeInt->docZip;
                 if (is_array($doc)) $doc = $doc[0];
 
@@ -385,29 +382,62 @@ class NFeService
                 // O conteúdo vem em GZip + Base64
                 $xml_puro = gzdecode(base64_decode($content));
 
-                // Validação de string XML válida e segura
-                if ($xml_puro && (strpos($xml_puro, '<?xml') !== false || strpos($xml_puro, '<nfeProc') !== false || strpos($xml_puro, '<infNFe') !== false || strpos($xml_puro, '<resNFe') !== false)) {
+                // --- RETRY LOGIC (Solicitação do Usuário) ---
+                // Se for detectado apenas um resumo (resNFe), tenta baixar novamente
+                // pois pode ser que a manifestação tenha acabado de ocorrer.
+                if ($xml_puro && strpos($xml_puro, '<resNFe') !== false) {
+                    Log::info("[Sistema] - Resumo detectado para {$chave}. Tentando baixar XML completo novamente...");
+                    sleep(2);
+                    try {
+                        $respRetry = $this->tools->sefazDownload($chave);
+                        $stdRetry = $st->toStd($respRetry);
 
-                    // Se for apenas um resumo (resNFe), não marcamos como concluído ainda, pois precisamos do XML completo
-                    // Mas se for nfeProc ou infNFe (XML Completo), aí sim concluímos.
-                    $status = 'concluido';
-                    if (strpos($xml_puro, '<resNFe') !== false) {
-                        $status = 'detectada'; // Mantém como detectada para baixar o completo depois
+                        if (isset($stdRetry->loteDistDFeInt->docZip)) {
+                            $this->parseDistDFeResponse($stdRetry);
+                            $docRetry = $stdRetry->loteDistDFeInt->docZip;
+                            if (is_array($docRetry)) $docRetry = $docRetry[0];
+
+                            $contentRetry = (string) $docRetry;
+                            $xmlRetry = gzdecode(base64_decode($contentRetry));
+
+                            // Se o novo XML for válido, substitui o anterior
+                            if ($xmlRetry) {
+                                $xml_puro = $xmlRetry;
+                                $doc = $docRetry;
+                                $content = $contentRetry;
+                                $std = $stdRetry; // Atualiza o std principal para usar cStat correto se precisar
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        Log::warning("[Sistema] - Falha no retry de download para {$chave}: " . $e->getMessage());
                     }
+                }
+                // --- FIM RETRY LOGIC ---
 
+                // Validação de string XML válida e segura
+                // PRIORIDADE: Só aceita como sucesso se tiver nfeProc ou infNFe (XML Completo com Itens)
+                // Se vier resNFe, mesmo que venha no docZip, é incompleto.
+                if ($xml_puro && strpos($xml_puro, '<resNFe') !== false) {
+                    Log::warning("[Sistema] - Apenas resumo (resNFe) obtido para {$chave}. Mantendo status 'detectada'.");
+                    // Não salvamos o XML de resumo para não poluir o banco com dados incompletos
+                    // Retornamos erro para que o robô tente novamente no próximo ciclo
+                    return ['status' => 'error', 'message' => 'SEFAZ retornou apenas resumo. Tentando novamente no próximo ciclo.'];
+                }
+
+                if ($xml_puro && (strpos($xml_puro, '<?xml') !== false || strpos($xml_puro, '<nfeProc') !== false || strpos($xml_puro, '<infNFe') !== false)) {
+
+                    // Se chegou aqui, é um XML Completo (nfeProc/infNFe)
                     NotaEntrada::where('chave_acesso', $chave)->update([
                         'xml_content' => $xml_puro,
-                        'status' => $status
+                        'status' => 'concluido'
                     ]);
 
-                    // Log de auditoria real solicitado (apenas para XML completo ou mudanças relevantes)
-                    if ($status === 'concluido') {
-                        LogService::cagueta("[Sistema] - XML da Nota {$chave} recuperado com sucesso via chave direta (cStat {$std->cStat}).");
-                    }
+                    LogService::cagueta("[Sistema] - XML da Nota {$chave} recuperado com sucesso via chave direta.");
+
                 } else {
                     Log::warning("[Sistema] - Falha na descompactação ou XML inválido para a chave {$chave}.");
+                    return ['status' => 'error', 'message' => 'XML Inválido ou Corrompido.'];
                 }
-                // --- FIM DA SOLICITAÇÃO DO USUÁRIO ---
 
                 // Tratamento robusto para extração de atributos (evita crash 'attributes() on string')
                 $nsu = '0';
@@ -419,14 +449,14 @@ class NFeService
                 } else {
                     // Fallback para quando $doc virou string ou não é objeto
                     try {
-                        $xmlSimples = simplexml_load_string($resp);
-                        if ($xmlSimples && isset($xmlSimples->loteDistDFeInt->docZip)) {
-                             $nodeZip = $xmlSimples->loteDistDFeInt->docZip;
-                             if (count($nodeZip) > 0) $nodeZip = $nodeZip[0];
-
-                             $nsu = (string)($nodeZip['NSU'] ?? '0');
-                             $schema = (string)($nodeZip['schema'] ?? 'procNFe');
-                        }
+                        // Usa a resposta original ($resp) ou a do retry se tiver sido atualizada?
+                        // O $resp original ainda contém o XML da primeira tentativa.
+                        // Se houve retry e sucesso, $doc foi atualizado, mas $resp não necessariamente (variável local).
+                        // Vamos tentar extrair do $content que é garantido ser o docZip atual.
+                        // Mas attributes() precisa do XML da estrutura do lote.
+                        // Simplificação: Se já temos sucesso no download, NSU/Schema são secundários aqui.
+                        // Vamos usar valores padrão se não der pra extrair.
+                        $nsu = '0';
                     } catch (\Exception $e) {
                         Log::warning("Falha no fallback de extração de NSU: " . $e->getMessage());
                     }

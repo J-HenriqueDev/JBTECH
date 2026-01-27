@@ -62,12 +62,12 @@ class ProcessarNFeDestinadas extends Command
             ->update([
                 'xml_content' => null,
                 'status' => 'detectada',
-                'manifestacao' => 'ciencia' // Garante que vamos tentar baixar de novo
+                'manifestacao' => null // Reseta manifestação para forçar o sistema a refazer a ciência
             ]);
 
         if ($affected > 0) {
-            $this->info("Sanitização: $affected notas com XML inválido (resNFe) foram resetadas para novo download.");
-            Log::warning("Sanitização: $affected notas corrigidas automaticamente.");
+            $this->info("Sanitização: $affected notas com XML inválido (resNFe) foram resetadas e forçadas para nova manifestação.");
+            Log::warning("Sanitização: $affected notas corrigidas e resetadas.");
         }
 
         // 0.2 Sanitização Preventiva (Tamanho Mínimo)
@@ -149,10 +149,16 @@ class ProcessarNFeDestinadas extends Command
                             // Log individual removido para evitar spam (Lei do Silêncio)
                         } else {
                             $msgErro = isset($result['message']) ? $result['message'] : 'Erro desconhecido ao baixar XML.';
-                            $this->error("Falha: XML não salvo para a nota {$chave}. Motivo: {$msgErro}");
 
-                            // Log de Falha mantido pois é erro
-                            LogService::registrarSistema('Sistema', 'Falha Download', "Falha ao recuperar XML da Nota {$chave}. Motivo: {$msgErro}");
+                            // Tratamento diferenciado para "Apenas Resumo" (não é falha crítica, é espera)
+                            if (strpos($msgErro, 'apenas resumo') !== false) {
+                                $this->warn("Aguardando: {$msgErro}");
+                                // Não logamos no banco para não poluir, pois será tentado novamente
+                            } else {
+                                $this->error("Falha: XML não salvo para a nota {$chave}. Motivo: {$msgErro}");
+                                // Log de Falha mantido para erros reais
+                                LogService::registrarSistema('Sistema', 'Falha Download', "Falha ao recuperar XML da Nota {$chave}. Motivo: {$msgErro}");
+                            }
                         }
 
                     } catch (\Exception $e) {
