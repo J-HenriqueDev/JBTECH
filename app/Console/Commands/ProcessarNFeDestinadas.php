@@ -88,7 +88,7 @@ class ProcessarNFeDestinadas extends Command
             ->update([
                 'xml_content' => null,
                 'status' => 'detectada',
-                'manifestacao' => null // Reseta manifestação para forçar o sistema a refazer a ciência
+                'manifestacao' => 'sem_manifestacao' // Reseta manifestação para forçar o sistema a refazer a ciência
             ]);
 
         if ($affected > 0) {
