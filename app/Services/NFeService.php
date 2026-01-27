@@ -352,12 +352,23 @@ class NFeService
 
             // Se não tiver manifestação, faz ciência
             if (!$nota || ($nota->manifestacao != 'ciencia' && $nota->manifestacao != 'confirmada')) {
-                $this->tools->sefazManifesta($chave, '210210');
-                if ($nota) {
-                    $nota->manifestacao = 'ciencia';
-                    $nota->save();
+                $st = new Standardize();
+                $respManif = $this->tools->sefazManifesta($chave, '210210');
+                $stdManif = $st->toStd($respManif);
+
+                // Validação estrita conforme NT 2014.002
+                if (isset($stdManif->cStat) && in_array($stdManif->cStat, ['128', '135', '573'])) {
+                    if ($nota) {
+                        $nota->manifestacao = 'ciencia';
+                        $nota->save();
+                    }
+                } else {
+                    $motivo = isset($stdManif->xMotivo) ? $stdManif->xMotivo : 'Motivo não informado';
+                    throw new \Exception("Falha na manifestação (cStat {$stdManif->cStat}): {$motivo}");
                 }
-                sleep(2); // Delay para processamento na SEFAZ
+
+                // Delay pequeno para propagação do evento no Ambiente Nacional
+                sleep(2);
             }
 
             // Tenta download

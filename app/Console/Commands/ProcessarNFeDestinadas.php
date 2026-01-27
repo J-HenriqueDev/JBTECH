@@ -53,6 +53,23 @@ class ProcessarNFeDestinadas extends Command
         $this->info('Command nfe:processar-destinadas iniciado.');
         Log::info('Command nfe:processar-destinadas iniciado.');
 
+        // 0.0 Reset de Falsos Positivos: manifestação marcada como 'ciencia' mas sem XML completo
+        $resetCiencia = NotaEntrada::where('manifestacao', 'ciencia')
+            ->where(function ($q) {
+                $q->whereNull('xml_content')
+                    ->orWhere('xml_content', '')
+                    ->orWhere('xml_content', 'like', '%<resNFe%');
+            })
+            ->update([
+                'manifestacao' => null,
+                'status' => 'detectada',
+                'xml_content' => null
+            ]);
+        if ($resetCiencia > 0) {
+            $this->info("Sanitização: {$resetCiencia} notas com 'ciencia' sem XML completo foram resetadas para detecção.");
+            Log::warning("Sanitização: {$resetCiencia} falsos positivos de ciência resetados.");
+        }
+
         // 0. Sanitização de Status (Correção Retroativa)
         // Se tem XML mas o status ainda é pendente/downloaded, corrige para concluido
         $fixedStatus = NotaEntrada::whereNotNull('xml_content')
@@ -86,7 +103,7 @@ class ProcessarNFeDestinadas extends Command
             ->update([
                 'xml_content' => null,
                 'status' => 'detectada',
-                'manifestacao' => 'ciencia'
+                'manifestacao' => null
             ]);
 
         if ($smallXmls > 0) {
@@ -119,8 +136,13 @@ class ProcessarNFeDestinadas extends Command
                 $this->info("Encontradas {$notasPendentes->count()} notas pendentes de download. Iniciando manifestação e download...");
 
                 $sucessosCount = 0;
+                $downloadAttempts = 0; // Limite de 20 por execução para respeitar a NT/SEFAZ
 
                 foreach ($notasPendentes as $nota) {
+                    if ($downloadAttempts >= 20) {
+                        $this->warn("Limite de 20 downloads por execução atingido. Pausando para evitar erro 656.");
+                        break;
+                    }
                     $chave = $nota->chave_acesso;
                     $this->info("Processando nota: $chave");
 
@@ -135,6 +157,7 @@ class ProcessarNFeDestinadas extends Command
                         // 1. Prioridade de Download por Chave (Solicitação Explícita)
                         $this->info("Prioridade: Tentando baixar XML completo para nota {$chave} (Status: {$nota->status})...");
                         $result = $nfeService->baixarPorChave($chave);
+                        $downloadAttempts++;
 
                         // DETECÇÃO DE MODO SONECA (Erro 656) no Download Manual
                         if (isset($result['cStat']) && $result['cStat'] == '656') {
@@ -196,7 +219,7 @@ class ProcessarNFeDestinadas extends Command
                 $this->info("Aguardando intervalo de verificação de novas notas (Regra SEFAZ 137). Pulando consulta NSU.");
             } else {
                 $lastNSU = Configuracao::get('nfe_last_nsu') ?: 0;
-                $maxLoops = 3; // Limite de segurança
+                $maxLoops = 50; // Limite de segurança por execução (evita bloqueios no Heroku)
                 $loopCount = 0;
                 $novasNotas = 0;
 
@@ -280,7 +303,15 @@ class ProcessarNFeDestinadas extends Command
                                         try {
                                             // Tenta baixar imediatamente (Ciência -> Download)
                                             // Isso evita esperar a próxima execução do comando
-                                            $nfeService->baixarPorChave($novaChave);
+                                            if (!isset($downloadAttempts)) {
+                                                $downloadAttempts = 0;
+                                            }
+                                            if ($downloadAttempts < 20) {
+                                                $nfeService->baixarPorChave($novaChave);
+                                                $downloadAttempts++;
+                                            } else {
+                                                $this->warn("Limite de 20 downloads atingido. Aguardando próximo ciclo para {$novaChave}.");
+                                            }
                                             $this->info("Nota $novaChave processada com sucesso no fluxo contínuo.");
                                         } catch (\Exception $eDownload) {
                                             $this->error("Erro ao tentar baixar imediatamente a nota $novaChave: " . $eDownload->getMessage());
