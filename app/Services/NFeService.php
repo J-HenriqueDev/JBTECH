@@ -385,8 +385,8 @@ class NFeService
                 // O conteúdo vem em GZip + Base64
                 $xml_puro = gzdecode(base64_decode($content));
 
-                // Validação de string XML válida
-                if ($xml_puro && (strpos($xml_puro, '<nfeProc') !== false || strpos($xml_puro, '<infNFe') !== false || strpos($xml_puro, '<resNFe') !== false)) {
+                // Validação de string XML válida e segura
+                if ($xml_puro && (strpos($xml_puro, '<?xml') !== false || strpos($xml_puro, '<nfeProc') !== false || strpos($xml_puro, '<infNFe') !== false || strpos($xml_puro, '<resNFe') !== false)) {
 
                     // Se for apenas um resumo (resNFe), não marcamos como concluído ainda, pois precisamos do XML completo
                     // Mas se for nfeProc ou infNFe (XML Completo), aí sim concluímos.
@@ -409,11 +409,34 @@ class NFeService
                 }
                 // --- FIM DA SOLICITAÇÃO DO USUÁRIO ---
 
+                // Tratamento robusto para extração de atributos (evita crash 'attributes() on string')
+                $nsu = '0';
+                $schema = 'procNFe';
+
+                if (is_object($doc)) {
+                    $nsu = $doc->attributes()->NSU ?? $doc->NSU ?? '0';
+                    $schema = $doc->attributes()->schema ?? $doc->schema ?? 'procNFe';
+                } else {
+                    // Fallback para quando $doc virou string ou não é objeto
+                    try {
+                        $xmlSimples = simplexml_load_string($resp);
+                        if ($xmlSimples && isset($xmlSimples->loteDistDFeInt->docZip)) {
+                             $nodeZip = $xmlSimples->loteDistDFeInt->docZip;
+                             if (count($nodeZip) > 0) $nodeZip = $nodeZip[0];
+
+                             $nsu = (string)($nodeZip['NSU'] ?? '0');
+                             $schema = (string)($nodeZip['schema'] ?? 'procNFe');
+                        }
+                    } catch (\Exception $e) {
+                        Log::warning("Falha no fallback de extração de NSU: " . $e->getMessage());
+                    }
+                }
+
                 return [
                     'status' => 'success',
-                    'nsu' => $doc->attributes()->NSU ?? $doc->NSU ?? '0',
-                    'schema' => $doc->attributes()->schema ?? $doc->schema ?? 'procNFe',
-                    'content' => (string) $doc
+                    'nsu' => $nsu,
+                    'schema' => $schema,
+                    'content' => (string)$doc
                 ];
             }
 

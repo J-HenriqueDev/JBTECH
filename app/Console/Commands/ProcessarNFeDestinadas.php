@@ -70,6 +70,21 @@ class ProcessarNFeDestinadas extends Command
             Log::warning("Sanitização: $affected notas corrigidas automaticamente.");
         }
 
+        // 0.2 Sanitização Preventiva (Tamanho Mínimo)
+        // XMLs muito pequenos (<1000 chars) geralmente são erros ou resumos mal salvos
+        $smallXmls = NotaEntrada::whereNotNull('xml_content')
+            ->whereRaw('LENGTH(xml_content) < 1000')
+            ->update([
+                'xml_content' => null,
+                'status' => 'detectada',
+                'manifestacao' => 'ciencia'
+            ]);
+
+        if ($smallXmls > 0) {
+            $this->info("Sanitização: $smallXmls notas com XML suspeito (<1000 chars) foram resetadas.");
+            Log::warning("Sanitização: $smallXmls notas resetadas por tamanho insuficiente.");
+        }
+
         // 1. Verificação de Bloqueio (Consumo Indevido - Global)
         $nextQuery = Configuracao::get('nfe_next_dfe_query');
         if ($nextQuery) {
