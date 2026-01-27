@@ -45,19 +45,7 @@ class Configuracao extends Model
             // Se for configuração por usuário e userId não foi informado, tenta usar o usuário autenticado
             if ($ehConfiguracaoPorUsuario && $userId === null && auth()->check()) {
                 $userId = auth()->id();
-                public static function getTempoRestanteSoneca()
-    {
-        $nextQuery = self::get('nfe_next_dfe_query');
-        if (!$nextQuery) return 0;
-
-        $nextQueryDate = \Carbon\Carbon::parse($nextQuery);
-        if (now()->lt($nextQueryDate)) {
-            return (int) ceil(now()->diffInMinutes($nextQueryDate));
-        }
-
-        return 0;
-    }
-}
+            }
 
             // Se não for configuração por usuário, força userId = null (global)
             if (!$ehConfiguracaoPorUsuario) {
@@ -202,5 +190,22 @@ class Configuracao extends Model
     public static function getByGrupo($grupo)
     {
         return self::where('grupo', $grupo)->get()->pluck('valor', 'chave')->toArray();
+    }
+
+    /**
+     * Calcula o tempo restante do modo soneca em minutos
+     * @return int
+     */
+    public static function getTempoRestanteSoneca()
+    {
+        $nextQuery = self::get('nfe_next_dfe_query');
+        if (!$nextQuery) return 0;
+
+        $nextQueryDate = \Carbon\Carbon::parse($nextQuery);
+        if (now()->lt($nextQueryDate)) {
+            return (int) ceil(now()->diffInMinutes($nextQueryDate));
+        }
+
+        return 0;
     }
 }
