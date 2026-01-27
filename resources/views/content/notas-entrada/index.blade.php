@@ -4,15 +4,6 @@
 
 @section('content')
 
-@if(isset($bloqueioMsg) && $bloqueioMsg)
-<div class="alert alert-warning d-flex align-items-center" role="alert">
-    <i class="bx bx-time-five me-2"></i>
-    <div>
-        {{ $bloqueioMsg }}
-    </div>
-</div>
-@endif
-
 @if(session('success'))
 <div class="alert alert-primary alert-dismissible" role="alert">
     <h6 class="alert-heading d-flex align-items-center fw-bold mb-1">
@@ -61,6 +52,90 @@
                 <i class="fas fa-sync-alt me-1"></i> Buscar na SEFAZ
             </button>
         </form>
+    </div>
+</div>
+
+<!-- Soneca / Status Badge -->
+<div class="row mb-4" id="sefaz-health-badge-container">
+    <div class="col-12">
+        <div id="badge-soneca" class="alert alert-danger d-flex align-items-center justify-content-between shadow-sm border-2 border-danger" role="alert" style="{{ $healthStats['sonecaMinutos'] > 0 ? '' : 'display: none;' }}">
+            <div class="d-flex align-items-center">
+                <i class="bx bx-sleep-y bx-md me-3 text-danger animated-pulse"></i>
+                <div>
+                    <h5 class="alert-heading mb-1 fw-bold text-danger">💤 Modo Soneca Ativo</h5>
+                    <p class="mb-0">
+                        O robô está em repouso tático para evitar bloqueios. Retorno em <strong id="soneca-timer">{{ $healthStats['sonecaMinutos'] }}</strong> min.
+                        <i class="bx bx-help-circle ms-1" data-bs-toggle="tooltip" data-bs-placement="top" title="Regra NT 2014.002: O governo limita o número de consultas por hora. Para sua segurança, o sistema pausa as requisições automaticamente quando necessário."></i>
+                    </p>
+                </div>
+            </div>
+            <div class="spinner-grow text-danger" role="status">
+                <span class="visually-hidden">Aguardando...</span>
+            </div>
+        </div>
+
+        <div id="badge-ativo" class="alert alert-success d-flex align-items-center justify-content-between shadow-sm border-2 border-success" role="alert" style="{{ $healthStats['sonecaMinutos'] > 0 ? 'display: none;' : '' }}">
+            <div class="d-flex align-items-center">
+                <i class="bx bx-rocket bx-md me-3 text-success"></i>
+                <div>
+                    <h5 class="alert-heading mb-1 fw-bold text-success">🚀 Motor Fiscal Ativo</h5>
+                    <p class="mb-0">
+                        Sincronização em tempo real liberada.
+                        <i class="bx bx-help-circle ms-1 text-success" data-bs-toggle="tooltip" data-bs-placement="top" title="O sistema está operando normalmente e buscando notas na SEFAZ dentro dos limites permitidos."></i>
+                    </p>
+                </div>
+            </div>
+            <i class="bx bx-check-circle bx-md text-success"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Health Stats -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center">
+                    <div class="avatar avatar-md rounded bg-white bg-opacity-25 me-3">
+                        <i class="bx bx-search fs-3 text-white m-2"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0 text-white" id="stat-notas-detectadas">{{ $healthStats['notasDetectadas'] }}</h5>
+                        <small>Notas Detectadas (Mês)</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-success text-white">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center">
+                    <div class="avatar avatar-md rounded bg-white bg-opacity-25 me-3">
+                        <i class="bx bx-file fs-3 text-white m-2"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0 text-white" id="stat-xmls-completos">{{ $healthStats['xmlsCompletos'] }}</h5>
+                        <small>XMLs Completos (Mês)</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-warning text-white">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center">
+                    <div class="avatar avatar-md rounded bg-white bg-opacity-25 me-3">
+                        <i class="bx bx-time-five fs-3 text-white m-2"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0 text-white" id="stat-processamento-pendente">{{ $healthStats['processamentoPendente'] }}</h5>
+                        <small>Processamento Pendente</small>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -130,22 +205,32 @@
                         </td>
                         <td>
                             @php
-                                $dataEmissao = 'N/A';
-                                if ($nota->data_emissao) {
-                                    try {
-                                        $dataEmissao = \Carbon\Carbon::parse($nota->data_emissao)->format('d/m/Y H:i');
-                                    } catch (\Exception $e) {
-                                        $dataEmissao = $nota->data_emissao;
-                                    }
-                                }
+                            $dataEmissao = 'N/A';
+                            if ($nota->data_emissao) {
+                            try {
+                            $dataEmissao = \Carbon\Carbon::parse($nota->data_emissao)->format('d/m/Y H:i');
+                            } catch (\Exception $e) {
+                            $dataEmissao = $nota->data_emissao;
+                            }
+                            }
                             @endphp
                             {{ $dataEmissao }}
                         </td>
                         <td>
-                            <span title="{{ $nota->chave_acesso }}">{{ substr($nota->chave_acesso, 0, 25) }}...</span>
-                            <button type="button" class="btn btn-sm btn-icon" onclick="navigator.clipboard.writeText('{{ $nota->chave_acesso }}')">
-                                <i class="bx bx-copy"></i>
-                            </button>
+                            <div class="d-flex flex-column">
+                                <span class="fw-bold fs-6">{{ $nota->numero_nfe ?? '---' }}</span>
+                                <small class="text-muted">Série: {{ $nota->serie ?? '--' }}</small>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <small class="text-muted me-2 font-monospace">{{ substr($nota->chave_acesso, 0, 4) }}...{{ substr($nota->chave_acesso, -4) }}</small>
+                                <button type="button" class="btn btn-sm btn-label-primary btn-icon"
+                                    onclick="navigator.clipboard.writeText('{{ $nota->chave_acesso }}'); alert('Chave copiada para a área de transferência!')"
+                                    title="Copiar Chave Completa">
+                                    <i class="bx bx-clipboard"></i>
+                                </button>
+                            </div>
                         </td>
                         <td>
                             <div class="d-flex flex-column">
@@ -156,20 +241,20 @@
                         <td>R$ {{ number_format($nota->valor_total, 2, ',', '.') }}</td>
                         <td>
                             @php
-                                $statusClass = match($nota->manifestacao) {
-                                    'ciencia' => 'bg-info',
-                                    'confirmada' => 'bg-success',
-                                    'desconhecida' => 'bg-warning',
-                                    'nao_realizada' => 'bg-danger',
-                                    default => 'bg-secondary'
-                                };
-                                $statusLabel = match($nota->manifestacao) {
-                                    'ciencia' => 'Ciência',
-                                    'confirmada' => 'Confirmada',
-                                    'desconhecida' => 'Desconhecida',
-                                    'nao_realizada' => 'Não Realizada',
-                                    default => 'Sem Manifestação'
-                                };
+                            $statusClass = match($nota->manifestacao) {
+                            'ciencia' => 'bg-info',
+                            'confirmada' => 'bg-success',
+                            'desconhecida' => 'bg-warning',
+                            'nao_realizada' => 'bg-danger',
+                            default => 'bg-secondary'
+                            };
+                            $statusLabel = match($nota->manifestacao) {
+                            'ciencia' => 'Ciência',
+                            'confirmada' => 'Confirmada',
+                            'desconhecida' => 'Desconhecida',
+                            'nao_realizada' => 'Não Realizada',
+                            default => 'Sem Manifestação'
+                            };
                             @endphp
                             <span class="badge {{ $statusClass }}">{{ $statusLabel }}</span>
                         </td>

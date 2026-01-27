@@ -77,6 +77,16 @@ $configData = Helper::appClasses();
         @isset($menu->badge)
         <div class="badge bg-{{ $menu->badge[0] }} rounded-pill ms-auto">{{ $menu->badge[1] }}</div>
         @endisset
+
+        {{-- SEFAZ Health Badge --}}
+        @if(isset($menu->slug) && $menu->slug === 'notas-entrada')
+            <div id="sidebar-sefaz-badge" class="badge bg-success rounded-pill ms-auto" style="display: none;" title="SEFAZ Online">
+                <i class='bx bx-check-circle'></i>
+            </div>
+            <div id="sidebar-sefaz-soneca-badge" class="badge bg-danger rounded-pill ms-auto" style="display: none;" title="Modo Soneca">
+                <i class='bx bx-sleep-y animated-pulse me-1'></i><span id="sidebar-soneca-timer"></span>
+            </div>
+        @endif
       </a>
 
       {{-- submenu --}}

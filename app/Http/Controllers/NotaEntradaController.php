@@ -25,14 +25,13 @@ class NotaEntradaController extends Controller
     {
         $notas = NotaEntrada::orderBy('data_emissao', 'desc')->paginate(10);
 
-        $nextQuery = \App\Models\Configuracao::get('nfe_next_dfe_query');
-        $bloqueioMsg = null;
-        if ($nextQuery && now()->lt(\Carbon\Carbon::parse($nextQuery))) {
-            $diffMinutes = (int) ceil(now()->diffInMinutes(\Carbon\Carbon::parse($nextQuery)));
-            $bloqueioMsg = "Sincronização temporariamente pausada para evitar bloqueio na SEFAZ. Próxima tentativa em {$diffMinutes} minutos.";
-        }
+        // Obtém dados centralizados de saúde fiscal
+        $healthStats = SefazHealthController::getHealthData();
 
-        return view('content.notas-entrada.index', compact('notas', 'bloqueioMsg'));
+        // Mantém compatibilidade com a variável $bloqueioMsg usada no botão de busca
+        $bloqueioMsg = $healthStats['sonecaMinutos'] > 0 ? $healthStats['statusMessage'] : null;
+
+        return view('content.notas-entrada.index', compact('notas', 'bloqueioMsg', 'healthStats'));
     }
 
     public function buscarNovas()
@@ -220,6 +219,8 @@ class NotaEntradaController extends Controller
                     [
                         'emitente_cnpj' => (string) $emit->CNPJ,
                         'emitente_nome' => (string) $emit->xNome,
+                        'numero_nfe' => (string) $infNFe->ide->nNF,
+                        'serie' => (string) $infNFe->ide->serie,
                         'valor_total' => (float) $total->vNF,
                         'data_emissao' => (string) $infNFe->ide->dhEmi,
                         'xml_content' => $xmlContent,
@@ -275,12 +276,27 @@ class NotaEntradaController extends Controller
             $result = $this->nfeService->baixarPorChave($chave);
 
             if (isset($result['status']) && $result['status'] === 'error') {
-                // Se o erro for de documento não encontrado ou vazio, mostra aviso amigável
+                // Se o erro for de documento não encontrado ou vazio
                 if (
                     str_contains($result['message'], 'Nenhum XML') ||
                     str_contains($result['message'], 'não localizado') ||
                     str_contains($result['message'], 'Erro SEFAZ')
                 ) {
+                    // FEEDBACK DINÂMICO E CRIAÇÃO MANUAL
+                    // Se não existe, criamos para o robô processar
+                    if (!$nota) {
+                        NotaEntrada::create([
+                            'chave_acesso' => $chave,
+                            'status' => 'detectada',
+                            'manifestacao' => 'sem_manifestacao',
+                            'user_id' => auth()->id() // Rastreabilidade
+                        ]);
+
+                        $minutos = \App\Models\Configuracao::getTempoRestanteSoneca();
+                        $tempoEstimado = $minutos > 0 ? $minutos : 'alguns';
+
+                        return redirect()->back()->with('warning', "Nota agendada para download. Devido aos limites do Governo, o robô processará este documento em aproximadamente {$tempoEstimado} minutos.");
+                    }
 
                     return redirect()->back()->with('warning', 'XML ainda não disponível na SEFAZ. Tente novamente em alguns minutos.');
                 }
@@ -422,6 +438,10 @@ class NotaEntradaController extends Controller
     public function confirmarProcessamento(Request $request, $id)
     {
         $nota = NotaEntrada::findOrFail($id);
+
+        if ($nota->status === 'processada') {
+            return redirect()->route('notas-entrada.index')->with('warning', 'Esta nota já foi processada anteriormente e o estoque já foi atualizado.');
+        }
 
         try {
             DB::beginTransaction();

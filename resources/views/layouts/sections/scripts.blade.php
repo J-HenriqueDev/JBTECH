@@ -17,6 +17,7 @@
 
 <!-- END: Theme JS-->
 <!-- BEGIN: Helpers JS -->
+@vite(['resources/assets/js/sefaz-health.js'])
 <script>
     // Helper global para formatação e APIs
 
