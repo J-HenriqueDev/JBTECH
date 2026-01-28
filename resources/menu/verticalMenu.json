@@ -133,7 +133,7 @@
       "slug": "nfe.config"
     },
     {
-      "url": "/dashboard/fiscal-health",
+      "url": "/dashboard/fiscal/health",
       "name": "Dashboard Fiscal",
       "icon": "menu-icon tf-icons bx bx-pulse text-info",
       "slug": "fiscal.health"
