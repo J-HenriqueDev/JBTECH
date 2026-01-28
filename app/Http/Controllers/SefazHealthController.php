@@ -21,12 +21,7 @@ class SefazHealthController extends Controller
             return response()->json($data);
         }
 
-        // Se não for JSON, poderíamos retornar uma view dedicada.
-        // Por enquanto, retornamos JSON para debug ou redirecionamos.
-        // Mas como o usuário pediu "retornar tanto a View quanto um JSON",
-        // vamos retornar o JSON formatado na tela se acessado via browser por enquanto,
-        // pois a view principal é a index de NotasEntrada.
-        return response()->json($data); 
+        return view('content.fiscal.health', ['health' => $data]);
     }
 
     /**
