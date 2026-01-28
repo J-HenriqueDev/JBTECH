@@ -327,8 +327,7 @@
 
         // Monitoramento de Saúde Fiscal (Soneca)
         function checkHealth() {
-            fetch('{{ route('
-                    fiscal.health ') }}', {
+            fetch('{{ route('fiscal.health') }}', {
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest',
                             'Accept': 'application/json'
@@ -347,7 +346,6 @@
                     }
 
                     // Atualiza botão de busca
-                    // Encontra o botão que contém o ícone fa-sync-alt
                     const syncIcon = document.querySelector('.fa-sync-alt');
                     if (syncIcon) {
                         const btnBusca = syncIcon.closest('button');

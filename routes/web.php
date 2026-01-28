@@ -100,7 +100,7 @@ Route::resource('dashboard/solicitacoes', \App\Http\Controllers\SolicitacaoServi
   Route::get('/dashboard/configuracoes', [ConfiguracaoController::class, 'index'])->name('configuracoes.index');
 
   // Rota Health Check Fiscal (SEFAZ)
-  Route::get('/admin/fiscal/health', [\App\Http\Controllers\SefazHealthController::class, 'index'])->name('fiscal.health');
+  Route::get('/dashboard/fiscal/health', [\App\Http\Controllers\SefazHealthController::class, 'index'])->name('fiscal.health');
   Route::post('/dashboard/configuracoes', [ConfiguracaoController::class, 'store'])->name('configuracoes.store');
   Route::get('/dashboard/util/consulta-cnpj/{cnpj}', [ConfiguracaoController::class, 'consultaCnpj'])->name('util.consulta-cnpj');
 
