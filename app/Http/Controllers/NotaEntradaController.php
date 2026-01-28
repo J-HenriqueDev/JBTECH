@@ -190,15 +190,21 @@ class NotaEntradaController extends Controller
                 $status = $notaExistente->status;
             }
 
+            $dataToUpdate = [
+                'emitente_cnpj' => $cnpj,
+                'emitente_nome' => $nome,
+                'valor_total' => $valor,
+                'data_emissao' => $data,
+                'status' => $status
+            ];
+
+            if (auth()->check()) {
+                $dataToUpdate['user_id'] = auth()->id();
+            }
+
             $nota = NotaEntrada::updateOrCreate(
                 ['chave_acesso' => $chave],
-                [
-                    'emitente_cnpj' => $cnpj,
-                    'emitente_nome' => $nome,
-                    'valor_total' => $valor,
-                    'data_emissao' => $data,
-                    'status' => $status
-                ]
+                $dataToUpdate
             );
             return $nota->wasRecentlyCreated ? 'new' : 'updated';
         } elseif (strpos($schema, 'procNFe') !== false || strpos($schema, 'resNFe') === false) {
@@ -216,18 +222,24 @@ class NotaEntradaController extends Controller
                 $emit = $infNFe->emit;
                 $total = $infNFe->total->ICMSTot;
 
+                $dataToUpdate = [
+                    'emitente_cnpj' => (string) $emit->CNPJ,
+                    'emitente_nome' => (string) $emit->xNome,
+                    'numero_nfe' => (string) $infNFe->ide->nNF,
+                    'serie' => (string) $infNFe->ide->serie,
+                    'valor_total' => (float) $total->vNF,
+                    'data_emissao' => (string) $infNFe->ide->dhEmi,
+                    'xml_content' => $xmlContent,
+                    'status' => 'concluido'
+                ];
+
+                if (auth()->check()) {
+                    $dataToUpdate['user_id'] = auth()->id();
+                }
+
                 $nota = NotaEntrada::updateOrCreate(
                     ['chave_acesso' => $chave],
-                    [
-                        'emitente_cnpj' => (string) $emit->CNPJ,
-                        'emitente_nome' => (string) $emit->xNome,
-                        'numero_nfe' => (string) $infNFe->ide->nNF,
-                        'serie' => (string) $infNFe->ide->serie,
-                        'valor_total' => (float) $total->vNF,
-                        'data_emissao' => (string) $infNFe->ide->dhEmi,
-                        'xml_content' => $xmlContent,
-                        'status' => 'concluido'
-                    ]
+                    $dataToUpdate
                 );
                 return $nota->wasRecentlyCreated ? 'new' : 'updated';
             }
@@ -370,7 +382,8 @@ class NotaEntradaController extends Controller
                     'valor_total' => (float) $nfe->total->ICMSTot->vNF,
                     'data_emissao' => (string) $nfe->ide->dhEmi,
                     'xml_content' => $xmlContent,
-                    'status' => 'concluido'
+                    'status' => 'concluido',
+                    'user_id' => auth()->id()
                 ]
             );
 

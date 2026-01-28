@@ -170,17 +170,12 @@
                                         @else
                                             <span class="badge bg-label-secondary">Aguardando XML...</span>
                                         @endif
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <small
-                                            class="text-muted me-2 font-monospace">{{ substr($nota->chave_acesso, 0, 4) }}...{{ substr($nota->chave_acesso, -4) }}</small>
-                                        <button type="button" class="btn btn-sm btn-label-primary btn-icon"
-                                            onclick="navigator.clipboard.writeText('{{ $nota->chave_acesso }}'); alert('Chave copiada para a área de transferência!')"
-                                            title="Copiar Chave Completa">
-                                            <i class="bx bx-clipboard"></i>
-                                        </button>
+                                        <small class="text-muted mt-1 font-monospace" style="font-size: 0.75rem;">
+                                            {{ substr($nota->chave_acesso, 0, 4) }}...{{ substr($nota->chave_acesso, -4) }}
+                                            <i class="bx bx-copy cursor-pointer"
+                                                onclick="navigator.clipboard.writeText('{{ $nota->chave_acesso }}'); alert('Copiado!')"
+                                                title="Copiar"></i>
+                                        </small>
                                     </div>
                                 </td>
                                 <td>

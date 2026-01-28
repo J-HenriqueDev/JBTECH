@@ -20,14 +20,18 @@
     <div class="row">
         <div class="col-12">
             <div class="card mb-4">
-                <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white">
+                <div class="card-header d-flex justify-content-between align-items-center bg-primary">
                     <div>
-                        <h5 class="mb-0 text-white">NF-e {{ $cabecalho['numero_nfe'] }} (Série {{ $cabecalho['serie'] }})
+                        <h5 class="mb-0 text-white" style="color: #ffffff !important;">NF-e {{ $cabecalho['numero_nfe'] }}
+                            (Série {{ $cabecalho['serie'] }})
                         </h5>
-                        <small>{{ $cabecalho['emitente_nome'] }} • {{ $cabecalho['emitente_cnpj'] }}</small>
+                        <small class="text-white-50"
+                            style="color: rgba(255,255,255,0.8) !important;">{{ $cabecalho['emitente_nome'] }} •
+                            {{ $cabecalho['emitente_cnpj'] }}</small>
                     </div>
                     <div>
-                        <h4 class="mb-0 text-white">R$ {{ number_format($cabecalho['valor_total'], 2, ',', '.') }}</h4>
+                        <h4 class="mb-0 text-white" style="color: #ffffff !important;">R$
+                            {{ number_format($cabecalho['valor_total'], 2, ',', '.') }}</h4>
                     </div>
                 </div>
                 <div class="card-body">

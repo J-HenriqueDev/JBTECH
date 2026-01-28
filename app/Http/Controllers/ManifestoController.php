@@ -100,6 +100,9 @@ class ManifestoController extends Controller
                         if ($doc && isset($doc['content'])) {
                             $nota->xml_content = $doc['content'];
                             $nota->status = 'processada'; // XML disponível
+                            if (auth()->check()) {
+                                $nota->user_id = auth()->id();
+                            }
                         }
                     } catch (\Exception $eDl) {
                         // Ignora erro de download imediato (provavelmente 137 - Não disponível ainda)
@@ -130,6 +133,9 @@ class ManifestoController extends Controller
                                 if ($doc && isset($doc['content'])) {
                                     $nota->xml_content = $doc['content'];
                                     $nota->status = 'processada';
+                                    if (auth()->check()) {
+                                        $nota->user_id = auth()->id();
+                                    }
                                 }
                             } catch (\Exception $eDl) {
                                 Log::info("Download pós-confirmação (fallback) falhou: " . $eDl->getMessage());
@@ -175,6 +181,9 @@ class ManifestoController extends Controller
             if ($doc && isset($doc['content'])) {
                 $nota->xml_content = $doc['content'];
                 $nota->status = 'processada';
+                if (auth()->check()) {
+                    $nota->user_id = auth()->id();
+                }
                 $nota->save();
                 return redirect()->back()->with('success', 'XML baixado e armazenado com sucesso!');
             }
