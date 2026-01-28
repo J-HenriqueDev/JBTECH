@@ -394,6 +394,33 @@ class ManifestoController extends Controller
                 $nota->save();
             }
 
+            // Automação: Manifestar Ciência da Operação para liberar download do XML
+            if ($nota->manifestacao != 'ciencia' && $nota->manifestacao != 'confirmada') {
+                try {
+                    $this->nfeService->manifestar($chave, 210210);
+                    $nota->manifestacao = 'ciencia';
+                    $nota->save();
+                    Log::info("ManifestoController: Ciência realizada automaticamente para {$chave}");
+
+                    // Aguarda 2 segundos para processamento na SEFAZ antes de tentar baixar
+                    sleep(2);
+
+                    try {
+                        $doc = $this->nfeService->baixarPorChave($chave);
+                        if (is_array($doc) && isset($doc['status']) && $doc['status'] === 'success' && isset($doc['content'])) {
+                            $nota->xml_content = $doc['content'];
+                            $nota->status = 'processada';
+                            $nota->save();
+                            Log::info("ManifestoController: Download automático realizado com sucesso para {$chave}");
+                        }
+                    } catch (\Exception $eDl) {
+                        Log::warning("ManifestoController: Falha no download automático pós-ciência: " . $eDl->getMessage());
+                    }
+                } catch (\Exception $e) {
+                    Log::warning("ManifestoController: Falha ao manifestar ciência para {$chave}: " . $e->getMessage());
+                }
+            }
+
             return $nota->wasRecentlyCreated ? 'new' : 'updated';
         } elseif (strpos($schema, 'procNFe') !== false || strpos($schema, 'resNFe') === false) {
             // NFe Completa
