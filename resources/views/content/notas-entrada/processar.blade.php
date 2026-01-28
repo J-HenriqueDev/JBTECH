@@ -250,6 +250,38 @@
             <div class="card-body p-0">
                 <form action="{{ route('notas-entrada.confirmar', $nota->id) }}" method="POST">
                     @csrf
+                    @if(!empty($duplicatas))
+                    <div class="alert alert-info m-3" role="alert">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="bx bx-receipt me-2"></i>
+                                <strong>Duplicatas encontradas no XML:</strong>
+                            </div>
+                            <span class="badge bg-label-info">{{ count($duplicatas) }} parcelas</span>
+                        </div>
+                        <div class="table-responsive mt-2">
+                            <table class="table table-sm table-striped mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Número</th>
+                                        <th>Vencimento</th>
+                                        <th>Valor</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($duplicatas as $dup)
+                                    <tr>
+                                        <td>{{ $dup['nDup'] }}</td>
+                                        <td>{{ \Carbon\Carbon::parse($dup['dVenc'])->format('d/m/Y') }}</td>
+                                        <td>R$ {{ number_format($dup['vDup'], 2, ',', '.') }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                        <small class="text-muted d-block mt-2">Ao confirmar a entrada, as duplicatas serão registradas em Contas a Pagar.</small>
+                    </div>
+                    @endif
 
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">

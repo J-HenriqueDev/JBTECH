@@ -98,7 +98,7 @@ Route::resource('dashboard/solicitacoes', \App\Http\Controllers\SolicitacaoServi
 
   // Rotas para Configurações
   Route::get('/dashboard/configuracoes', [ConfiguracaoController::class, 'index'])->name('configuracoes.index');
-  
+
   // Rota Health Check Fiscal (SEFAZ)
   Route::get('/admin/fiscal/health', [\App\Http\Controllers\SefazHealthController::class, 'index'])->name('fiscal.health');
   Route::post('/dashboard/configuracoes', [ConfiguracaoController::class, 'store'])->name('configuracoes.store');
@@ -226,6 +226,7 @@ Route::resource('dashboard/solicitacoes', \App\Http\Controllers\SolicitacaoServi
   Route::post('/dashboard/notas-entrada/upload-xml', [\App\Http\Controllers\NotaEntradaController::class, 'uploadXml'])->name('notas-entrada.upload-xml');
   Route::get('/dashboard/notas-entrada/{id}/processar', [\App\Http\Controllers\NotaEntradaController::class, 'processar'])->name('notas-entrada.processar');
   Route::post('/dashboard/notas-entrada/{id}/confirmar', [\App\Http\Controllers\NotaEntradaController::class, 'confirmarProcessamento'])->name('notas-entrada.confirmar');
+  Route::get('/admin/fiscal/espelho/{id}', [\App\Http\Controllers\NotaEntradaController::class, 'espelho'])->name('admin.fiscal.espelho');
 
   // Rotas para erro misc
   Route::post('/pages/misc-error', [MiscError::class, 'index'])->name('pages-misc-error');

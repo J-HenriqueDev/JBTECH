@@ -49,8 +49,7 @@
             </button>
             <form action="{{ route('notas-entrada.buscar') }}" method="POST" class="d-inline">
                 @csrf
-                <button type="submit" class="btn btn-primary"
-                    {{ isset($bloqueioMsg) && $bloqueioMsg ? 'disabled' : '' }}>
+                <button type="submit" class="btn btn-primary" {{ isset($bloqueioMsg) && $bloqueioMsg ? 'disabled' : '' }}>
                     <i class="fas fa-sync-alt me-1"></i> Buscar na SEFAZ
                 </button>
             </form>
@@ -211,7 +210,12 @@
                                     <span class="badge {{ $statusClass }}">{{ $statusLabel }}</span>
                                 </td>
                                 <td>
-                                    @if ($nota->xml_content)
+                                    @if ($nota->status === 'processada' && $nota->xml_content)
+                                        <a href="{{ route('admin.fiscal.espelho', $nota->id) }}"
+                                            class="btn btn-sm btn-success w-100">
+                                            <i class="bx bx-show me-1"></i> Ver Importação
+                                        </a>
+                                    @elseif ($nota->xml_content)
                                         <a href="{{ route('notas-entrada.processar', $nota->id) }}"
                                             class="btn btn-sm btn-success w-100">
                                             <i class="bx bx-check-circle me-1"></i> Dar Entrada
@@ -229,7 +233,12 @@
                                     @endif
                                 </td>
                                 <td>
-                                    @if ($nota->xml_content)
+                                    @if ($nota->status === 'processada' && $nota->xml_content)
+                                        <a href="{{ route('admin.fiscal.espelho', $nota->id) }}"
+                                            class="btn btn-sm btn-primary" title="Visualizar Importação">
+                                            <i class="bx bx-show"></i>
+                                        </a>
+                                    @elseif ($nota->xml_content)
                                         <a href="{{ route('notas-entrada.processar', $nota->id) }}"
                                             class="btn btn-sm btn-primary" title="Importar Nota">
                                             <i class="bx bx-import"></i>

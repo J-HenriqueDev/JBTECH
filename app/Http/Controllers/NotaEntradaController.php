@@ -382,12 +382,19 @@ class NotaEntradaController extends Controller
     {
         $nota = NotaEntrada::findOrFail($id);
 
+        // Trava de duplicidade: se já estiver processada, redireciona para a visualização (Espelho)
+        if ($nota->status === 'processada') {
+            return redirect()->route('admin.fiscal.espelho', $nota->id)
+                ->with('warning', 'Esta nota já foi processada. Redirecionado para a visualização da importação.');
+        }
+
         if (!$nota->xml_content) {
             return redirect()->route('notas-entrada.index')->with('error', 'Nota sem XML para processar.');
         }
 
         $xml = simplexml_load_string($nota->xml_content);
         $itens = [];
+        $duplicatas = [];
 
         // Verifica a estrutura do XML (NFe direta ou procNFe)
         $infNFe = null;
@@ -399,6 +406,17 @@ class NotaEntradaController extends Controller
             // Tenta encontrar em namespaces se necessário, mas geralmente um desses dois funciona
             // Se falhar, talvez seja um resumo ou evento
             return redirect()->route('notas-entrada.index')->with('error', 'Estrutura do XML inválida para processamento de itens.');
+        }
+
+        // Captura duplicatas para exibição na conferência
+        if (isset($infNFe->cobr) && isset($infNFe->cobr->dup)) {
+            foreach ($infNFe->cobr->dup as $dup) {
+                $duplicatas[] = [
+                    'nDup' => (string) ($dup->nDup ?? ''),
+                    'vDup' => (float) ($dup->vDup ?? 0),
+                    'dVenc' => (string) ($dup->dVenc ?? '')
+                ];
+            }
         }
 
         foreach ($infNFe->det as $det) {
@@ -432,7 +450,7 @@ class NotaEntradaController extends Controller
             ];
         }
 
-        return view('content.notas-entrada.processar', compact('nota', 'itens'));
+        return view('content.notas-entrada.processar', compact('nota', 'itens', 'duplicatas'));
     }
 
     public function confirmarProcessamento(Request $request, $id)
@@ -603,5 +621,73 @@ class NotaEntradaController extends Controller
             Log::error('Erro ao processar nota: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Erro ao processar nota: ' . $e->getMessage());
         }
+    }
+
+    public function espelho($id)
+    {
+        $nota = NotaEntrada::findOrFail($id);
+
+        if (!$nota->xml_content) {
+            return redirect()->route('notas-entrada.index')->with('error', 'Nota sem XML para visualizar.');
+        }
+
+        $xml = simplexml_load_string($nota->xml_content);
+
+        // Localiza infNFe
+        $infNFe = isset($xml->NFe->infNFe) ? $xml->NFe->infNFe : ($xml->infNFe ?? null);
+        if (!$infNFe) {
+            $ns = $xml->getNamespaces(true);
+            $xml->registerXPathNamespace('n', $ns[''] ?? 'http://www.portalfiscal.inf.br/nfe');
+            $infNFe = $xml->xpath('//n:infNFe')[0] ?? null;
+        }
+        if (!$infNFe) {
+            return redirect()->route('notas-entrada.index')->with('error', 'Estrutura do XML inválida para visualização.');
+        }
+
+        // Cabeçalho
+        $cabecalho = [
+            'emitente_nome' => (string) ($infNFe->emit->xNome ?? ''),
+            'emitente_cnpj' => (string) ($infNFe->emit->CNPJ ?? ''),
+            'numero_nfe' => (string) ($infNFe->ide->nNF ?? ''),
+            'serie' => (string) ($infNFe->ide->serie ?? ''),
+            'valor_total' => (float) ($infNFe->total->ICMSTot->vNF ?? 0),
+            'data_emissao' => (string) ($infNFe->ide->dhEmi ?? '')
+        ];
+
+        // Itens de/para
+        $itens = [];
+        foreach ($infNFe->det as $det) {
+            $prod = $det->prod;
+            $produtoInterno = null;
+            if (!empty((string)$prod->cEAN) && (string)$prod->cEAN !== 'SEM GTIN') {
+                $produtoInterno = \App\Models\Produto::where('codigo_barras', (string)$prod->cEAN)->first();
+            }
+            $itens[] = [
+                'xml_nome' => (string) $prod->xProd,
+                'xml_ean' => (string) $prod->cEAN,
+                'xml_unidade' => (string) $prod->uCom,
+                'xml_qtd' => (float) $prod->qCom,
+                'xml_custo' => (float) $prod->vUnCom,
+                'produto_interno' => $produtoInterno
+            ];
+        }
+
+        // Duplicatas
+        $duplicatas = [];
+        if (isset($infNFe->cobr) && isset($infNFe->cobr->dup)) {
+            foreach ($infNFe->cobr->dup as $dup) {
+                $duplicatas[] = [
+                    'nDup' => (string) ($dup->nDup ?? ''),
+                    'vDup' => (float) ($dup->vDup ?? 0),
+                    'dVenc' => (string) ($dup->dVenc ?? '')
+                ];
+            }
+        }
+
+        // Configuração de markup padrão
+        $metodoLucro = \App\Models\Configuracao::get('produtos_metodo_lucro', 'markup');
+        $markupPadrao = (float) \App\Models\Configuracao::get('produtos_markup_padrao', '30');
+
+        return view('content.fiscal.espelho', compact('nota', 'cabecalho', 'itens', 'duplicatas', 'metodoLucro', 'markupPadrao'));
     }
 }
