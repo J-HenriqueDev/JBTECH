@@ -63,22 +63,22 @@ class InventoryService
                 // Tenta encontrar produto
                 $produto = null;
 
-                // 1. Busca por EAN (se válido e não for "SEM GTIN")
-                if (!empty($ean) && $ean !== 'SEM GTIN') {
-                    $produto = Produto::where('codigo_barras', $ean)->first();
+                // 1. Busca por Código Interno (cProd) do fornecedor (prioridade do usuário)
+                if (!empty($codigoInterno)) {
+                    Log::info("Tentando encontrar produto pelo código interno (cProd): {$codigoInterno}");
+                    $produto = Produto::where('codigo_barras', $codigoInterno)->first();
+                    if ($produto) {
+                        Log::info("Produto encontrado pelo código interno (cProd): {$codigoInterno} - ID: {$produto->id}");
+                    }
                 }
 
-                // 2. Busca por Código Interno (cProd) se não achou por EAN
-                // Assumimos que o cProd do fornecedor pode bater com nosso codigo_barras ou ID, 
-                // mas a instrução pede para buscar pelo "Código Interno (prod->cProd)".
-                // Vamos assumir que mapeia para 'codigo_barras' ou algum campo de código do sistema.
-                // Como o modelo Produto tem 'codigo_barras', vamos tentar bater lá também, ou no ID se for numérico?
-                // O usuário disse: "procurar o produto no banco JBTECH pelo EAN (prod->cEAN) ou pelo Código Interno (prod->cProd)."
-                // Vou buscar prod->cProd no campo 'codigo_barras' também, ou talvez em 'id' se for match exato.
-                // Para segurança, vamos buscar em 'codigo_barras' primeiro.
-                
-                if (!$produto && !empty($codigoInterno)) {
-                    $produto = Produto::where('codigo_barras', $codigoInterno)->first();
+                // 2. Busca por EAN (se válido e não for "SEM GTIN") - fallback
+                if (!$produto && !empty($ean) && $ean !== 'SEM GTIN') {
+                    Log::info("Tentando encontrar produto pelo EAN: {$ean} (fallback)");
+                    $produto = Produto::where('codigo_barras', $ean)->first();
+                    if ($produto) {
+                        Log::info("Produto encontrado pelo EAN: {$ean} - ID: {$produto->id}");
+                    }
                 }
 
                 if ($produto) {

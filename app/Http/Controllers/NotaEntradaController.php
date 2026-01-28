@@ -424,10 +424,22 @@ class NotaEntradaController extends Controller
         foreach ($infNFe->det as $det) {
             $prod = $det->prod;
 
-            // Tenta encontrar produto por código de barras
-            $produtoExistente = \App\Models\Produto::where('codigo_barras', (string) $prod->cEAN)
-                ->orWhere('codigo_barras', (string) $prod->cEANTrib)
-                ->first();
+            // Tenta encontrar produto por código de barras (cProd > EAN)
+            $cProd = (string) $prod->cProd;
+            $cEAN = (string) $prod->cEAN;
+            $produtoExistente = null;
+
+            // 1. Prioridade: Código Interno (cProd)
+            if (!empty($cProd)) {
+                $produtoExistente = \App\Models\Produto::where('codigo_barras', $cProd)->first();
+            }
+
+            // 2. Fallback: EAN
+            if (!$produtoExistente && !empty($cEAN) && $cEAN !== 'SEM GTIN') {
+                $produtoExistente = \App\Models\Produto::where('codigo_barras', $cEAN)
+                    ->orWhere('codigo_barras', (string) $prod->cEANTrib)
+                    ->first();
+            }
 
             $ultimoCusto = 0;
             if ($produtoExistente) {
@@ -661,8 +673,17 @@ class NotaEntradaController extends Controller
         foreach ($infNFe->det as $det) {
             $prod = $det->prod;
             $produtoInterno = null;
-            if (!empty((string)$prod->cEAN) && (string)$prod->cEAN !== 'SEM GTIN') {
-                $produtoInterno = \App\Models\Produto::where('codigo_barras', (string)$prod->cEAN)->first();
+            $cProd = (string) $prod->cProd;
+            $cEAN = (string) $prod->cEAN;
+
+            // 1. Prioridade: Código Interno (cProd)
+            if (!empty($cProd)) {
+                $produtoInterno = \App\Models\Produto::where('codigo_barras', $cProd)->first();
+            }
+
+            // 2. Fallback: EAN
+            if (!$produtoInterno && !empty($cEAN) && $cEAN !== 'SEM GTIN') {
+                $produtoInterno = \App\Models\Produto::where('codigo_barras', $cEAN)->first();
             }
             $itens[] = [
                 'xml_nome' => (string) $prod->xProd,

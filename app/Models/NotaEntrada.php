@@ -68,16 +68,23 @@ class NotaEntrada extends Model
             $emitenteNome = (string) ($infNFe->emit->xNome ?? '');
             $itens = [];
 
-            foreach ($infNFe->det as $det) {
+            // Busca fornecedor pelo CNPJ para verificar vínculo personalizado
+            $emitenteCnpj = (string) ($infNFe->emit->CNPJ ?? '');
+            $fornecedor = !empty($emitenteCnpj) ? \App\Models\Fornecedor::where('cnpj', $emitenteCnpj)->first() : null;
+
+            foreach ($infNFe->det as $index => $det) {
                 $prod = $det->prod;
                 $ean = (string) $prod->cEAN;
+                $cProd = (string) $prod->cProd; // Código do produto no fornecedor
                 $qtd = (float) $prod->qCom;
                 $valor = (float) $prod->vProd;
                 $nomeItem = (string) $prod->xProd;
 
                 $itemData = [
+                    'index' => $index, // Adicionado índice para referência
                     'nome_fornecedor' => $emitenteNome,
                     'ean' => $ean,
+                    'cProd' => $cProd,
                     'quantidade' => $qtd,
                     'valor' => $valor,
                     'nome_item' => $nomeItem,
@@ -85,8 +92,24 @@ class NotaEntrada extends Model
                     'produto_nome_interno' => null
                 ];
 
-                // Dedo Duro: Verifica se existe no banco
-                if (!empty($ean) && $ean !== 'SEM GTIN') {
+                // 1. Tenta buscar pelo vínculo Fornecedor <-> Produto (Mais forte)
+                if ($fornecedor) {
+                    $vinculo = \Illuminate\Support\Facades\DB::table('produto_fornecedor')
+                        ->where('fornecedor_id', $fornecedor->id)
+                        ->where('codigo_produto_fornecedor', $cProd)
+                        ->first();
+
+                    if ($vinculo) {
+                        $produto = \App\Models\Produto::find($vinculo->produto_id);
+                        if ($produto) {
+                            $itemData['produto_id'] = $produto->id;
+                            $itemData['produto_nome_interno'] = $produto->nome;
+                        }
+                    }
+                }
+
+                // 2. Se não achou pelo vínculo, tenta pelo EAN (Dedo Duro)
+                if (empty($itemData['produto_id']) && !empty($ean) && $ean !== 'SEM GTIN') {
                     $produto = \App\Models\Produto::where('codigo_barras', $ean)->first();
                     if ($produto) {
                         $itemData['produto_id'] = $produto->id;
