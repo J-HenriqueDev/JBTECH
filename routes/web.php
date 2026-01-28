@@ -227,6 +227,7 @@ Route::resource('dashboard/solicitacoes', \App\Http\Controllers\SolicitacaoServi
   Route::get('/dashboard/notas-entrada/{id}/processar', [\App\Http\Controllers\NotaEntradaController::class, 'processar'])->name('notas-entrada.processar');
   Route::post('/dashboard/notas-entrada/{id}/confirmar', [\App\Http\Controllers\NotaEntradaController::class, 'confirmarProcessamento'])->name('notas-entrada.confirmar');
   Route::get('/admin/fiscal/espelho/{id}', [\App\Http\Controllers\NotaEntradaController::class, 'espelho'])->name('admin.fiscal.espelho');
+  Route::get('/admin/fiscal/espelho/{id}/xml-pdf', [\App\Http\Controllers\NotaEntradaController::class, 'espelhoXmlPdf'])->name('admin.fiscal.espelho.xml-pdf');
 
   // Rotas para erro misc
   Route::post('/pages/misc-error', [MiscError::class, 'index'])->name('pages-misc-error');

@@ -11,6 +11,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Services\LogService;
 use Illuminate\Support\Facades\DB;
+use App\Services\CustomDanfe;
+use Illuminate\Support\Facades\Response;
 
 class NotaEntradaController extends Controller
 {
@@ -689,5 +691,35 @@ class NotaEntradaController extends Controller
         $markupPadrao = (float) \App\Models\Configuracao::get('produtos_markup_padrao', '30');
 
         return view('content.fiscal.espelho', compact('nota', 'cabecalho', 'itens', 'duplicatas', 'metodoLucro', 'markupPadrao'));
+    }
+
+    public function espelhoXmlPdf($id)
+    {
+        $nota = NotaEntrada::findOrFail($id);
+        if (empty($nota->xml_content)) {
+            return redirect()->route('notas-entrada.index')->with('error', 'XML não disponível para esta nota.');
+        }
+        try {
+            $xml = $nota->xml_content;
+            $danfe = new CustomDanfe($xml);
+            $danfe->debugMode(false);
+            $danfe->creditsIntegratorFooter('Powered by JBTech Informática', false);
+            $danfe->exibirTextoFatura = true;
+
+            $logoPath = public_path('assets/img/front-pages/landing-page/jblogo_black.png');
+            if (!file_exists($logoPath)) {
+                $fallback = public_path('assets/img/branding/logo.png');
+                $logoPath = file_exists($fallback) ? $fallback : '';
+            }
+            $logo = $logoPath ?: '';
+            $pdf = $danfe->render($logo);
+            return Response::make($pdf, 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="NFe_' . ($nota->numero_nfe ?? $nota->chave_acesso) . '.pdf"'
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('Erro ao gerar DANFE para NotaEntrada: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Erro ao gerar DANFE: ' . $e->getMessage());
+        }
     }
 }
