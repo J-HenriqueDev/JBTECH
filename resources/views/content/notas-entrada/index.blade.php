@@ -327,8 +327,7 @@
 
         // Monitoramento de Saúde Fiscal (Soneca)
         function checkHealth() {
-            fetch('{{ route('
-                    fiscal.health ') }}', {
+            fetch('{{ route('fiscal.health') }}', {
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest',
                             'Accept': 'application/json'
