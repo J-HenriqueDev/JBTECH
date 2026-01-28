@@ -171,7 +171,7 @@
                                 </td>
                                 <td>
                                     <div class="d-flex flex-column">
-                                        <span class="fw-bold">{{ $nota->emitente_nome ?? 'Desconhecido' }}</span>
+                                        <span class="fw-bold" title="{{ $nota->emitente_nome ?? 'Desconhecido' }}">{{ \Illuminate\Support\Str::limit($nota->emitente_nome ?? 'Desconhecido', 40, '...') }}</span>
                                         <small class="text-muted">{{ $nota->emitente_cnpj }}</small>
                                     </div>
                                 </td>
